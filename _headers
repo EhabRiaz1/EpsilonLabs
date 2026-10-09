@@ -1,0 +1,23 @@
+# Netlify / Cloudflare Pages header rules.
+#
+# The markdown twins and llms.txt must be served as text so an agent (and a
+# browser) reads them instead of downloading them. Most static hosts guess
+# application/octet-stream for .md.
+
+/*.md
+  Content-Type: text/markdown; charset=utf-8
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/catalogue.json
+  Content-Type: application/json; charset=utf-8
+  Access-Control-Allow-Origin: *
+
+# The page contract, per the llms.txt v2 proposal. Sending these as headers
+# means they also apply to non-HTML resources.
+/services/*
+  Link: </llms.txt>; rel="describedby"; type="text/plain"
+
+/products/*
+  Link: </llms.txt>; rel="describedby"; type="text/plain"

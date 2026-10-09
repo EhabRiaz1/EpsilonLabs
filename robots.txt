@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# 404 is served for unknown paths and should not be indexed.
+Disallow: /404.html
+
+Sitemap: https://epsilon-labs.co/sitemap.xml

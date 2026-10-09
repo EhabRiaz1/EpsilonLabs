@@ -1,0 +1,2029 @@
+{
+  "name": "Epsilon Labs catalogue",
+  "url": "https://epsilon-labs.co/catalogue/",
+  "contact": "er@epsilon-labs.co",
+  "pricing_note": "Prices are not published. Every engagement is scoped and quoted after a call — er@epsilon-labs.co",
+  "generated_from": "tools/offers.py",
+  "offers": [
+    {
+      "slug": "design-review",
+      "name": "Pre-Fab Design Review",
+      "category": "Engagements",
+      "tagline": "Find the board-killer before you pay for a hundred of them.",
+      "summary": "Send us your schematic and BOM before you commit to fabrication. We review it the way we review our own and send back a written findings list, ranked by what it would cost you to discover later.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Layer count and part count. A four-layer mixed-signal board with 300 components is not a two-layer sensor board, and we will tell you which you have before you pay.",
+      "duration": "3–5 days",
+      "url": "https://epsilon-labs.co/services/design-review/",
+      "markdown": "https://epsilon-labs.co/services/design-review/index.md",
+      "deliverables": [
+        "Written findings list, ranked by cost-if-missed",
+        "Power architecture review — rails, margin, protection, thermal",
+        "Voltage-domain check across every interface on the board",
+        "Footprint and land-pattern spot check against manufacturer datasheets",
+        "BOM review — lifecycle risk, lead times, second sources",
+        "DRC readiness and fabrication-output check",
+        "A call to walk through anything you want to argue about"
+      ],
+      "for": [
+        "You have a board about to go to fabrication and nobody senior has read it",
+        "A previous revision came back wrong and you do not know why",
+        "Your layout was outsourced and you want it checked before you pay the fab",
+        "You are a software team who inherited a hardware product"
+      ],
+      "not_for": [
+        "Boards already in production with no revision planned — there is nothing to act on",
+        "Full layout work. That is Board-to-Fab.",
+        "Certification, EMC pre-compliance or safety approval. We are not a test house."
+      ]
+    },
+    {
+      "slug": "protocol-decode",
+      "name": "Protocol Decode Sprint",
+      "category": "Engagements",
+      "tagline": "Your machine is already talking. We work out what it is saying.",
+      "summary": "A serial bus with no published specification, no vendor support and no integration partner willing to return a call. We capture it, decode it, and hand you a validated parser plus the written specification nobody else has.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "How many genuinely distinct protocols there are, whether we can get physical access for the capture phase, and how much other traffic shares the bus. One vendor across several model years is almost always one protocol; separate vendors are separate sprints.",
+      "duration": "2–4 weeks",
+      "url": "https://epsilon-labs.co/services/protocol-decode/",
+      "markdown": "https://epsilon-labs.co/services/protocol-decode/index.md",
+      "deliverables": [
+        "Written protocol specification — framing, delimiters, field map, encoding, checksums",
+        "Validated parser in C/C++ or Python, with the capture set it was verified against",
+        "Raw captures and the stimulus matrix used to produce them, so you can re-derive it",
+        "Resynchronisation strategy for a shared or noisy bus",
+        "A go/no-go call at the halfway point — if it is no-go you stop there and we refund the balance"
+      ],
+      "for": [
+        "Fuel dispensers, industrial meters, weighbridges, PLCs, medical or lab instruments",
+        "RS485, RS232, Modbus, CAN, or something proprietary on top of one of them",
+        "A vendor who will not share the specification, or no longer exists",
+        "A mixed fleet where every machine speaks slightly differently"
+      ],
+      "not_for": [
+        "Encrypted or cryptographically authenticated protocols — that is a different problem and usually the wrong one to solve",
+        "Any equipment you do not own or have written authorisation from the owner to interface with. We ask in writing before we start, every time, and we will decline without it.",
+        "Wireless or network protocols. This is wires."
+      ]
+    },
+    {
+      "slug": "board-to-fab",
+      "name": "Board-to-Fab",
+      "category": "Engagements",
+      "tagline": "Schematic to fabrication-ready, owned by you.",
+      "summary": "Schematic capture, PCB layout, custom symbol and footprint libraries drawn from datasheets, an orderable BOM and a complete fabrication package. Everything needed to build it again without us.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Layer count, part count, mechanical and enclosure constraints, and whether firmware is in scope. Firmware alongside the board is cheaper than firmware after it, because the person who drew the board writes the driver.",
+      "duration": "6–10 weeks",
+      "url": "https://epsilon-labs.co/services/board-to-fab/",
+      "markdown": "https://epsilon-labs.co/services/board-to-fab/index.md",
+      "deliverables": [
+        "Schematic, in KiCad 9 and as a readable PDF",
+        "PCB layout, routed to clean DRC, with power on a widened netclass",
+        "Custom symbol and footprint libraries drawn from manufacturer datasheets",
+        "Orderable BOM with distributor part numbers and qualified alternates",
+        "Fabrication package — Gerbers, Excellon drill, assembly notes",
+        "Pin-to-pin netlist documentation written for someone who was not in the room",
+        "Power protection specified, not assumed — fusing, reverse polarity, TVS"
+      ],
+      "for": [
+        "An embedded product that needs a real board rather than a stack of dev kits",
+        "A prototype on perfboard that has to become something manufacturable",
+        "A team with firmware skills and no hardware engineer",
+        "Small-batch industrial products, 10 to 1,000 units"
+      ],
+      "not_for": [
+        "High-speed digital — DDR, multi-gigabit SERDES, RF front ends. Not our discipline and we will say so on the first call.",
+        "Boards needing more than four layers, usually",
+        "Safety-critical or certified medical hardware"
+      ]
+    },
+    {
+      "slug": "firmware-rescue",
+      "name": "Firmware Rescue",
+      "category": "Engagements",
+      "tagline": "It half-works, and whoever wrote it is gone.",
+      "summary": "We take over an embedded codebase nobody understands any more and make it reliable: bring-up, fault detection, watchdogs, automatic recovery, and an update path so the next fix does not need a site visit.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "How reproducible the failure is and how much of the original build survives. A codebase that builds on one laptop costs less to rescue than one that builds nowhere.",
+      "duration": "3–6 weeks",
+      "url": "https://epsilon-labs.co/services/firmware-rescue/",
+      "markdown": "https://epsilon-labs.co/services/firmware-rescue/index.md",
+      "deliverables": [
+        "Reproducible build, documented, running on more than one machine",
+        "Fault detection and automatic recovery for the failures you actually see",
+        "Watchdogs, brownout handling and a defined behaviour for every reset cause",
+        "Offline tolerance — local commit first, sync second, no lost transactions",
+        "OTA update path so the next fix is a push, not a two-hour drive",
+        "A written map of the firmware for whoever comes after us"
+      ],
+      "for": [
+        "ESP32, STM32, RP2040, Arduino and PlatformIO codebases",
+        "Devices already deployed that are costing you support visits",
+        "A product that works until the network drops",
+        "Teams who inherited firmware with no author and no documentation"
+      ],
+      "not_for": [
+        "Ground-up firmware for a board that does not exist yet — that is Board-to-Fab",
+        "Linux or Android embedded systems. This is bare metal and RTOS.",
+        "Codebases we cannot build or hardware we cannot get hold of"
+      ]
+    },
+    {
+      "slug": "efuelpro",
+      "name": "eFuelPro",
+      "category": "Products",
+      "tagline": "Every litre has a record, and the record has a receipt.",
+      "summary": "A forecourt terminal that reads the dispenser directly off the bus — not from a person typing numbers into a phone. Verifiable receipts, RFID loyalty and attendance, and a ledger that keeps working when the link drops.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Number of pumps, and whether we already hold your dispenser's protocol. If we do not, a Protocol Decode Sprint comes first and is quoted separately.",
+      "duration": "install in a day",
+      "url": "https://epsilon-labs.co/products/efuelpro/",
+      "markdown": "https://epsilon-labs.co/products/efuelpro/index.md",
+      "deliverables": [
+        "Epsilon1 terminal, installed and reading your dispenser directly",
+        "Self-calibrating decode — the device works out your pump's field map on site",
+        "Thermal receipts with a QR code that resolves to the online record",
+        "RFID loyalty per vehicle and per card, and staff attendance on the same reader",
+        "Offline-first ledger — sales never block on the network",
+        "Live dashboard: per-nozzle, per-shift, per-day, readable from anywhere",
+        "OTA configuration, including price per litre, with no site visit"
+      ],
+      "for": [
+        "Independent stations and small chains who cannot see what they sold until the shift ends",
+        "Dealers under a digital-monitoring obligation",
+        "Sites with old or mixed dispenser fleets that other integrators have turned down",
+        "OMCs wanting real telemetry rather than typed returns"
+      ],
+      "not_for": [
+        "Anyone who wants manual entry software — that market is well served and cheaper",
+        "Stations whose dispensers already expose a documented, supported integration",
+        "Single-pump sites where the monthly will not pay for itself"
+      ]
+    },
+    {
+      "slug": "epsilon1",
+      "name": "Epsilon1",
+      "category": "Platform",
+      "tagline": "A terminal that reads machines with undocumented protocols.",
+      "summary": "The board behind eFuelPro, pointed at any RS485 or Modbus machine. Generator, mill, chiller, weighbridge, loom — live readings into a ledger you can audit, on a terminal that keeps working when the network does not.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Whether your machine class is one we have decoded before. If it is Modbus or otherwise documented, this is fast. If it is undocumented, a Protocol Decode Sprint comes first.",
+      "duration": "2–6 weeks to first vertical",
+      "url": "https://epsilon-labs.co/products/epsilon1/",
+      "markdown": "https://epsilon-labs.co/products/epsilon1/index.md",
+      "deliverables": [
+        "Epsilon1 terminal — ESP32-S3, 4″ touch TFT, RS485, RFID, thermal printer, SD",
+        "Self-calibrating decode engine, so each site configures itself",
+        "Offline-first queue with idempotent event IDs",
+        "Cloud ledger and dashboard, or an API into yours",
+        "OTA configuration and firmware",
+        "Board files, libraries and firmware source under OEM terms"
+      ],
+      "for": [
+        "Flour mills, generators, cold storage, weighbridges, textile plant",
+        "Anyone running a fleet of machines they cannot see in real time",
+        "Integrators who want to build on a proven terminal rather than design one"
+      ],
+      "not_for": [
+        "Machines with a supported, documented API already — use it",
+        "Consumer or home automation",
+        "Anything needing certified safety instrumentation"
+      ]
+    },
+    {
+      "slug": "device-pentest",
+      "name": "Device Penetration Test",
+      "category": "Security",
+      "tagline": "We take your device apart the way an attacker would.",
+      "summary": "Firmware extraction, debug-port discovery, bus interception, secrets in flash, update-path integrity. A hardware security assessment by people who design hardware — and a written report you can hand to a customer who asked whether your device is safe.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "How many distinct boards are in the product, whether the firmware is readable or locked, and whether you can give us a unit we are allowed to destroy. A device we can sacrifice is cheaper to assess than one we must return working.",
+      "duration": "2–3 weeks",
+      "url": "https://epsilon-labs.co/services/device-pentest/",
+      "markdown": "https://epsilon-labs.co/services/device-pentest/index.md",
+      "deliverables": [
+        "Written report: findings ranked by exploitability and impact, with reproduction steps",
+        "Firmware extraction attempt — SPI flash, JTAG/SWD, UART bootloader",
+        "Debug interface discovery: exposed UART, JTAG/SWD, test pads, unlocked fuses",
+        "Secrets audit — keys, credentials and tokens recoverable from the image",
+        "Bus interception on the device's own wires, including undocumented protocols",
+        "Update-path review: is an unsigned or downgraded image accepted?",
+        "Physical attack surface — enclosure, tamper evidence, exposed connectors",
+        "A remediation list written for the engineer who has to fix it, not for an auditor"
+      ],
+      "for": [
+        "You are shipping an embedded product and a customer has started asking security questions",
+        "IoT, industrial, metering, access-control or point-of-sale hardware",
+        "A device with a radio, a serial port, or a firmware update mechanism",
+        "You suspect the answer is bad and would rather find out before a customer does"
+      ],
+      "not_for": [
+        "Any device you do not own or have written authorisation from the owner to test. We ask for that authorisation in writing before we start, every time, and we will decline without it.",
+        "Web application or corporate network penetration testing — that is a different discipline and you want an accredited firm for it.",
+        "Certified assessments for PCI, SOC 2, FedRAMP or CE/UKCA sign-off. We are not an accredited lab and our report will not satisfy an auditor who needs one.",
+        "Formal cryptographic review or protocol proof work"
+      ]
+    },
+    {
+      "slug": "authz-review",
+      "name": "Authorisation Model Review",
+      "category": "Security",
+      "tagline": "Can tenant A read tenant B's row? We find out properly.",
+      "summary": "Multi-tenant isolation testing against your real schema and policies. Most testing proves you cannot log in as someone else. This proves that once you are legitimately logged in, you still cannot reach what is not yours.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Number of roles, number of tables under policy, and whether there is a service-role key path that bypasses row-level security. Applications with one admin role are quick; ones with delegated per-organisation permissions are where the time goes.",
+      "duration": "1 week",
+      "url": "https://epsilon-labs.co/services/authz-review/",
+      "markdown": "https://epsilon-labs.co/services/authz-review/index.md",
+      "deliverables": [
+        "Per-table, per-role matrix of what is actually reachable, tested against a live instance",
+        "Cross-tenant read and write attempts from a legitimately authenticated session",
+        "Row-level security policy review against the schema, not against the documentation",
+        "Service-role and key-handling audit — anything that bypasses policy, and where it is exposed",
+        "Storage and file-access isolation, which is usually where it leaks",
+        "API and edge-function authorisation checks",
+        "Written findings with the failing query for each one, so a fix can be verified"
+      ],
+      "for": [
+        "Postgres and Supabase applications using row-level security",
+        "Any B2B product where two customers share a database",
+        "A team that inherited an application and does not know what its policies allow",
+        "You are about to sign an enterprise customer who will ask this question"
+      ],
+      "not_for": [
+        "Any system you do not own or have written authorisation from the owner to test. We ask in writing before we start and will decline without it.",
+        "Stacks other than Postgres. This offer is built on Postgres row-level security — MySQL, Mongo and DynamoDB tenancy models are a different problem and we do not cover them.",
+        "Testing against production data. Staging with representative data, always.",
+        "Full web application penetration testing — this is one deep slice, not broad coverage",
+        "Compliance certification"
+      ]
+    },
+    {
+      "slug": "remote-decode",
+      "name": "Remote Protocol Decode",
+      "category": "Desk work",
+      "tagline": "You capture it. We decode it. Nobody gets on a plane.",
+      "summary": "The decode half of a Protocol Decode Sprint, without the site visit. We specify a capture rig, you run the stimulus matrix on your own machine, and we turn the resulting logs into a written specification and a working parser.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "How complete your captures are. A full stimulus matrix run to our instructions decodes quickly; a single log of idle traffic often cannot be decoded at all, and we will tell you that before you pay.",
+      "duration": "1–2 weeks",
+      "url": "https://epsilon-labs.co/services/remote-decode/",
+      "markdown": "https://epsilon-labs.co/services/remote-decode/index.md",
+      "deliverables": [
+        "A capture protocol: exactly what hardware to buy, where to clip it, what to vary and in what order",
+        "A free feasibility check on your first sample capture before you commit",
+        "Written protocol specification — framing, delimiters, field map, encoding, checksums",
+        "Validated parser in C/C++ or Python against your captures",
+        "Everything you need to re-derive it yourself"
+      ],
+      "for": [
+        "A machine anywhere in the world with somebody on site who can clip on a probe",
+        "Budgets that will not carry international travel",
+        "A first step before committing to the full on-site sprint",
+        "Anyone who has captures already and needs them read"
+      ],
+      "not_for": [
+        "Any equipment you do not own or have written authorisation from the owner to interface with. We ask for that authorisation in writing before we send the capture protocol, every time, and we will decline without it.",
+        "Encrypted or cryptographically authenticated protocols. We will not attempt to defeat an authentication scheme, and we would decline if asked.",
+        "Situations where nobody on site can safely attach a probe — take the full sprint instead"
+      ]
+    },
+    {
+      "slug": "bom-audit",
+      "name": "BOM Risk Audit",
+      "category": "Desk work",
+      "tagline": "Find the part that goes end-of-life before your product does.",
+      "summary": "Send us your bill of materials. We come back with lifecycle status, real lead times, single-source exposure and a qualified alternate for every part that needs one.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Line count, and how many parts need an alternate qualified rather than just looked up. Over 150 lines we quote per project.",
+      "duration": "3–5 days",
+      "url": "https://epsilon-labs.co/services/bom-audit/",
+      "markdown": "https://epsilon-labs.co/services/bom-audit/index.md",
+      "deliverables": [
+        "Lifecycle status for every line: active, NRND, or end-of-life",
+        "Real distributor stock and lead times, not catalogue availability",
+        "Single-source exposure flagged, with the risk stated plainly",
+        "A qualified alternate for every part that needs one, checked for footprint and spec compatibility",
+        "Cost roll-up at your build quantity",
+        "A ranked list of what to redesign around now rather than later"
+      ],
+      "for": [
+        "A board heading into its first production run",
+        "A product that has been in production a while and nobody has re-checked the BOM",
+        "Anyone who has been bitten by an allocation shortage once already"
+      ],
+      "not_for": [
+        "Schematic or layout review — that is Pre-Fab Design Review",
+        "Negotiating with distributors or placing orders on your behalf",
+        "BOMs with no part numbers. We need something to look up."
+      ]
+    },
+    {
+      "slug": "footprint",
+      "name": "Datasheet to Footprint",
+      "category": "Desk work",
+      "tagline": "A footprint drawn from the mechanical drawing, not from the internet.",
+      "summary": "Send a datasheet, get back a KiCad symbol, footprint and 3D model built to the manufacturer's mechanical drawing and checked against IPC land pattern rules.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Pin count and package complexity. A two-pin passive is at the floor; a BGA or a connector with a complex mechanical keepout is more.",
+      "duration": "2–3 days",
+      "url": "https://epsilon-labs.co/services/footprint/",
+      "markdown": "https://epsilon-labs.co/services/footprint/index.md",
+      "deliverables": [
+        "KiCad symbol with correct pin numbering, electrical types and naming",
+        "Footprint built to the manufacturer mechanical drawing, IPC-7351 land pattern",
+        "Courtyard and keepout, including antenna keepouts where the part needs one",
+        "3D model aligned to the footprint origin",
+        "A note of every assumption we had to make where the datasheet was ambiguous"
+      ],
+      "for": [
+        "An industrial module or connector with no decent library anywhere",
+        "Teams who have been burned by a downloaded footprint",
+        "Anyone standardising a house library they can actually trust"
+      ],
+      "not_for": [
+        "Parts with a good manufacturer-supplied KiCad library already — use it and save the money",
+        "Altium or Eagle native formats. We work in KiCad and export.",
+        "Footprint checking without the datasheet. We need the mechanical drawing."
+      ]
+    },
+    {
+      "slug": "epsilon1-kit",
+      "name": "Epsilon1 Design Package",
+      "category": "Platform",
+      "tagline": "The whole board, licensed, so you can build it yourself.",
+      "summary": "Schematic, PCB, custom symbol and footprint libraries, orderable BOM, fabrication outputs and firmware reference for the Epsilon1 terminal — licensed to you as a starting point rather than a finished product.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Licence scope. Internal use at the floor; rights to manufacture and resell under your own brand are quoted separately.",
+      "duration": "immediate",
+      "url": "https://epsilon-labs.co/products/epsilon1-kit/",
+      "markdown": "https://epsilon-labs.co/products/epsilon1-kit/index.md",
+      "deliverables": [
+        "KiCad 9 schematic and PCB for the 120 × 120 mm Epsilon1 board",
+        "Custom symbol and footprint libraries drawn from manufacturer datasheets",
+        "Orderable BOM with distributor part numbers and qualified alternates",
+        "Fabrication package — Gerbers, Excellon drill, assembly notes",
+        "Pin-to-pin netlist documentation",
+        "Firmware reference: offline queue, RS485 framing and resynchronisation, OTA pattern",
+        "A licence that lets you modify it"
+      ],
+      "for": [
+        "Integrators who want a proven terminal rather than a design project",
+        "Teams with firmware skills and no hardware engineer",
+        "Anyone building a vertical on an industrial edge device"
+      ],
+      "not_for": [
+        "Anyone expecting support. This is a design package, not a product — support is a separate engagement.",
+        "Production-ready assembly. You still have to fabricate, assemble and test it.",
+        "Resale under your own brand without agreeing those rights first"
+      ]
+    },
+    {
+      "slug": "bookings",
+      "name": "Booking & Scheduling",
+      "category": "Software",
+      "tagline": "Stop selling slots. Start filling them.",
+      "summary": "Online booking, point of sale and a scheduler that packs time to maximise occupancy — for courts, rooms, chairs, bays or anything else people reserve by the hour. Your brand and your customers, not a marketplace's.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Number of sites and bookable resources, whether you need memberships and packages, and which payment provider you settle through.",
+      "duration": "4–6 weeks",
+      "url": "https://epsilon-labs.co/products/bookings/",
+      "markdown": "https://epsilon-labs.co/products/bookings/index.md",
+      "deliverables": [
+        "Online booking on your own domain, in your brand",
+        "A scheduler that packs bookings to close the dead gaps between them",
+        "Point of sale for the front desk, with real-time stock deduction",
+        "Memberships, packages, recurring bookings and waitlists",
+        "Occupancy and revenue dashboard, per resource and per hour",
+        "Your customer list, exportable, owned by you"
+      ],
+      "for": [
+        "Sports facilities, clinics, studios, salons, workshops, co-working spaces",
+        "Anyone paying a marketplace a percentage of every booking",
+        "Venues with a shop or cafe that needs one till, not two"
+      ],
+      "not_for": [
+        "Anyone who wants a marketplace's customer discovery — we build your system, not a network",
+        "A single resource, where a booking calendar is enough",
+        "Airline, hotel or ticketing-scale inventory"
+      ]
+    },
+    {
+      "slug": "quote-engine",
+      "name": "Quote Engine",
+      "category": "Software",
+      "tagline": "A quote in thirty seconds, not three days.",
+      "summary": "Configure-price-quote for made-to-measure products. Your sales team enters dimensions, the engine derives cost from your own formulas, and the customer gets a dimensioned technical quotation as a PDF — before your competitor has opened a spreadsheet.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "How many product families you sell and how tangled the costing is. One formula family is at the floor; a catalogue with options that interact is where the work goes.",
+      "duration": "3–5 weeks",
+      "url": "https://epsilon-labs.co/products/quote-engine/",
+      "markdown": "https://epsilon-labs.co/products/quote-engine/index.md",
+      "deliverables": [
+        "Your costing formulas encoded once, tested against quotes you have already sent",
+        "A configurator your sales team can use without training",
+        "Dimensioned technical quotations generated as vector PDFs",
+        "Margin and material breakdown, visible to you and hidden from the customer",
+        "Every quote logged, searchable, and re-issuable"
+      ],
+      "for": [
+        "Tanks, windows, ducting, fabricated steel, signage, cabinetry",
+        "Any product where price depends on dimensions",
+        "Sales teams bottlenecked on one person who understands costing"
+      ],
+      "not_for": [
+        "Fixed-price catalogue products — you need a shop, not a configurator",
+        "Full ERP or inventory replacement",
+        "Products whose price is negotiated rather than calculated"
+      ]
+    },
+    {
+      "slug": "ops-analyst",
+      "name": "Ops Analyst",
+      "category": "Software",
+      "tagline": "Ask your database a question. Approve what it wants to change.",
+      "summary": "An AI analyst over your own operational data that answers in plain language — and can propose changes, but never make one without a human clicking approve. Scoped by the same permissions as the rest of your app.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "How many data sources it reads, how many actions it may propose, and how fine-grained your permissions are. Read-only is at the floor; write actions across several systems are where the time goes.",
+      "duration": "4–6 weeks",
+      "url": "https://epsilon-labs.co/products/ops-analyst/",
+      "markdown": "https://epsilon-labs.co/products/ops-analyst/index.md",
+      "deliverables": [
+        "A conversational analyst over your own database, answering in plain language",
+        "Every answer grounded in a real query you can inspect",
+        "Proposed changes that require explicit human approval — never model discretion",
+        "Scoped by row-level security, so it sees only what the asking user may see",
+        "A full audit log of every question, query, proposal and approval",
+        "Streamed responses and prompt caching to keep it fast and cheap"
+      ],
+      "for": [
+        "Operations teams whose questions queue behind one analyst",
+        "Businesses that want AI over their data and refuse to hand it the keys",
+        "Postgres and Supabase applications with row-level security already in place"
+      ],
+      "not_for": [
+        "Autonomous agents that act without approval — we will not build that",
+        "Customer-facing chatbots",
+        "Data you cannot legally process with a third-party model"
+      ]
+    },
+    {
+      "slug": "dashboards",
+      "name": "Sales & Admin Dashboards",
+      "category": "Software",
+      "tagline": "Every number you check, in one place, live.",
+      "summary": "The dashboard your business should already have: revenue, orders, margins and stock, pulled live from the systems you already run, with the admin tools to act on what you see.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "How many systems the numbers come from and how clean they are. One database is at the floor; a POS, an accounting package and three spreadsheets that disagree is where the time goes.",
+      "duration": "3–4 weeks",
+      "url": "https://epsilon-labs.co/products/dashboards/",
+      "markdown": "https://epsilon-labs.co/products/dashboards/index.md",
+      "deliverables": [
+        "Live revenue, orders, average order value and margin, by period and by region",
+        "Every source connected once — POS, accounting, store, database",
+        "Drill-down from any figure to the transactions behind it",
+        "Admin tools to act on what you see: refunds, stock, customers",
+        "Role-based access, so each manager sees their own numbers",
+        "Scheduled email and WhatsApp summaries"
+      ],
+      "for": [
+        "Retail, hospitality, distribution and e-commerce businesses",
+        "Owners who find out how last month went in the middle of this one",
+        "Teams whose reporting lives in exported spreadsheets"
+      ],
+      "not_for": [
+        "Enterprise data warehouses and BI programmes",
+        "Businesses whose only system already has good reporting",
+        "Reporting on data you cannot get read access to"
+      ]
+    },
+    {
+      "slug": "inventory",
+      "name": "Inventory & Stock",
+      "category": "Software",
+      "tagline": "Know you're running low before your customer does.",
+      "summary": "Stock levels, reorder points, suppliers and movements across every location, updated the moment something is sold or received — with the reorder suggested before the shelf is empty.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Number of locations, SKUs with variants, and whether stock has to sync with a POS or an online store in real time.",
+      "duration": "4–6 weeks",
+      "url": "https://epsilon-labs.co/products/inventory/",
+      "markdown": "https://epsilon-labs.co/products/inventory/index.md",
+      "deliverables": [
+        "Live stock per SKU, per variant, per location",
+        "Real-time deduction from sales and receipt from deliveries",
+        "Reorder points and suggested purchase orders",
+        "Supplier records, lead times and cost history",
+        "Stock-take and adjustment workflow with an audit trail",
+        "Barcode and QR scanning from any phone"
+      ],
+      "for": [
+        "Shops, warehouses, distributors, restaurants, workshops",
+        "Anyone selling the same stock in a shop and online",
+        "Businesses with a stock count nobody believes"
+      ],
+      "not_for": [
+        "Full ERP replacement — manufacturing resource planning is a different product",
+        "Businesses with a working inventory module they are happy with",
+        "Pharmaceutical or batch-regulated stock needing validated systems"
+      ]
+    },
+    {
+      "slug": "crm",
+      "name": "CRM & Case Management",
+      "category": "Software",
+      "tagline": "No lead left in somebody's inbox.",
+      "summary": "A pipeline, a customer record and a case history in one place — built around how your team actually sells and follows up, not around a template for a company that is not yours.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Number of pipelines and roles, the channels it has to capture from — email, WhatsApp, web forms, calls — and whether it has to hold documents.",
+      "duration": "4–6 weeks",
+      "url": "https://epsilon-labs.co/products/crm/",
+      "markdown": "https://epsilon-labs.co/products/crm/index.md",
+      "deliverables": [
+        "Pipeline with your stages, your fields and a live weighted forecast",
+        "One record per customer across every channel",
+        "Follow-up reminders and SLA timers that escalate before something is missed",
+        "Documents stored securely against the customer, with verification if you need it",
+        "Role-based admin portal and a customer-facing portal if you want one",
+        "SMS, email and WhatsApp notifications"
+      ],
+      "for": [
+        "Service firms, agencies, consultancies, clinics, B2B sellers",
+        "Teams that tried an off-the-shelf CRM and drifted back to spreadsheets",
+        "Anyone managing cases with deadlines, not just sales with stages"
+      ],
+      "not_for": [
+        "Teams happy on an off-the-shelf CRM — configure it rather than replace it",
+        "Enterprise sales operations with hundreds of seats",
+        "Marketing automation and email campaigns at volume"
+      ]
+    },
+    {
+      "slug": "marketplace",
+      "name": "Marketplaces",
+      "category": "Software",
+      "tagline": "Buyers on one side, sellers on the other, your cut in the middle.",
+      "summary": "A multi-vendor marketplace with separate portals for buyers, sellers and your team — catalogue, orders, commission and payouts — where every party sees exactly what is theirs and nothing else.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Number of roles, whether payments are split automatically, currencies, and how much of seller onboarding is self-serve.",
+      "duration": "6–10 weeks",
+      "url": "https://epsilon-labs.co/products/marketplace/",
+      "markdown": "https://epsilon-labs.co/products/marketplace/index.md",
+      "deliverables": [
+        "Buyer storefront, seller portal and admin console as separate role-scoped apps",
+        "Catalogue with per-seller listings, variants and media pipeline",
+        "Orders, commission and seller payouts",
+        "Multi-currency quoting with scheduled exchange-rate refresh",
+        "Row-level security so no party can see another's data",
+        "Seller onboarding and verification"
+      ],
+      "for": [
+        "Niche B2B marketplaces — materials, surplus stock, equipment, services",
+        "Businesses turning a supplier network into a platform",
+        "Founders who need a real first version, not a template"
+      ],
+      "not_for": [
+        "Consumer marketplaces at national scale on day one",
+        "A single-seller shop — you need a store, not a marketplace",
+        "Regulated financial marketplaces"
+      ]
+    },
+    {
+      "slug": "mobile-apps",
+      "name": "Mobile Apps",
+      "category": "Software",
+      "tagline": "Your customers live on their phones. So should you.",
+      "summary": "iOS and Android from one codebase, including the hard parts — live camera, AR, offline use, biometric verification and push notifications — on the mid-range handsets your customers actually own.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Camera, AR and hardware integration, offline requirements, and how much backend has to be built alongside it.",
+      "duration": "6–10 weeks",
+      "url": "https://epsilon-labs.co/products/mobile-apps/",
+      "markdown": "https://epsilon-labs.co/products/mobile-apps/index.md",
+      "deliverables": [
+        "One codebase for iOS and Android, published to both stores",
+        "Live camera and AR where the product needs it",
+        "Offline-first data that syncs when the connection returns",
+        "Biometric login and identity verification",
+        "Push, SMS and in-app notifications",
+        "The backend and admin portal it needs"
+      ],
+      "for": [
+        "Consumer brands, service businesses, field teams",
+        "Products that need the camera, location or offline use",
+        "Companies whose website is doing an app's job badly"
+      ],
+      "not_for": [
+        "Games and high-end 3D",
+        "Apps that are really a website — build the website",
+        "Wearables and embedded platforms"
+      ]
+    },
+    {
+      "slug": "digital-twin",
+      "name": "Digital Twins",
+      "category": "Frontier",
+      "tagline": "Your whole site, live, in 3D, from anywhere.",
+      "summary": "A navigable 3D model of a physical site — a station, a warehouse, a plant floor — wired to the machines inside it, so the model shows what is actually happening right now. Click any machine to see its live state.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Site complexity, how many machines feed it live data, and whether that data already exists or has to be captured first — often the hardware half of the job.",
+      "duration": "6–10 weeks",
+      "url": "https://epsilon-labs.co/products/digital-twin/",
+      "markdown": "https://epsilon-labs.co/products/digital-twin/index.md",
+      "deliverables": [
+        "A 3D model of your site, built from your layout, navigable in any browser",
+        "Every machine wired to live data — status, throughput, alarms",
+        "Click any asset to fly to it and see its live and historical state",
+        "The data pipeline behind it, including hardware capture where none exists",
+        "Runs on a laptop, a tablet or a control-room screen"
+      ],
+      "for": [
+        "Multi-site operators — fuel, logistics, manufacturing, facilities",
+        "Control rooms that stare at tables of numbers",
+        "Anyone whose machines already report data nobody looks at"
+      ],
+      "not_for": [
+        "Engineering simulation or physics-accurate CFD — this is operational, not analytical",
+        "Photorealistic architectural visualisation",
+        "Sites with no data source and no appetite to create one"
+      ]
+    },
+    {
+      "slug": "robotics-infra",
+      "name": "Robot-Learning Infrastructure",
+      "category": "Frontier",
+      "tagline": "Your training runs should fail for research reasons, not DevOps ones.",
+      "summary": "Distributed training infrastructure for embodied AI — reinforcement learning and vision-language-action models — provisioned on rented GPUs, kept running, and monitored, so your researchers do research.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Cluster size, and how many frameworks and simulators you run.",
+      "duration": "3–6 weeks",
+      "url": "https://epsilon-labs.co/products/robotics-infra/",
+      "markdown": "https://epsilon-labs.co/products/robotics-infra/index.md",
+      "deliverables": [
+        "Environment build for your framework and simulators, reproducible",
+        "Distributed training across multi-GPU rented instances",
+        "Launch-path and configuration fixes, maintained on a branch you own",
+        "Monitoring across runs, so a dead run is noticed in minutes",
+        "Cost controls so idle GPUs are not billed overnight"
+      ],
+      "for": [
+        "Robotics startups and university labs training embodied policies",
+        "Teams running open-source RL or VLA frameworks on rented GPUs",
+        "Researchers losing weeks to infrastructure"
+      ],
+      "not_for": [
+        "Model research itself — we run the infrastructure, you own the science",
+        "Large-language-model pretraining at frontier scale",
+        "Physical robot hardware integration — that is a separate engagement"
+      ]
+    },
+    {
+      "slug": "sensing",
+      "name": "Sensing & Calibration",
+      "category": "Frontier",
+      "tagline": "Sensors that stay accurate after the first week.",
+      "summary": "Instrumentation that has to be trusted — force, pressure, tactile, motion — designed, calibrated and characterised, with drift correction and a calibration pipeline that survives a re-flash.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "Number of channels, required accuracy, and whether the sensor exists or has to be designed and fabricated.",
+      "duration": "4–8 weeks",
+      "url": "https://epsilon-labs.co/products/sensing/",
+      "markdown": "https://epsilon-labs.co/products/sensing/index.md",
+      "deliverables": [
+        "Sensor selection or custom sensing hardware",
+        "Characterisation across temperature and load",
+        "Automated calibration fitting, per unit",
+        "Drift detection and correction in firmware",
+        "Versioned calibration profiles that survive a re-flash",
+        "Test tooling so production calibration does not need an engineer"
+      ],
+      "for": [
+        "Tactile and force sensing, load cells, pressure, IMUs and motion",
+        "Products where a wrong reading costs money or safety",
+        "Teams calibrating units by hand and losing a day per batch"
+      ],
+      "not_for": [
+        "Certified metrology or legal-for-trade calibration",
+        "Medical diagnostic devices",
+        "Sensors you cannot physically access or test"
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "slug": "crm",
+      "area": "Software",
+      "group": "Business systems",
+      "name": "CRM",
+      "tagline": "Every lead, deal and customer in one place.",
+      "summary": "A customer relationship system shaped around how your team actually sells and follows up — pipelines, records, reminders and reporting, without forcing you into someone else's template.",
+      "builds": [
+        {
+          "title": "Weighted pipeline",
+          "detail": "Sales pipelines with your own stages and a weighted forecast"
+        },
+        {
+          "title": "One customer record",
+          "detail": "One customer record across email, WhatsApp, web and phone"
+        },
+        {
+          "title": "Chasing that escalates",
+          "detail": "Follow-up reminders and deadlines that escalate before anything slips"
+        },
+        {
+          "title": "Quotes and contracts",
+          "detail": "Quotes, documents and contracts stored against the customer"
+        },
+        {
+          "title": "Role-based access",
+          "detail": "Role-based access for sales, support and management"
+        },
+        {
+          "title": "Import from anywhere",
+          "detail": "Import from spreadsheets or the CRM you are leaving"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/crm/",
+      "related_offers": [
+        "crm"
+      ]
+    },
+    {
+      "slug": "erp",
+      "area": "Software",
+      "group": "Business systems",
+      "name": "ERP",
+      "tagline": "Purchasing, stock, production and accounts that agree with each other.",
+      "summary": "An operations system for businesses that have outgrown a stack of disconnected tools — built in modules, so you replace the painful parts first and keep what works.",
+      "builds": [
+        {
+          "title": "Purchasing and goods-in",
+          "detail": "Purchasing, suppliers and goods received"
+        },
+        {
+          "title": "Stock across locations",
+          "detail": "Stock across locations with real-time movements"
+        },
+        {
+          "title": "Production and job costing",
+          "detail": "Production orders, bills of materials and job costing"
+        },
+        {
+          "title": "Orders and invoicing",
+          "detail": "Sales orders, invoicing and credit control"
+        },
+        {
+          "title": "Links to accounting",
+          "detail": "Links to your accounting package rather than replacing it"
+        },
+        {
+          "title": "Departmental dashboards",
+          "detail": "Dashboards for each department"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/erp/",
+      "related_offers": [
+        "inventory",
+        "dashboards"
+      ]
+    },
+    {
+      "slug": "inventory",
+      "area": "Software",
+      "group": "Business systems",
+      "name": "Inventory",
+      "tagline": "Know you are running low before your customer does.",
+      "summary": "Live stock per item and location, updated the moment something is sold or received, with reorder suggestions before the shelf is empty.",
+      "builds": [
+        {
+          "title": "Live stock",
+          "detail": "Live stock per SKU, variant and location"
+        },
+        {
+          "title": "Scanning from any phone",
+          "detail": "Barcode and QR scanning from any phone"
+        },
+        {
+          "title": "Reorder points",
+          "detail": "Reorder points and suggested purchase orders"
+        },
+        {
+          "title": "Auditable stock-takes",
+          "detail": "Stock-takes with a full audit trail"
+        },
+        {
+          "title": "Till and store sync",
+          "detail": "Sync with your till or online store"
+        },
+        {
+          "title": "Lead times and costs",
+          "detail": "Supplier lead times and cost history"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/inventory/",
+      "related_offers": [
+        "inventory"
+      ]
+    },
+    {
+      "slug": "dashboards",
+      "area": "Software",
+      "group": "Business systems",
+      "name": "Dashboards",
+      "tagline": "Every number you check, in one place, live.",
+      "summary": "Sales, operations and finance numbers pulled live from the systems you already run, with drill-down to the transactions behind every figure.",
+      "builds": [
+        {
+          "title": "Revenue and margin",
+          "detail": "Revenue, orders and margin by period, region and product"
+        },
+        {
+          "title": "Connected sources",
+          "detail": "Connections to your POS, accounting, store and databases"
+        },
+        {
+          "title": "Drill-down to records",
+          "detail": "Drill-down from any number to the records behind it"
+        },
+        {
+          "title": "Out-of-range alerts",
+          "detail": "Alerts when something moves outside its normal range"
+        },
+        {
+          "title": "Scheduled summaries",
+          "detail": "Scheduled email and WhatsApp summaries"
+        },
+        {
+          "title": "Per-manager views",
+          "detail": "Per-manager views and permissions"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/dashboards/",
+      "related_offers": [
+        "dashboards"
+      ]
+    },
+    {
+      "slug": "internal-tools",
+      "area": "Software",
+      "group": "Business systems",
+      "name": "Admin tools",
+      "tagline": "The back office your team actually wants to use.",
+      "summary": "Admin panels, approval flows and operational tools built on top of your existing data — the small systems that remove hours of manual work every week.",
+      "builds": [
+        {
+          "title": "Admin consoles",
+          "detail": "Admin consoles over your existing database"
+        },
+        {
+          "title": "Approvals and sign-off",
+          "detail": "Approval and sign-off workflows"
+        },
+        {
+          "title": "Support and ticketing",
+          "detail": "Customer support and ticketing tools"
+        },
+        {
+          "title": "Validated data entry",
+          "detail": "Data entry that validates as you type"
+        },
+        {
+          "title": "Access and audit log",
+          "detail": "Role-based access and a full audit log"
+        },
+        {
+          "title": "Bulk import and export",
+          "detail": "Bulk import, export and editing"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/internal-tools/",
+      "related_offers": [
+        "dashboards"
+      ]
+    },
+    {
+      "slug": "quoting",
+      "area": "Software",
+      "group": "Business systems",
+      "name": "Quoting",
+      "tagline": "A quote in thirty seconds, not three days.",
+      "summary": "Configure-price-quote for made-to-measure products: dimensions in, a costed, dimensioned quotation out, from your own formulas.",
+      "builds": [
+        {
+          "title": "Your costing formulas",
+          "detail": "Your costing formulas encoded and tested against past quotes"
+        },
+        {
+          "title": "A configurator",
+          "detail": "A configurator your sales team can use without training"
+        },
+        {
+          "title": "Dimensioned PDFs",
+          "detail": "Dimensioned technical quotations as PDFs"
+        },
+        {
+          "title": "Margin you can see",
+          "detail": "Margin visible to you, hidden from the customer"
+        },
+        {
+          "title": "Every quote logged",
+          "detail": "Every quote logged and re-issuable"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/quoting/",
+      "related_offers": [
+        "quote-engine"
+      ]
+    },
+    {
+      "slug": "web-apps",
+      "area": "Software",
+      "group": "Customer-facing",
+      "name": "Web apps",
+      "tagline": "Software your customers use in a browser, fast.",
+      "summary": "Customer portals, SaaS products and web platforms — designed, built, hosted and handed over, from the first screen to the billing page.",
+      "builds": [
+        {
+          "title": "Customer portals",
+          "detail": "Customer portals and self-service accounts"
+        },
+        {
+          "title": "Subscriptions and billing",
+          "detail": "SaaS products with subscriptions and billing"
+        },
+        {
+          "title": "Sign-up and identity",
+          "detail": "Sign-up, login and identity verification"
+        },
+        {
+          "title": "Real-time updates",
+          "detail": "Real-time updates and notifications"
+        },
+        {
+          "title": "The admin side",
+          "detail": "Admin side for your team"
+        },
+        {
+          "title": "Hosting and backups",
+          "detail": "Hosting, monitoring and backups"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/web-apps/",
+      "related_offers": [
+        "dashboards",
+        "marketplace"
+      ]
+    },
+    {
+      "slug": "mobile-apps",
+      "area": "Software",
+      "group": "Customer-facing",
+      "name": "Mobile apps",
+      "tagline": "iOS and Android from one codebase.",
+      "summary": "Mobile apps that work on the mid-range phones your customers actually own — including camera, AR, offline use and push notifications.",
+      "builds": [
+        {
+          "title": "One codebase, both stores",
+          "detail": "One codebase for iOS and Android, published to both stores"
+        },
+        {
+          "title": "Camera, AR, barcodes",
+          "detail": "Camera, AR and barcode scanning"
+        },
+        {
+          "title": "Offline-first data",
+          "detail": "Offline-first data that syncs later"
+        },
+        {
+          "title": "Biometric login",
+          "detail": "Biometric login and identity checks"
+        },
+        {
+          "title": "Notifications",
+          "detail": "Push, SMS and in-app notifications"
+        },
+        {
+          "title": "The backend behind it",
+          "detail": "The backend and admin portal behind it"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/mobile-apps/",
+      "related_offers": [
+        "mobile-apps"
+      ]
+    },
+    {
+      "slug": "marketplaces",
+      "area": "Software",
+      "group": "Customer-facing",
+      "name": "Marketplaces",
+      "tagline": "Buyers, sellers and your cut in the middle.",
+      "summary": "Online stores and multi-vendor marketplaces with separate buyer, seller and admin sides — catalogue, orders, payouts and multi-currency pricing.",
+      "builds": [
+        {
+          "title": "Three sides, one system",
+          "detail": "Storefront, seller portal and admin console"
+        },
+        {
+          "title": "Catalogue and media",
+          "detail": "Catalogue with variants and media"
+        },
+        {
+          "title": "Commission and payouts",
+          "detail": "Orders, commission and payouts"
+        },
+        {
+          "title": "Multi-currency pricing",
+          "detail": "Multi-currency pricing"
+        },
+        {
+          "title": "Seller onboarding",
+          "detail": "Seller onboarding and verification"
+        },
+        {
+          "title": "Separated data",
+          "detail": "Strict separation between parties' data"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/marketplaces/",
+      "related_offers": [
+        "marketplace"
+      ]
+    },
+    {
+      "slug": "booking",
+      "area": "Software",
+      "group": "Customer-facing",
+      "name": "Booking",
+      "tagline": "Stop selling slots. Start filling them.",
+      "summary": "Online booking, payments and a scheduler that closes the dead gaps between bookings — for anything people reserve by the hour.",
+      "builds": [
+        {
+          "title": "Your own booking page",
+          "detail": "Booking on your own domain and brand"
+        },
+        {
+          "title": "A gap-filling scheduler",
+          "detail": "A scheduler that fills gaps between bookings"
+        },
+        {
+          "title": "Memberships and waitlists",
+          "detail": "Memberships, packages and waitlists"
+        },
+        {
+          "title": "Front-desk point of sale",
+          "detail": "Point of sale for the front desk"
+        },
+        {
+          "title": "Occupancy reporting",
+          "detail": "Occupancy and revenue reporting"
+        },
+        {
+          "title": "Your customer list",
+          "detail": "Your customer list, owned by you"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/booking/",
+      "related_offers": [
+        "bookings"
+      ]
+    },
+    {
+      "slug": "macos-apps",
+      "area": "Software",
+      "group": "Desktop & developer",
+      "name": "macOS apps",
+      "tagline": "Native Mac software that feels like it belongs there.",
+      "summary": "Desktop applications for macOS — menu-bar utilities, document tools and full apps — signed, notarised and ready to distribute.",
+      "builds": [
+        {
+          "title": "Native desktop apps",
+          "detail": "Native or cross-platform desktop apps"
+        },
+        {
+          "title": "Menu-bar utilities",
+          "detail": "Menu-bar utilities and background agents"
+        },
+        {
+          "title": "File and media processing",
+          "detail": "File, document and media processing"
+        },
+        {
+          "title": "Local-first data",
+          "detail": "Local-first data with optional sync"
+        },
+        {
+          "title": "Signed and notarised",
+          "detail": "Code signing, notarisation and auto-update"
+        },
+        {
+          "title": "Download or App Store",
+          "detail": "Direct download or App Store release"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/macos-apps/",
+      "related_offers": []
+    },
+    {
+      "slug": "windows-apps",
+      "area": "Software",
+      "group": "Desktop & developer",
+      "name": "Windows apps",
+      "tagline": "Desktop software for the machines on the shop floor.",
+      "summary": "Windows applications for offices, counters and factory PCs — including software that talks to printers, scanners, scales and serial devices.",
+      "builds": [
+        {
+          "title": "Windows 10 and 11",
+          "detail": "Desktop apps for Windows 10 and 11"
+        },
+        {
+          "title": "Printers and scales",
+          "detail": "Integration with printers, scales and scanners"
+        },
+        {
+          "title": "Serial and USB devices",
+          "detail": "Serial and USB device communication"
+        },
+        {
+          "title": "Works offline",
+          "detail": "Offline operation with later sync"
+        },
+        {
+          "title": "Installers and updates",
+          "detail": "Installers and silent updates"
+        },
+        {
+          "title": "Kiosk mode",
+          "detail": "Kiosk and locked-down modes"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/windows-apps/",
+      "related_offers": [
+        "protocol-decode"
+      ]
+    },
+    {
+      "slug": "cli-tools",
+      "area": "Software",
+      "group": "Desktop & developer",
+      "name": "Developer tools",
+      "tagline": "Tools your engineers reach for every day.",
+      "summary": "Command-line tools, build and deploy scripts, and internal developer tooling that turn a page of manual steps into one command.",
+      "builds": [
+        {
+          "title": "Tools that explain themselves",
+          "detail": "Command-line tools with clear help and errors"
+        },
+        {
+          "title": "Build and release",
+          "detail": "Build, test and release automation"
+        },
+        {
+          "title": "Migrations and maintenance",
+          "detail": "Data migration and maintenance scripts"
+        },
+        {
+          "title": "Generators",
+          "detail": "Code generators and scaffolders"
+        },
+        {
+          "title": "Checks before shipping",
+          "detail": "Checkers that stop mistakes before they ship"
+        },
+        {
+          "title": "Packaged everywhere",
+          "detail": "Packaged for macOS, Linux and Windows"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/cli-tools/",
+      "related_offers": []
+    },
+    {
+      "slug": "integrations",
+      "area": "Software",
+      "group": "Desktop & developer",
+      "name": "Integrations",
+      "tagline": "Make your systems talk to each other.",
+      "summary": "APIs, webhooks and integrations that connect the tools you already use — so data moves by itself instead of by copy-and-paste.",
+      "builds": [
+        {
+          "title": "APIs and webhooks",
+          "detail": "REST and webhook APIs for your product"
+        },
+        {
+          "title": "Two-way sync",
+          "detail": "Two-way sync between business systems"
+        },
+        {
+          "title": "Payments and messaging",
+          "detail": "Payment, SMS, WhatsApp and email integrations"
+        },
+        {
+          "title": "Accounting connectors",
+          "detail": "Accounting and ERP connectors"
+        },
+        {
+          "title": "Queues and retries",
+          "detail": "Reliable queues with retries and logs"
+        },
+        {
+          "title": "Machines and devices",
+          "detail": "Integration with machines and devices"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/integrations/",
+      "related_offers": [
+        "remote-decode"
+      ]
+    },
+    {
+      "slug": "ai-agents",
+      "area": "Software",
+      "group": "AI & automation",
+      "name": "AI agents",
+      "tagline": "Agents that do real work — and ask before they change anything.",
+      "summary": "AI agents wired to your own data and tools, able to research, draft and propose actions, with every change gated behind a person's approval.",
+      "builds": [
+        {
+          "title": "Agents with real tools",
+          "detail": "Agents with a catalogue of tools over your systems"
+        },
+        {
+          "title": "Grounded answers",
+          "detail": "Answers grounded in your data, with sources"
+        },
+        {
+          "title": "Nothing without approval",
+          "detail": "Proposed actions that wait for human approval"
+        },
+        {
+          "title": "Scoped access",
+          "detail": "Access scoped to what each user may see"
+        },
+        {
+          "title": "Logged end to end",
+          "detail": "Full logs of every question, action and approval"
+        },
+        {
+          "title": "Cost controls",
+          "detail": "Streaming responses and cost controls"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/ai-agents/",
+      "related_offers": [
+        "ops-analyst"
+      ]
+    },
+    {
+      "slug": "automation",
+      "area": "Software",
+      "group": "AI & automation",
+      "name": "Automation",
+      "tagline": "The repetitive work, done without anyone doing it.",
+      "summary": "Automations that move data, send messages, generate documents and trigger actions across your tools — on a schedule or the moment something happens.",
+      "builds": [
+        {
+          "title": "Scheduled and triggered",
+          "detail": "Scheduled and event-driven workflows"
+        },
+        {
+          "title": "Automatic reports",
+          "detail": "Automatic reports and summaries"
+        },
+        {
+          "title": "Documents and invoices",
+          "detail": "Document and invoice generation"
+        },
+        {
+          "title": "Notifications",
+          "detail": "Email, SMS and WhatsApp notifications"
+        },
+        {
+          "title": "Hand-offs",
+          "detail": "Hand-offs between teams and systems"
+        },
+        {
+          "title": "Failure alerts",
+          "detail": "Monitoring that tells you when a step fails"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/automation/",
+      "related_offers": []
+    },
+    {
+      "slug": "document-ai",
+      "area": "Software",
+      "group": "AI & automation",
+      "name": "Reading documents",
+      "tagline": "PDFs, scans and emails turned into clean data.",
+      "summary": "Pipelines that read invoices, contracts, forms and emails and turn them into structured records you can search, check and report on.",
+      "builds": [
+        {
+          "title": "Extraction",
+          "detail": "Extraction from PDFs, scans and email"
+        },
+        {
+          "title": "Your own rules",
+          "detail": "Validation against your own rules"
+        },
+        {
+          "title": "A review queue",
+          "detail": "A review queue for anything uncertain"
+        },
+        {
+          "title": "Search everything",
+          "detail": "Search across every document"
+        },
+        {
+          "title": "Export anywhere",
+          "detail": "Export to your database or spreadsheets"
+        },
+        {
+          "title": "Source-to-record trail",
+          "detail": "Audit trail from source to record"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/software/document-ai/",
+      "related_offers": []
+    },
+    {
+      "slug": "factory-automation",
+      "area": "Hardware",
+      "group": "Industrial automation",
+      "name": "Factory automation",
+      "tagline": "A production line that reports on itself.",
+      "summary": "Sensors, controllers and software that automate steps on a production line and show output, downtime and faults live — added to the machines you already have.",
+      "builds": [
+        {
+          "title": "Output and downtime",
+          "detail": "Machine monitoring for output, downtime and faults"
+        },
+        {
+          "title": "Line controllers",
+          "detail": "Controllers for repetitive line steps"
+        },
+        {
+          "title": "Operator screens",
+          "detail": "Operator screens and alarms"
+        },
+        {
+          "title": "Shift reporting",
+          "detail": "Shift and batch reporting"
+        },
+        {
+          "title": "Works with your PLCs",
+          "detail": "Integration with PLCs and existing controls"
+        },
+        {
+          "title": "Management dashboards",
+          "detail": "Dashboards for management, viewable anywhere"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/factory-automation/",
+      "related_offers": [
+        "epsilon1",
+        "protocol-decode"
+      ]
+    },
+    {
+      "slug": "mill-automation",
+      "area": "Hardware",
+      "group": "Industrial automation",
+      "name": "Mill automation",
+      "tagline": "Flour, rice and textile mills that run on numbers, not guesses.",
+      "summary": "Monitoring and control for mills — throughput, motor load, bin levels and energy use — so the owner sees the mill's real performance from anywhere.",
+      "builds": [
+        {
+          "title": "Throughput and yield",
+          "detail": "Throughput and yield measurement"
+        },
+        {
+          "title": "Motor load and vibration",
+          "detail": "Motor load, temperature and vibration monitoring"
+        },
+        {
+          "title": "Bin and silo levels",
+          "detail": "Bin and silo level sensing"
+        },
+        {
+          "title": "Energy per tonne",
+          "detail": "Energy use per shift and per tonne"
+        },
+        {
+          "title": "Batch records",
+          "detail": "Batch and shift records"
+        },
+        {
+          "title": "Stoppage alerts",
+          "detail": "Alerts for stoppages and faults"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/mill-automation/",
+      "related_offers": [
+        "epsilon1",
+        "sensing"
+      ]
+    },
+    {
+      "slug": "retrofits",
+      "area": "Hardware",
+      "group": "Industrial automation",
+      "name": "Machine retrofits",
+      "tagline": "Old machines, new data.",
+      "summary": "Connect machines that were never designed to be connected — including ones with undocumented protocols — and bring their data into modern software.",
+      "builds": [
+        {
+          "title": "Protocol decoding",
+          "detail": "Protocol capture and decoding"
+        },
+        {
+          "title": "A terminal on the bus",
+          "detail": "A terminal that reads the machine directly"
+        },
+        {
+          "title": "Noisy lines handled",
+          "detail": "Resilient parsing on noisy, shared lines"
+        },
+        {
+          "title": "Into your database",
+          "detail": "Data into your cloud or database"
+        },
+        {
+          "title": "Remote updates",
+          "detail": "Remote configuration and updates"
+        },
+        {
+          "title": "The machine untouched",
+          "detail": "No change to the machine itself"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/retrofits/",
+      "related_offers": [
+        "protocol-decode",
+        "remote-decode",
+        "epsilon1"
+      ]
+    },
+    {
+      "slug": "hmi-scada",
+      "area": "Hardware",
+      "group": "Industrial automation",
+      "name": "Operator screens",
+      "tagline": "Screens operators can read at a glance.",
+      "summary": "Touchscreen panels and control-room views for machines and plants — clear status, alarms and history, on the floor and remotely.",
+      "builds": [
+        {
+          "title": "Operator panels",
+          "detail": "Touchscreen operator panels"
+        },
+        {
+          "title": "Control-room views",
+          "detail": "Control-room and remote views"
+        },
+        {
+          "title": "Alarms and history",
+          "detail": "Alarm handling and history"
+        },
+        {
+          "title": "Trend charts",
+          "detail": "Trend charts for key readings"
+        },
+        {
+          "title": "Role-based controls",
+          "detail": "Role-based controls"
+        },
+        {
+          "title": "Digital twin views",
+          "detail": "Digital twin views of a site"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/hmi-scada/",
+      "related_offers": [
+        "digital-twin",
+        "epsilon1"
+      ]
+    },
+    {
+      "slug": "industrial-iot",
+      "area": "Hardware",
+      "group": "Monitoring & IoT",
+      "name": "Machine monitoring",
+      "tagline": "Every machine you own, visible from anywhere.",
+      "summary": "Connected terminals that read machines and sensors on site and deliver the data to a live dashboard — built to keep working when the network does not.",
+      "builds": [
+        {
+          "title": "Terminals on the machine",
+          "detail": "Terminals that read machines and sensors"
+        },
+        {
+          "title": "Survives outages",
+          "detail": "Offline-first queues that survive outages"
+        },
+        {
+          "title": "Live and historical",
+          "detail": "Live and historical dashboards"
+        },
+        {
+          "title": "Alerts that reach you",
+          "detail": "Alerts by SMS, WhatsApp and email"
+        },
+        {
+          "title": "Over-the-air config",
+          "detail": "Over-the-air configuration"
+        },
+        {
+          "title": "Fleet across sites",
+          "detail": "Fleet management across sites"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/industrial-iot/",
+      "related_offers": [
+        "epsilon1"
+      ]
+    },
+    {
+      "slug": "energy-monitoring",
+      "area": "Hardware",
+      "group": "Monitoring & IoT",
+      "name": "Energy & generators",
+      "tagline": "Know what your power actually costs.",
+      "summary": "Monitoring for generators, solar, grid and load — fuel use, runtime and energy per machine — so you can cut the waste you currently cannot see.",
+      "builds": [
+        {
+          "title": "Generator runtime and fuel",
+          "detail": "Generator runtime, load and fuel use"
+        },
+        {
+          "title": "Solar and grid metering",
+          "detail": "Solar and grid energy metering"
+        },
+        {
+          "title": "Energy per machine",
+          "detail": "Energy per machine, shift or product"
+        },
+        {
+          "title": "Abnormal-use alerts",
+          "detail": "Alerts for faults and abnormal use"
+        },
+        {
+          "title": "Cost and maintenance",
+          "detail": "Reports for cost and maintenance"
+        },
+        {
+          "title": "Every site, remotely",
+          "detail": "Remote monitoring across sites"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/energy-monitoring/",
+      "related_offers": [
+        "epsilon1",
+        "sensing"
+      ]
+    },
+    {
+      "slug": "cold-chain",
+      "area": "Hardware",
+      "group": "Monitoring & IoT",
+      "name": "Cold chain",
+      "tagline": "Temperature you can prove.",
+      "summary": "Temperature, humidity and door monitoring for cold rooms, freezers and vehicles, with alerts and an unbroken record for audits.",
+      "builds": [
+        {
+          "title": "Temperature logging",
+          "detail": "Temperature and humidity logging"
+        },
+        {
+          "title": "Door and power alerts",
+          "detail": "Door and power-failure alerts"
+        },
+        {
+          "title": "Records that survive",
+          "detail": "Records that survive network outages"
+        },
+        {
+          "title": "Audit-ready reports",
+          "detail": "Audit-ready reports"
+        },
+        {
+          "title": "Alerts in real time",
+          "detail": "Alerts to phones in real time"
+        },
+        {
+          "title": "Calibration checks",
+          "detail": "Calibration and drift checks"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/cold-chain/",
+      "related_offers": [
+        "sensing",
+        "epsilon1"
+      ]
+    },
+    {
+      "slug": "tank-monitoring",
+      "area": "Hardware",
+      "group": "Monitoring & IoT",
+      "name": "Tank levels",
+      "tagline": "Levels you never have to dip by hand.",
+      "summary": "Level, volume and flow monitoring for tanks, silos and reservoirs — with alerts before they run dry or overflow.",
+      "builds": [
+        {
+          "title": "Level and volume",
+          "detail": "Level and volume sensing"
+        },
+        {
+          "title": "Flow and consumption",
+          "detail": "Flow and consumption tracking"
+        },
+        {
+          "title": "Level alerts",
+          "detail": "Low and high level alerts"
+        },
+        {
+          "title": "Delivery reconciliation",
+          "detail": "Delivery reconciliation"
+        },
+        {
+          "title": "Remote readings",
+          "detail": "Remote readings across sites"
+        },
+        {
+          "title": "History and reporting",
+          "detail": "History and reporting"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/tank-monitoring/",
+      "related_offers": [
+        "epsilon1",
+        "sensing"
+      ]
+    },
+    {
+      "slug": "custom-hardware",
+      "area": "Hardware",
+      "group": "Hardware products",
+      "name": "Custom devices",
+      "tagline": "From an idea on paper to a device in your hand.",
+      "summary": "End-to-end product development: requirements, electronics, firmware, enclosure and the software around it — ready for small-batch production.",
+      "builds": [
+        {
+          "title": "Requirements and parts",
+          "detail": "Requirements and part selection"
+        },
+        {
+          "title": "Schematic and PCB",
+          "detail": "Schematic and PCB design"
+        },
+        {
+          "title": "Firmware and updates",
+          "detail": "Firmware and over-the-air updates"
+        },
+        {
+          "title": "Enclosure and prototypes",
+          "detail": "Enclosure design and prototyping"
+        },
+        {
+          "title": "Companion app",
+          "detail": "Companion app or cloud dashboard"
+        },
+        {
+          "title": "Manufacturing pack",
+          "detail": "Documentation for manufacturing"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/custom-hardware/",
+      "related_offers": [
+        "board-to-fab",
+        "design-review",
+        "firmware-rescue"
+      ]
+    },
+    {
+      "slug": "pos-terminals",
+      "area": "Hardware",
+      "group": "Hardware products",
+      "name": "Tills & kiosks",
+      "tagline": "Counters and kiosks that print, scan and never lose a sale.",
+      "summary": "Point-of-sale terminals and self-service kiosks with touchscreens, printers, card and RFID readers — and the ledger behind them.",
+      "builds": [
+        {
+          "title": "Terminals and kiosks",
+          "detail": "Touchscreen terminals and kiosks"
+        },
+        {
+          "title": "Verifiable receipts",
+          "detail": "Receipt printing with verifiable codes"
+        },
+        {
+          "title": "RFID and card readers",
+          "detail": "RFID, barcode and card readers"
+        },
+        {
+          "title": "Sales never block",
+          "detail": "Offline-first sales that never block"
+        },
+        {
+          "title": "Loyalty accounts",
+          "detail": "Loyalty and customer accounts"
+        },
+        {
+          "title": "Live sales ledger",
+          "detail": "Live sales ledger and reporting"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/pos-terminals/",
+      "related_offers": [
+        "efuelpro",
+        "epsilon1"
+      ]
+    },
+    {
+      "slug": "rfid-attendance",
+      "area": "Hardware",
+      "group": "Hardware products",
+      "name": "Access & attendance",
+      "tagline": "Know who was where, and when.",
+      "summary": "RFID and card-based systems for staff attendance, access points and asset tracking, with reports that feed payroll and operations.",
+      "builds": [
+        {
+          "title": "RFID and card readers",
+          "detail": "RFID and card readers"
+        },
+        {
+          "title": "Attendance and shifts",
+          "detail": "Staff attendance and shift records"
+        },
+        {
+          "title": "Door and gate access",
+          "detail": "Door and gate access control"
+        },
+        {
+          "title": "Asset tracking",
+          "detail": "Asset and tool tracking"
+        },
+        {
+          "title": "Payroll reports",
+          "detail": "Reports for payroll"
+        },
+        {
+          "title": "Card management",
+          "detail": "Remote management of cards"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/rfid-attendance/",
+      "related_offers": [
+        "epsilon1"
+      ]
+    },
+    {
+      "slug": "fuel-forecourt",
+      "area": "Hardware",
+      "group": "Hardware products",
+      "name": "Fuel forecourts",
+      "tagline": "Every litre has a record, and the record has a receipt.",
+      "summary": "Forecourt terminals that read the dispenser directly, print verifiable receipts, run loyalty and attendance, and keep a ledger that works offline.",
+      "builds": [
+        {
+          "title": "Direct dispenser reading",
+          "detail": "Direct dispenser reading"
+        },
+        {
+          "title": "Verifiable receipts",
+          "detail": "Verifiable receipts"
+        },
+        {
+          "title": "RFID loyalty",
+          "detail": "RFID loyalty and attendance"
+        },
+        {
+          "title": "Offline-first ledger",
+          "detail": "Offline-first ledger"
+        },
+        {
+          "title": "Live station view",
+          "detail": "Live station dashboard"
+        },
+        {
+          "title": "Remote price updates",
+          "detail": "Remote price updates"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/fuel-forecourt/",
+      "related_offers": [
+        "efuelpro"
+      ]
+    },
+    {
+      "slug": "pcb-design",
+      "area": "Hardware",
+      "group": "Engineering",
+      "name": "PCB design",
+      "tagline": "Boards that come back from the fab right the first time.",
+      "summary": "Schematic capture, layout, libraries drawn from datasheets, orderable BOMs and fabrication packages — or a review of a board someone else drew.",
+      "builds": [
+        {
+          "title": "Schematic and layout",
+          "detail": "Schematic and layout in KiCad"
+        },
+        {
+          "title": "Datasheet-drawn libraries",
+          "detail": "Libraries drawn from manufacturer datasheets"
+        },
+        {
+          "title": "Power and protection",
+          "detail": "Power protection and decoupling"
+        },
+        {
+          "title": "Orderable BOMs",
+          "detail": "Orderable BOMs with alternates"
+        },
+        {
+          "title": "Fabrication outputs",
+          "detail": "Gerbers, drill files and assembly notes"
+        },
+        {
+          "title": "Pre-fab review",
+          "detail": "Pre-fabrication design reviews"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/pcb-design/",
+      "related_offers": [
+        "board-to-fab",
+        "design-review",
+        "footprint",
+        "bom-audit"
+      ]
+    },
+    {
+      "slug": "embedded-firmware",
+      "area": "Hardware",
+      "group": "Engineering",
+      "name": "Embedded firmware",
+      "tagline": "Firmware that keeps running when things go wrong.",
+      "summary": "Bare-metal and RTOS firmware for microcontrollers — drivers, communication, fault recovery and over-the-air updates.",
+      "builds": [
+        {
+          "title": "Drivers",
+          "detail": "Drivers for displays, sensors and radios"
+        },
+        {
+          "title": "Every bus",
+          "detail": "Serial, SPI, I²C, CAN and USB communication"
+        },
+        {
+          "title": "Detects and recovers",
+          "detail": "Fault detection and automatic recovery"
+        },
+        {
+          "title": "Crash-safe storage",
+          "detail": "Crash-safe storage and queues"
+        },
+        {
+          "title": "Over-the-air updates",
+          "detail": "Over-the-air updates"
+        },
+        {
+          "title": "Rescue work",
+          "detail": "Rescue of firmware nobody understands"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/embedded-firmware/",
+      "related_offers": [
+        "firmware-rescue",
+        "board-to-fab"
+      ]
+    },
+    {
+      "slug": "sensing",
+      "area": "Hardware",
+      "group": "Engineering",
+      "name": "Sensors & calibration",
+      "tagline": "Readings you can trust after the first week.",
+      "summary": "Force, pressure, load, temperature and motion sensing — characterised, calibrated and corrected for drift, with calibration that survives a re-flash.",
+      "builds": [
+        {
+          "title": "Sensor selection",
+          "detail": "Sensor selection and custom sensing"
+        },
+        {
+          "title": "Characterisation",
+          "detail": "Characterisation across temperature and load"
+        },
+        {
+          "title": "Per-unit calibration",
+          "detail": "Automated calibration per unit"
+        },
+        {
+          "title": "Drift detection",
+          "detail": "Drift detection in firmware"
+        },
+        {
+          "title": "Versioned profiles",
+          "detail": "Versioned calibration profiles"
+        },
+        {
+          "title": "Production test tooling",
+          "detail": "Production test tooling"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/sensing/",
+      "related_offers": [
+        "sensing"
+      ]
+    },
+    {
+      "slug": "small-batch",
+      "area": "Hardware",
+      "group": "Engineering",
+      "name": "Enclosures & small runs",
+      "tagline": "From one prototype to your first hundred units.",
+      "summary": "Enclosure design, prototyping and the documentation and test tooling that make small-batch production repeatable.",
+      "builds": [
+        {
+          "title": "Enclosures and prototypes",
+          "detail": "Enclosure design and 3D-printed prototypes"
+        },
+        {
+          "title": "Assembly drawings",
+          "detail": "Assembly instructions and drawings"
+        },
+        {
+          "title": "Test jigs",
+          "detail": "Test jigs and production tests"
+        },
+        {
+          "title": "BOM costing",
+          "detail": "BOM costing at your volumes"
+        },
+        {
+          "title": "Supplier coordination",
+          "detail": "Supplier and assembler coordination"
+        },
+        {
+          "title": "First-article inspection",
+          "detail": "First-article inspection"
+        }
+      ],
+      "pricing": "on request",
+      "url": "https://epsilon-labs.co/hardware/small-batch/",
+      "related_offers": [
+        "board-to-fab",
+        "bom-audit"
+      ]
+    }
+  ]
+}

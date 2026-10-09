@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pre-Fab Design Review — Epsilon Labs</title>
+<meta name="description" content="Send us your schematic and BOM before you commit to fabrication. We review it the way we review our own and send back a written findings list, ranked by what it would cost you to discover later.">
+<meta name="theme-color" content="#08090A">
+<link rel="icon" href="/assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://epsilon-labs.co/services/design-review/">
+<link rel="alternate" type="text/markdown" href="https://epsilon-labs.co/services/design-review/index.md">
+<link rel="describedby" type="text/plain" href="https://epsilon-labs.co/llms.txt">
+
+<meta property="og:url" content="https://epsilon-labs.co/services/design-review/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pre-Fab Design Review — Epsilon Labs">
+<meta property="og:description" content="Send us your schematic and BOM before you commit to fabrication. We review it the way we review our own and send back a written findings list, ranked by what it would cost you to discover later.">
+<meta property="og:image" content="https://epsilon-labs.co/assets/brand/og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script>
+/* The boot curtain. Set before the first paint so the page never flashes in
+   behind it, and armed with its own timeout: if WebGL is missing or the
+   glyph never loads, the curtain lifts anyway and the page is just a page. */
+(function () {
+  var r = document.documentElement;
+  if (r.dataset.boot !== '1') return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* Once per tab. An arrival you sit through on every visit home stops
+     being an arrival and becomes a toll. */
+  try {
+    if (sessionStorage.getItem('eps:arrived')) return;
+    sessionStorage.setItem('eps:arrived', '1');
+  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+  r.classList.add('booting');
+  var lift = function () {
+    if (!r.classList.contains('booting')) return;
+    r.classList.remove('booting');
+    r.classList.add('booted');
+  };
+  document.addEventListener('epsilon:ready', lift);
+  setTimeout(lift, 4000);
+})();
+</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://epsilon-labs.co/services/design-review/#service","name":"Pre-Fab Design Review","serviceType":"Engagements","description":"Send us your schematic and BOM before you commit to fabrication. We review it the way we review our own and send back a written findings list, ranked by what it would cost you to discover later.","url":"https://epsilon-labs.co/services/design-review/","provider":{"@id":"https://epsilon-labs.co/#org"},"areaServed":["PK","AE","SA","GB","US"],"offers":{"@type":"Offer","url":"https://epsilon-labs.co/services/design-review/","availability":"https://schema.org/InStock","priceSpecification":{"@type":"PriceSpecification","@id":"https://epsilon-labs.co/services/design-review/#price","description":"Quoted per project after a call. Contact er@epsilon-labs.co"}},"termsOfService":"https://epsilon-labs.co/services/design-review/#fit","hasOfferCatalog":{"@type":"OfferCatalog","name":"Pre-Fab Design Review deliverables","itemListElement":[{"@type":"Offer","itemOffered":{"@type":"Service","name":"Written findings list, ranked by cost-if-missed"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Power architecture review — rails, margin, protection, thermal"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Voltage-domain check across every interface on the board"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Footprint and land-pattern spot check against manufacturer datasheets"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"BOM review — lifecycle risk, lead times, second sources"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"DRC readiness and fabrication-output check"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"A call to walk through anything you want to argue about"}}]}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","@id":"https://epsilon-labs.co/services/design-review/#faq","mainEntity":[{"@type":"Question","name":"What do you need from me?","acceptedAnswer":{"@type":"Answer","text":"The schematic, the board file and the BOM. KiCad, Altium and Eagle are all fine; PDFs work if that is all you have, though we can say less about the layout."}},{"@type":"Question","name":"Is it confidential?","acceptedAnswer":{"@type":"Answer","text":"Yes. We will sign your NDA before you send anything, or provide ours."}},{"@type":"Question","name":"What if you find nothing?","acceptedAnswer":{"@type":"Answer","text":"That happens and it is a real result. You get the written review saying so, which is worth having when you sign off the fabrication order."}}]}</script>
+
+</head>
+
+<body data-scene="traces">
+<a class="skip" href="#main">Skip to content</a>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<div class="scrim" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__in">
+    <a class="nav__mark" href="/" aria-label="Epsilon Labs — home">
+      <i class="mark" aria-hidden="true"></i>
+      <span>Epsilon Labs</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="/software/" data-mega="software" aria-controls="mega-software" aria-expanded="false">Software</a>
+      <a href="/hardware/" data-mega="hardware" aria-controls="mega-hardware" aria-expanded="false">Hardware</a>
+      <a href="/catalogue/#tier-lab" data-mega="frontier" aria-controls="mega-frontier" aria-expanded="false">Frontier</a>
+      <a href="/catalogue/#tier-security" data-mega="security" aria-controls="mega-security" aria-expanded="false">Security</a>
+      <a href="/catalogue/" aria-current="page">Catalogue</a>
+      <a href="/work/">Work</a>
+    </nav>
+    <div class="nav__right">
+      <a href="/start/">Start a project</a>
+      <div class="nav__co" id="navco">
+        <button type="button" aria-expanded="false" aria-controls="navdrop">Company</button>
+        <div class="nav__drop" id="navdrop">
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/llms.txt">For AI agents</a>
+        </div>
+      </div>
+    </div>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+      <i></i><i></i>
+    </button>
+  </div>
+<div class="mega" id="mega-software" data-mega-panel="software" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Software</p><a class="ulink" href="/software/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/software/#business">Business systems</a></p><p class="mega__b">The systems a company runs on, every day.</p><ul><li><a href="/software/crm/"><span>CRM</span></a></li><li><a href="/software/erp/"><span>ERP</span></a></li><li><a href="/software/inventory/"><span>Inventory</span></a></li><li><a href="/software/#business"><small>+ 3 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#customer">Customer-facing</a></p><p class="mega__b">What your customers see, tap and pay through.</p><ul><li><a href="/software/web-apps/"><span>Web apps</span></a></li><li><a href="/software/mobile-apps/"><span>Mobile apps</span></a></li><li><a href="/software/marketplaces/"><span>Marketplaces</span></a></li><li><a href="/software/#customer"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#platform">Desktop &amp; developer</a></p><p class="mega__b">Native apps, tools and the plumbing between systems.</p><ul><li><a href="/software/macos-apps/"><span>macOS apps</span></a></li><li><a href="/software/windows-apps/"><span>Windows apps</span></a></li><li><a href="/software/cli-tools/"><span>Developer tools</span></a></li><li><a href="/software/#platform"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#ai">AI &amp; automation</a></p><p class="mega__b">Work that should not need a person doing it by hand.</p><ul><li><a href="/software/ai-agents/"><span>AI agents</span></a></li><li><a href="/software/automation/"><span>Automation</span></a></li><li><a href="/software/document-ai/"><span>Reading documents</span></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-hardware" data-mega-panel="hardware" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Hardware</p><a class="ulink" href="/hardware/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/hardware/#industrial">Industrial automation</a></p><p class="mega__b">Plants, mills and lines that run themselves and report back.</p><ul><li><a href="/hardware/factory-automation/"><span>Factory automation</span></a></li><li><a href="/hardware/mill-automation/"><span>Mill automation</span></a></li><li><a href="/hardware/retrofits/"><span>Machine retrofits</span></a></li><li><a href="/hardware/#industrial"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#monitoring">Monitoring &amp; IoT</a></p><p class="mega__b">Machines and sites you can see from anywhere, live.</p><ul><li><a href="/hardware/industrial-iot/"><span>Machine monitoring</span></a></li><li><a href="/hardware/energy-monitoring/"><span>Energy &amp; generators</span></a></li><li><a href="/hardware/cold-chain/"><span>Cold chain</span></a></li><li><a href="/hardware/#monitoring"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#products">Hardware products</a></p><p class="mega__b">Devices designed, built and put in customers' hands.</p><ul><li><a href="/hardware/custom-hardware/"><span>Custom devices</span></a></li><li><a href="/hardware/pos-terminals/"><span>Tills &amp; kiosks</span></a></li><li><a href="/hardware/rfid-attendance/"><span>Access &amp; attendance</span></a></li><li><a href="/hardware/#products"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#engineering">Engineering</a></p><p class="mega__b">The board, the firmware and the build behind all of it.</p><ul><li><a href="/hardware/pcb-design/"><span>PCB design</span></a></li><li><a href="/hardware/embedded-firmware/"><span>Embedded firmware</span></a></li><li><a href="/hardware/sensing/"><span>Sensors &amp; calibration</span></a></li><li><a href="/hardware/#engineering"><small>+ 1 more</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-frontier" data-mega-panel="frontier" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Frontier</p><a class="ulink" href="/catalogue/#tier-lab">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">The hard ones</p><ul><li><a href="/products/digital-twin/"><span>Digital Twins</span><small>6–10 weeks</small></a></li><li><a href="/products/robotics-infra/"><span>Robot-Learning Infrastructure</span><small>3–6 weeks</small></a></li><li><a href="/products/sensing/"><span>Sensing &amp; Calibration</span><small>4–8 weeks</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-security" data-mega-panel="security" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Security</p><a class="ulink" href="/catalogue/#tier-security">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">Assessments</p><ul><li><a href="/services/device-pentest/"><span>Device Penetration Test</span><small>2–3 weeks</small></a></li><li><a href="/services/authz-review/"><span>Authorisation Model Review</span><small>1 week</small></a></li></ul></div></div></div></div>
+</header>
+
+<nav class="menu" id="menu" aria-label="Mobile" aria-hidden="true">
+  <a href="/software/">Software</a>
+  <a href="/hardware/">Hardware</a>
+  <a href="/catalogue/#tier-lab">Frontier</a>
+  <a href="/catalogue/#tier-security">Security</a>
+  <a href="/catalogue/" aria-current="page">Catalogue</a>
+  <a href="/work/">Work</a>
+  <a href="/about/">About</a>
+  <a href="/start/">Start a project</a>
+</nav>
+
+<main class="page" id="main">
+
+  <section class="sec sec--flush sec--open" data-scene="traces" style="padding-block:calc(var(--nav-h) + var(--s-96)) var(--s-64)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-24)">
+        <a href="/catalogue/" style="color:inherit">Engagements</a> · Pre-Fab Design Review
+      </p>
+      <h1 class="h1 reveal" style="max-width:17ch">Find the board-killer before you pay for a hundred of them.</h1>
+      <p class="lede reveal" style="margin-top:var(--s-32);max-width:50ch">Send us your schematic and BOM before you commit to fabrication. We review it the way we review our own and send back a written findings list, ranked by what it would cost you to discover later.</p>
+
+    </div>
+  </section>
+
+  <section class="sec" id="terms">
+    <div class="shell specslice">
+      <div class="speccard notch reveal">
+        <p class="speccard__k">Pre-Fab Design Review</p>
+        <dl><div><dt>Typical length</dt><dd>3–5 days</dd></div><div><dt>What you get</dt><dd>7 written deliverables, listed below</dd></div><div><dt>What decides the number</dt><dd>Layer count and part count. A four-layer mixed-signal board with 300 components is not a two-layer sensor board, and we will tell you which you have before you pay.</dd></div><div><dt>Scoping</dt><dd>One call, then a written scope. We say no when it is not ours.</dd></div></dl>
+        <p class="speccard__cta"><b>Contact sales</b><a href="mailto:er@epsilon-labs.co?subject=Pre-Fab%20Design%20Review%20%E2%80%94%20enquiry&body=Offer%3A%20Pre-Fab%20Design%20Review%0A%0AWhat%20it%20has%20to%20do%3A%0A%0ADeadline%3A%0A%0AThe%20constraint%20I%27m%20most%20worried%20about%3A%0A%0A">Get a quote <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
+      </div>
+      <div class="specslice__say reveal">
+        <p class="sec__label"><b>01</b> <i>The terms</i></p>
+        <p>Quoted per project, after a call. We do not publish a band for this, because a number without a scope is a guess and you would have to unpick it later anyway.</p>
+        <p>Tell us what the work has to do and when it has to be done, and you get the scope and the number in writing — or a straight answer that this is not ours.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--paper" id="problem">
+    <div class="shell">
+      <p class="sec__label"><b>03</b> <i>The problem</i></p>
+      <div class="prose reveal">
+          <p>A board respin is four weeks and a fabrication run you have already paid for. The faults that cause it are almost never exotic — a voltage domain crossed, a footprint taken from a parts site instead of a datasheet, a regulator with no margin, protection that was assumed rather than specified.</p>
+          <p>They are also nearly invisible to the person who drew the board, because they are looking at what they meant rather than at what is on the canvas.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--open" id="deliverables" data-scene="traces">
+    <div class="shell">
+      <p class="sec__label"><b>04</b> <i>What you get</i></p>
+      <ul class="checks">
+        <li class="reveal"><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Written findings list, ranked by cost-if-missed</span></li>
+        <li class="reveal"><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Power architecture review — rails, margin, protection, thermal</span></li>
+        <li class="reveal"><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Voltage-domain check across every interface on the board</span></li>
+        <li class="reveal"><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Footprint and land-pattern spot check against manufacturer datasheets</span></li>
+        <li class="reveal"><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>BOM review — lifecycle risk, lead times, second sources</span></li>
+        <li class="reveal"><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>DRC readiness and fabrication-output check</span></li>
+        <li class="reveal"><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>A call to walk through anything you want to argue about</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec sec--stone" id="process">
+    <div class="shell">
+      <p class="sec__label"><b>05</b> <i>How it runs</i></p>
+      <dl class="spec reveal">
+        <div><dt>Day 0</dt><dd>You send schematic, board file and BOM. Any format we can open.</dd></div>
+        <div><dt>Days 1–3</dt><dd>Review. We work from the module datasheets, not from the internet.</dd></div>
+        <div><dt>Days 4–5</dt><dd>Written findings delivered, then a call to walk through them.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec" id="fit">
+    <div class="shell">
+      <p class="sec__label"><b>06</b> <i>Whether this is for you</i></p>
+      <div class="grid grid--2">
+        <div class="fit reveal">
+          <h3 class="h3">This is for you if</h3>
+          <ul class="checks checks--tight">
+          <li><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>You have a board about to go to fabrication and nobody senior has read it</span></li>
+          <li><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>A previous revision came back wrong and you do not know why</span></li>
+          <li><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>Your layout was outsourced and you want it checked before you pay the fab</span></li>
+          <li><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>You are a software team who inherited a hardware product</span></li>
+          </ul>
+        </div>
+        <div class="fit fit--no reveal">
+          <h3 class="h3">This is not for you if</h3>
+          <ul class="checks checks--tight">
+          <li><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></i><span>Boards already in production with no revision planned — there is nothing to act on</span></li>
+          <li><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></i><span>Full layout work. That is Board-to-Fab.</span></li>
+          <li><i><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></i><span>Certification, EMC pre-compliance or safety approval. We are not a test house.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="proof">
+    <div class="shell">
+      <p class="sec__label"><b>07</b> <i>Proof</i></p>
+      <div class="note reveal" style="max-width:var(--measure)">
+        <p>On Epsilon1, datasheet review caught a 5 V-only RS485 transceiver that would have driven 5 V into the ESP32's 3.3 V RX pin. A dead board and a four-week respin, found for the cost of an afternoon.</p>
+        <p style="margin-top:var(--s-24)">
+          <a class="arrow" href="/hardware/">The hardware practice <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="questions">
+    <div class="shell">
+      <p class="sec__label"><b>08</b> <i>Questions</i></p>
+      <div class="faq">
+        <div class="reveal">
+          <h3 class="h3">What do you need from me?</h3>
+          <p>The schematic, the board file and the BOM. KiCad, Altium and Eagle are all fine; PDFs work if that is all you have, though we can say less about the layout.</p>
+        </div>
+        <div class="reveal">
+          <h3 class="h3">Is it confidential?</h3>
+          <p>Yes. We will sign your NDA before you send anything, or provide ours.</p>
+        </div>
+        <div class="reveal">
+          <h3 class="h3">What if you find nothing?</h3>
+          <p>That happens and it is a real result. You get the written review saying so, which is worth having when you sign off the fabrication order.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--slate sec--end" id="cta">
+    <div class="shell">
+      <p class="sec__label"><b>Next</b> 3–5 days</p>
+      <h2 class="display reveal">Pre-Fab Design Review</h2>
+      <p class="lede reveal" style="margin-top:var(--s-24);max-width:46ch">Tell us what the work has to do and when it has to be done. You will get a person who has read it, not a sequence.</p>
+      <div class="reveal" style="display:flex;flex-wrap:wrap;gap:var(--s-12);margin-top:var(--s-48)">
+        <a class="btn" href="mailto:er@epsilon-labs.co?subject=Pre-Fab%20Design%20Review%20%E2%80%94%20enquiry&body=Offer%3A%20Pre-Fab%20Design%20Review%0A%0AWhat%20it%20has%20to%20do%3A%0A%0ADeadline%3A%0A%0AThe%20constraint%20I%27m%20most%20worried%20about%3A%0A%0A">Start this <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="btn btn--ghost" href="/catalogue/">See everything else</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot__top">
+    <a class="foot__mark" href="/" aria-label="Epsilon Labs — home"><i class="mark" aria-hidden="true"></i><span>Epsilon Labs</span></a>
+    <div class="foot__cols">
+      <div>
+        <h4>Offers</h4>
+        <ul>
+          <li><a href="/software/">Software</a></li>
+          <li><a href="/hardware/">Hardware</a></li>
+          <li><a href="/catalogue/#tier-lab">Frontier</a></li>
+          <li><a href="/catalogue/#tier-security">Security</a></li>
+          <li><a href="/catalogue/">Catalogue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/work/">Work</a></li>
+          <li><a href="/start/">Start a project</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For agents</h4>
+        <ul>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/catalogue.json">catalogue.json</a></li>
+          <li><a href="/sitemap.xml">sitemap.xml</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div class="foot__legal">
+      <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
+      <span>Lahore, Pakistan · Hardware and software, built to tolerance.</span>
+    </div>
+    <div class="foot__contact">
+      <h4>Contact</h4>
+      <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/demos.js" defer></script>
+<script type="module" src="/assets/js/scene.js"></script>
+<script type="module" src="/assets/js/twin.js"></script>
+</body>
+</html>

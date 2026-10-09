@@ -1,0 +1,244 @@
+  <!-- ═══ hero ═══════════════════════════════════════════════════════ -->
+  <section class="sec sec--flush sec--open" data-scene="traces" style="padding-block:calc(var(--nav-h) + var(--s-128)) var(--s-64)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-24)">
+        <a href="/work/" style="color:inherit">Work</a> · 001 · Hardware + Software
+      </p>
+      <h1 class="h1 reveal" style="max-width:15ch">eFuelPro</h1>
+      <p class="lede reveal" style="margin-top:var(--s-32);max-width:46ch">
+        A fuel station that could not tell you what it had sold until the end of the
+        day, and now tells you every time a nozzle goes down.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ 01 the problem ═════════════════════════════════════════════ -->
+  <section class="sec" id="problem">
+    <div class="shell">
+      <p class="sec__label"><b>01</b> <i>The problem</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Cash, paper, and a number nobody could check.</h2>
+        <div class="prose reveal">
+          <p>
+            A fuel forecourt runs on trust and a clipboard. The dispenser knows exactly
+            what it dispensed; the owner finds out later, from a total that has been
+            through several hands. There is no dispute to resolve because there is no
+            record to dispute.
+          </p>
+          <p>
+            The ask was simple to state: print a receipt for every sale, keep a ledger
+            the owner can read from anywhere, and make loyalty work without a card
+            reader that people forget to use.
+          </p>
+          <p>
+            The dispenser had a serial port and no documentation for it. Everything
+            else followed from that.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 02 decode ══════════════════════════════════════════════════ -->
+  <section class="sec sec--paper" id="decode">
+    <div class="shell">
+      <p class="sec__label"><b>02</b> <i>Decoding the bus</i></p>
+
+      <div class="prose reveal" style="margin-bottom:var(--s-48)">
+        <p>
+          A logic analyser on the RS485 pair, and a structured matrix of controlled
+          stimulus experiments: nozzle up and down, dispensed volumes from 1 to 400
+          litres, both pump sides, every dip-switch variant. Enough coverage to
+          separate framing from payload with confidence rather than a hunch.
+        </p>
+        <p>
+          The protocol turned out to be <strong>25-byte frames at 38400 8N1</strong>,
+          delimited by <span class="num" style="color:var(--copper)">0x04</span> and
+          <span class="num" style="color:var(--copper)">0x06</span>, carrying device-ID
+          prefixes and BCD-encoded fields.
+        </p>
+      </div>
+
+      <figure class="reveal">
+        <figcaption class="mono" style="margin-bottom:var(--s-12)">
+          Cycle 1, nozzle down. Pump face: 743.45 total · 1.19 litres · 624.75 per litre.
+        </figcaption>
+        <div class="frames"><b>04 02 28 43 91 78 00 24 75 00 26 03 78 FC 00 <mark>43 45</mark> <mark>01 19</mark> 2A 07 00 03 42 06</b>
+<i>04 20 05 04</i>
+<i>04 20 05 04</i>
+<i>04 21 05</i>
+<b>04 02 28 43 91 78 00 24 75 00 26 03 78 FC 00 <mark>43 45</mark> <mark>01 19</mark> 2A 07 00 03 42 06</b></div>
+        <figcaption>
+          Transaction frames in copper, idle polls dimmed.
+          <b style="color:var(--copper);font-weight:400">43 45</b> and
+          <b style="color:var(--copper);font-weight:400">01 19</b> are
+          7<b style="color:var(--copper);font-weight:400">43.45</b> and
+          <b style="color:var(--copper);font-weight:400">1.19</b> in BCD.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ═══ 02b resilience ═════════════════════════════════════════════ -->
+  <section class="sec" id="resilience">
+    <div class="shell">
+      <p class="sec__label"><b>03</b> <i>Surviving the line</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Decoding it once is not the same as reading it forever.</h2>
+        <div class="prose reveal">
+          <p>
+            The bus is shared with legacy equipment, so a clean frame is the lucky case
+            rather than the normal one. The C++ framing layer validates delimiters and
+            device prefixes and resynchronises <strong>byte by byte</strong> through
+            corruption — recovering cleanly where fixed-offset parsing had been
+            silently returning garbage that looked like data.
+          </p>
+          <p>
+            One failure took real hunting: a
+            <span class="num" style="color:var(--copper)">0x88</span> bus-clearing
+            broadcast from another device that was quietly corrupting calibration.
+          </p>
+          <p>
+            Then the per-site problem. Every forecourt wires its dispenser slightly
+            differently, and hand-configuring each install does not scale. So the
+            device works its own mapping out: it samples a stable idle baseline across
+            15 frames, detects the start signal, and scores every candidate byte
+            permutation against BCD validity, monotonicity and the measured
+            price-per-unit — taking the lowest-error mapping inside a 1% tolerance. The
+            map self-expands at runtime as more digits activate.
+            <strong>Per-site manual setup was removed entirely.</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 03 the board ═══════════════════════════════════════════════ -->
+  <section class="sec sec--open" id="board" data-scene="traces">
+    <div class="shell">
+      <p class="sec__label"><b>04</b> <i>Epsilon1</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <div>
+          <h2 class="h2 reveal">A board that had to survive a forecourt.</h2>
+          <div class="prose reveal" style="margin-top:var(--s-24)">
+            <p>
+              Two-layer FR4, 120 mm square, with the interface on the front and the
+              electronics on the back. Custom symbols and footprints drawn from the
+              module datasheets. Ground poured on both layers. Termination fitted only
+              if the unit is the last node on the bus.
+            </p>
+            <p>
+              It ships as an orderable package: Gerbers, drill files, and a BOM carrying
+              LCSC part numbers. Silkscreened <span class="num" style="color:var(--copper)">EPSILON1 v1.0</span>
+              on the front.
+            </p>
+          </div>
+        </div>
+        <dl class="spec spec--panel reveal">
+          <div><dt>MCU</dt><dd>ESP32-S3-DevKitC-1<small>Arduino framework, USB-C facing the board edge</small></dd></div>
+          <div><dt>Display</dt><dd>4″ MSP4031 TFT, touch<small>LovyanGFX, portrait, front-left</small></dd></div>
+          <div><dt>RFID</dt><dd>RC522, front top-right<small>Antenna keepout on both layers</small></dd></div>
+          <div><dt>Dispenser link</dt><dd>RS485 → 3-pin screw terminal<small>A / B / GND out to the pump</small></dd></div>
+          <div><dt>Receipts</dt><dd>Thermal printer<small>QR code resolving to the online record</small></dd></div>
+          <div><dt>Storage</dt><dd>SD card<small>Crash-safe flash queue with idempotent event IDs</small></dd></div>
+          <div><dt>Buses</dt><dd>Two SPI, I²C, two UARTs, USB-CDC<small>Five peripherals sharing rails and arbitration</small></dd></div>
+          <div><dt>Protection</dt><dd>PTC fuse, reverse-polarity MOSFET, 1500 W TVS<small>1.1 A hold / 2.2 A trip on the 5 V front end</small></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 04 firmware ════════════════════════════════════════════════ -->
+  <section class="sec sec--stone" id="firmware">
+    <div class="shell">
+      <p class="sec__label"><b>05</b> <i>The system</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">The sale never waits for the network.</h2>
+        <div class="prose reveal">
+          <p>
+            Connectivity on a forecourt is not dependable, and a customer holding a
+            nozzle will not wait for a retry. Every transaction is committed to the SD
+            card first and queued; the cloud drains that queue whenever it can reach it.
+            If the link is down for a day, the terminal does not notice and neither
+            does the customer.
+          </p>
+          <p>
+            One RFID reader does two jobs — vehicle and card loyalty at the pump, and
+            staff attendance at shift change — because the hardware was already on the
+            board and the second job cost a firmware module.
+          </p>
+          <p>
+            Prices move. Changing a price per litre used to mean a site visit; it is now
+            a configuration push, over the air.
+          </p>
+        </div>
+      </div>
+
+      <dl class="spec reveal" style="margin-top:var(--s-48)">
+        <div><dt>Live monitor</dt><dd>Per-minute transaction monitoring, read straight off the dispenser frames</dd></div>
+        <div><dt>Offline queue</dt><dd>Local commit first, cloud sync second<small>SD-backed, drains on reconnect</small></dd></div>
+        <div><dt>Ledger</dt><dd>Daily transaction logs and account audit, readable anywhere</dd></div>
+        <div><dt>Loyalty</dt><dd>Points per vehicle and per card</dd></div>
+        <div><dt>Attendance</dt><dd>Per-employee, same reader</dd></div>
+        <div><dt>Receipts</dt><dd>Printed on demand with a verifiable QR code</dd></div>
+        <div><dt>On-device</dt><dd>Touchscreen history, loyalty balance and attendance log<small>The attendant does not need the dashboard to answer a customer</small></dd></div>
+        <div><dt>Config</dt><dd>OTA, including price per litre and per-pump settings</dd></div>
+        <div><dt>Firmware</dt><dd>~8,700 lines of C++ on ESP32-S3<small>Running on live dispenser hardware in production</small></dd></div>
+        <div><dt>Toolchain</dt><dd>~1,500 lines of Python<small>Bus capture, calibration fitting, failure analysis, and a live analytics dashboard</small></dd></div>
+        <div><dt>Calibration</dt><dd>Versioned profiles persisted as JSON<small>Byte-index maps, BCD field lengths, decimal placement, nozzle-state thresholds — a device can be re-flashed and restored</small></dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ═══ 05 outcome ═════════════════════════════════════════════════ -->
+  <section class="sec sec--ore" id="outcome">
+    <div class="shell">
+      <p class="sec__label"><b>06</b> <i>Where it landed</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Every litre has a record, and the record has a receipt.</h2>
+        <div class="prose reveal">
+          <p>
+            The owner sees transactions as they happen rather than as a number at the
+            end of a shift. Customers leave with paper that can be checked against the
+            ledger. Loyalty accrues without anyone remembering to do anything, and
+            attendance stopped being a separate book.
+          </p>
+          <p>
+            The engineering that made it possible was not the dashboard. It was two
+            weeks of somebody willing to sit with a logic analyser and a nozzle.
+          </p>
+        </div>
+      </div>
+
+      <div class="note reveal" style="margin-top:var(--s-48);max-width:var(--measure)">
+        <p>
+          Epsilon Labs owns the board design and the firmware. The client owns their
+          deployment, their data and their ledger.
+        </p>
+      </div>
+
+      <p class="reveal" style="margin-top:var(--s-48)">
+        <a class="arrow" href="/hardware/">
+          How we do hardware
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ next ═══════════════════════════════════════════════════════ -->
+  <section class="sec" id="next">
+    <div class="shell">
+      <p class="sec__label"><b>Next</b> Case study 002</p>
+      <ol class="work">
+        <li>
+          <a class="work__row reveal" href="/work/master-paints/">
+            <span class="work__idx">002</span>
+            <span><span class="work__name">Master Paints</span></span>
+            <span class="work__what">Live AR colour on a customer's own wall, and the ops portal behind it.</span>
+            <span class="work__tags"><span class="tag tag--sw">Mobile</span><span class="tag">AR</span></span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </section>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-boot="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Epsilon Labs — hardware and software, built to tolerance</title>
+<meta name="description" content="Epsilon Labs designs circuit boards and the systems that run on them. Schematic to shipped: PCB, firmware, cloud, interface. Fuel retail, paint, apparel, property, finance.">
+<meta name="theme-color" content="#08090A">
+<link rel="icon" href="/assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://epsilon-labs.co/">
+<link rel="describedby" type="text/plain" href="https://epsilon-labs.co/llms.txt">
+
+<meta property="og:url" content="https://epsilon-labs.co/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Epsilon Labs — hardware and software, built to tolerance">
+<meta property="og:description" content="Epsilon Labs designs circuit boards and the systems that run on them. Schematic to shipped: PCB, firmware, cloud, interface. Fuel retail, paint, apparel, property, finance.">
+<meta property="og:image" content="https://epsilon-labs.co/assets/brand/og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script>
+/* The boot curtain. Set before the first paint so the page never flashes in
+   behind it, and armed with its own timeout: if WebGL is missing or the
+   glyph never loads, the curtain lifts anyway and the page is just a page. */
+(function () {
+  var r = document.documentElement;
+  if (r.dataset.boot !== '1') return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* Once per tab. An arrival you sit through on every visit home stops
+     being an arrival and becomes a toll. */
+  try {
+    if (sessionStorage.getItem('eps:arrived')) return;
+    sessionStorage.setItem('eps:arrived', '1');
+  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+  r.classList.add('booting');
+  var lift = function () {
+    if (!r.classList.contains('booting')) return;
+    r.classList.remove('booting');
+    r.classList.add('booted');
+  };
+  document.addEventListener('epsilon:ready', lift);
+  setTimeout(lift, 4000);
+})();
+</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://epsilon-labs.co/#org","name":"Epsilon Labs","url":"https://epsilon-labs.co/","logo":"https://epsilon-labs.co/assets/brand/og.png","email":"er@epsilon-labs.co","description":"A hardware and software lab. Circuit boards, firmware, and the systems that run on them — including protocols nobody has documented.","founder":{"@type":"Person","name":"Ehab Riaz"},"foundingDate":"2025-01","address":{"@type":"PostalAddress","addressLocality":"Lahore","addressCountry":"PK"},"areaServed":["PK","AE","SA","GB"],"knowsAbout":["RS485 protocol reverse engineering","Modbus","PCB design","KiCad","ESP32-S3 firmware","embedded systems","fuel forecourt automation","industrial telemetry"]}</script>
+
+</head>
+
+<body data-scene="epsilon" data-layout="panel">
+<a class="skip" href="#main">Skip to content</a>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="boot" aria-hidden="true">
+  <div class="boot__in">
+    <p class="boot__mark">EPSILON LABS</p>
+    <p class="boot__line"><i></i></p>
+    <p class="boot__cap">Lahore &middot; hardware and software</p>
+  </div>
+</div>
+<div class="scrim" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__in">
+    <a class="nav__mark" href="/" aria-label="Epsilon Labs — home">
+      <i class="mark" aria-hidden="true"></i>
+      <span>Epsilon Labs</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="/software/" data-mega="software" aria-controls="mega-software" aria-expanded="false">Software</a>
+      <a href="/hardware/" data-mega="hardware" aria-controls="mega-hardware" aria-expanded="false">Hardware</a>
+      <a href="/catalogue/#tier-lab" data-mega="frontier" aria-controls="mega-frontier" aria-expanded="false">Frontier</a>
+      <a href="/catalogue/#tier-security" data-mega="security" aria-controls="mega-security" aria-expanded="false">Security</a>
+      <a href="/catalogue/">Catalogue</a>
+      <a href="/work/">Work</a>
+    </nav>
+    <div class="nav__right">
+      <a href="/start/">Start a project</a>
+      <div class="nav__co" id="navco">
+        <button type="button" aria-expanded="false" aria-controls="navdrop">Company</button>
+        <div class="nav__drop" id="navdrop">
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/llms.txt">For AI agents</a>
+        </div>
+      </div>
+    </div>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+      <i></i><i></i>
+    </button>
+  </div>
+<div class="mega" id="mega-software" data-mega-panel="software" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Software</p><a class="ulink" href="/software/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/software/#business">Business systems</a></p><p class="mega__b">The systems a company runs on, every day.</p><ul><li><a href="/software/crm/"><span>CRM</span></a></li><li><a href="/software/erp/"><span>ERP</span></a></li><li><a href="/software/inventory/"><span>Inventory</span></a></li><li><a href="/software/#business"><small>+ 3 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#customer">Customer-facing</a></p><p class="mega__b">What your customers see, tap and pay through.</p><ul><li><a href="/software/web-apps/"><span>Web apps</span></a></li><li><a href="/software/mobile-apps/"><span>Mobile apps</span></a></li><li><a href="/software/marketplaces/"><span>Marketplaces</span></a></li><li><a href="/software/#customer"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#platform">Desktop &amp; developer</a></p><p class="mega__b">Native apps, tools and the plumbing between systems.</p><ul><li><a href="/software/macos-apps/"><span>macOS apps</span></a></li><li><a href="/software/windows-apps/"><span>Windows apps</span></a></li><li><a href="/software/cli-tools/"><span>Developer tools</span></a></li><li><a href="/software/#platform"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#ai">AI &amp; automation</a></p><p class="mega__b">Work that should not need a person doing it by hand.</p><ul><li><a href="/software/ai-agents/"><span>AI agents</span></a></li><li><a href="/software/automation/"><span>Automation</span></a></li><li><a href="/software/document-ai/"><span>Reading documents</span></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-hardware" data-mega-panel="hardware" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Hardware</p><a class="ulink" href="/hardware/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/hardware/#industrial">Industrial automation</a></p><p class="mega__b">Plants, mills and lines that run themselves and report back.</p><ul><li><a href="/hardware/factory-automation/"><span>Factory automation</span></a></li><li><a href="/hardware/mill-automation/"><span>Mill automation</span></a></li><li><a href="/hardware/retrofits/"><span>Machine retrofits</span></a></li><li><a href="/hardware/#industrial"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#monitoring">Monitoring &amp; IoT</a></p><p class="mega__b">Machines and sites you can see from anywhere, live.</p><ul><li><a href="/hardware/industrial-iot/"><span>Machine monitoring</span></a></li><li><a href="/hardware/energy-monitoring/"><span>Energy &amp; generators</span></a></li><li><a href="/hardware/cold-chain/"><span>Cold chain</span></a></li><li><a href="/hardware/#monitoring"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#products">Hardware products</a></p><p class="mega__b">Devices designed, built and put in customers' hands.</p><ul><li><a href="/hardware/custom-hardware/"><span>Custom devices</span></a></li><li><a href="/hardware/pos-terminals/"><span>Tills &amp; kiosks</span></a></li><li><a href="/hardware/rfid-attendance/"><span>Access &amp; attendance</span></a></li><li><a href="/hardware/#products"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#engineering">Engineering</a></p><p class="mega__b">The board, the firmware and the build behind all of it.</p><ul><li><a href="/hardware/pcb-design/"><span>PCB design</span></a></li><li><a href="/hardware/embedded-firmware/"><span>Embedded firmware</span></a></li><li><a href="/hardware/sensing/"><span>Sensors &amp; calibration</span></a></li><li><a href="/hardware/#engineering"><small>+ 1 more</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-frontier" data-mega-panel="frontier" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Frontier</p><a class="ulink" href="/catalogue/#tier-lab">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">The hard ones</p><ul><li><a href="/products/digital-twin/"><span>Digital Twins</span><small>6–10 weeks</small></a></li><li><a href="/products/robotics-infra/"><span>Robot-Learning Infrastructure</span><small>3–6 weeks</small></a></li><li><a href="/products/sensing/"><span>Sensing &amp; Calibration</span><small>4–8 weeks</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-security" data-mega-panel="security" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Security</p><a class="ulink" href="/catalogue/#tier-security">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">Assessments</p><ul><li><a href="/services/device-pentest/"><span>Device Penetration Test</span><small>2–3 weeks</small></a></li><li><a href="/services/authz-review/"><span>Authorisation Model Review</span><small>1 week</small></a></li></ul></div></div></div></div>
+</header>
+
+<nav class="menu" id="menu" aria-label="Mobile" aria-hidden="true">
+  <a href="/software/">Software</a>
+  <a href="/hardware/">Hardware</a>
+  <a href="/catalogue/#tier-lab">Frontier</a>
+  <a href="/catalogue/#tier-security">Security</a>
+  <a href="/catalogue/">Catalogue</a>
+  <a href="/work/">Work</a>
+  <a href="/about/">About</a>
+  <a href="/start/">Start a project</a>
+</nav>
+
+<main class="page" id="main">
+  <!-- ═══ hero: the ε field, framed like footage ═══════════════════════ -->
+  <section class="win-sec hero-a sec--open" data-scene="epsilon">
+    <div class="win">
+      <div class="hero-a__in">
+        <h1 class="hero-a__title reveal">We build the machine, and the software that runs it.</h1>
+        <div class="lockup reveal">
+          <p class="lockup__words"><span>Hardware</span><span>and</span><span>Software</span><span>alike</span></p>
+          <i class="mark" aria-hidden="true"></i>
+          <p class="lockup__est">Est. 2025</p>
+          <a class="lockup__go" href="#fix">→ What's broken</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ the mosaic: every tile is running, not a screenshot ═════════ -->
+  <section class="blk blk--void wide" id="products">
+    <div class="hrow">
+      <h2>Running, not screenshots</h2>
+      <a class="ulink" href="/catalogue/">Everything we sell <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a>
+    </div>
+    <div class="mosaic">
+      <a class="tile tile--full" href="/products/digital-twin/">
+        <div class="tile__view" aria-hidden="true"><div class="demo" data-demo="twin"><div class="demo__fallback"><p>A 3D model of a working fuel station — orbit it and click any dispenser for its live state.</p></div></div></div>
+        <div class="tile__label">
+          <p class="tile__name">Digital Twins</p>
+          <p class="tile__more"><span>Your whole site, live, in 3D, from anywhere.</span><b>See it <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></p>
+        </div>
+      </a>
+      <a class="tile" href="/products/dashboards/">
+        <div class="tile__view" aria-hidden="true"><div class="tile__scale"><div class="demo" data-demo="dashboard"><div class="demo__fallback"><p>Switch period and region; revenue, orders and the chart update live.</p></div></div></div></div>
+        <div class="tile__label">
+          <p class="tile__name">Sales &amp; Admin Dashboards</p>
+          <p class="tile__more"><span>Every number you check, in one place, live.</span><b>See it <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></p>
+        </div>
+      </a>
+      <a class="tile" href="/products/crm/">
+        <div class="tile__view" aria-hidden="true"><div class="tile__scale"><div class="demo" data-demo="crm"><div class="demo__fallback"><p>Drag deals through the pipeline and watch the weighted forecast move.</p></div></div></div></div>
+        <div class="tile__label">
+          <p class="tile__name">CRM &amp; Case Management</p>
+          <p class="tile__more"><span>No lead left in somebody's inbox.</span><b>See it <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></p>
+        </div>
+      </a>
+      <a class="tile" href="/products/bookings/">
+        <div class="tile__view" aria-hidden="true"><div class="tile__scale"><div class="demo" data-demo="bookings"><div class="demo__fallback"><p>Click to book a slot, then let the scheduler fill the dead hours between bookings.</p></div></div></div></div>
+        <div class="tile__label">
+          <p class="tile__name">Booking &amp; Scheduling</p>
+          <p class="tile__more"><span>Stop selling slots. Start filling them.</span><b>See it <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></p>
+        </div>
+      </a>
+      <a class="tile tile--tall" href="/products/mobile-apps/">
+        <div class="tile__view" aria-hidden="true"><div class="tile__scale tile__scale--phone"><div class="phone"><div class="phone__notch"></div><div class="demo" data-demo="market"><div class="demo__fallback"><p>Buy as a buyer, then see the same order as the seller and as the admin.</p></div></div></div></div></div>
+        <div class="tile__label">
+          <p class="tile__name">Mobile Apps</p>
+          <p class="tile__more"><span>Your customers live on their phones. So should you.</span><b>See it <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></p>
+        </div>
+      </a>
+      <a class="tile tile--wide" href="/products/quote-engine/">
+        <div class="tile__view" aria-hidden="true"><div class="tile__scale"><div class="demo" data-demo="quote"><div class="demo__fallback"><p>Drag the dimensions and the price and the dimensioned drawing update live.</p></div></div></div></div>
+        <div class="tile__label">
+          <p class="tile__name">Quote Engine</p>
+          <p class="tile__more"><span>A quote in thirty seconds, not three days.</span><b>See it <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></p>
+        </div>
+      </a>
+      <a class="tile" href="/products/efuelpro/">
+        <div class="tile__view" aria-hidden="true"><div class="tile__scale"><div class="demo" data-demo="ledger"><div class="demo__fallback"><p>Every sale off the pump lands in the ledger with a verifiable receipt code.</p></div></div></div></div>
+        <div class="tile__label">
+          <p class="tile__name">eFuelPro</p>
+          <p class="tile__more"><span>Every litre has a record, and the record has a receipt.</span><b>See it <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></p>
+        </div>
+      </a>
+      <a class="tile" href="/products/inventory/">
+        <div class="tile__view" aria-hidden="true"><div class="tile__scale"><div class="demo" data-demo="inventory"><div class="demo__fallback"><p>Sell stock and watch reorder points trigger a suggested purchase order.</p></div></div></div></div>
+        <div class="tile__label">
+          <p class="tile__name">Inventory &amp; Stock</p>
+          <p class="tile__more"><span>Know you're running low before your customer does.</span><b>See it <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></p>
+        </div>
+      </a>
+    </div>
+    <p class="mono" style="margin-top:var(--s-24);color:var(--muted)">Every tile above is running in your browser. Touch one.</p>
+  </section>
+
+  <!-- ═══ what we build ══════════════════════════════════════════════ -->
+  <section class="blk blk--void wide" id="build">
+    <div class="harea harea--software">
+      <div class="hrow"><h2>Software</h2><a class="ulink" href="/software/">All software solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div>
+      <div class="rowlist"><a class="row reveal" href="/software/#business"><span class="row__n">Business systems</span><span class="row__what">The systems a company runs on, every day.</span><span class="row__go">6 solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/#customer"><span class="row__n">Customer-facing</span><span class="row__what">What your customers see, tap and pay through.</span><span class="row__go">4 solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/#platform"><span class="row__n">Desktop &amp; developer</span><span class="row__what">Native apps, tools and the plumbing between systems.</span><span class="row__go">4 solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/#ai"><span class="row__n">AI &amp; automation</span><span class="row__what">Work that should not need a person doing it by hand.</span><span class="row__go">3 solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a></div>
+    </div>
+    <div class="harea harea--hardware">
+      <div class="hrow"><h2>Hardware</h2><a class="ulink" href="/hardware/">All hardware solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div>
+      <div class="rowlist"><a class="row reveal" href="/hardware/#industrial"><span class="row__n">Industrial automation</span><span class="row__what">Plants, mills and lines that run themselves and report back.</span><span class="row__go">4 solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/hardware/#monitoring"><span class="row__n">Monitoring &amp; IoT</span><span class="row__what">Machines and sites you can see from anywhere, live.</span><span class="row__go">4 solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/hardware/#products"><span class="row__n">Hardware products</span><span class="row__what">Devices designed, built and put in customers' hands.</span><span class="row__go">4 solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/hardware/#engineering"><span class="row__n">Engineering</span><span class="row__what">The board, the firmware and the build behind all of it.</span><span class="row__go">4 solutions <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a></div>
+    </div>
+  </section>
+
+  <!-- ═══ what's broken ════════════════════════════════════════════════ -->
+  <section class="blk blk--void wide" id="fix">
+    <div class="hrow">
+      <h2>What's broken?</h2>
+      <a class="ulink" href="/catalogue/">Everything we sell <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a>
+    </div>
+    <div class="finder" data-finder>
+      <div class="finder__tabs" role="group" aria-label="Filter problems">
+        <button type="button" class="finder__tab" data-area="all" aria-pressed="true">Everything</button>
+        <button type="button" class="finder__tab" data-area="software" aria-pressed="false">Software</button>
+        <button type="button" class="finder__tab" data-area="hardware" aria-pressed="false">Hardware</button>
+        <button type="button" class="finder__tab" data-area="frontier" aria-pressed="false">Frontier</button>
+        <button type="button" class="finder__tab" data-area="security" aria-pressed="false">Security</button>
+      </div>
+      <div class="finder__grid">
+        <a class="problem" href="/products/dashboards/" data-area="software" data-slug="dashboards" aria-expanded="false">Our sales numbers live in five spreadsheets</a>
+        <a class="problem" href="/products/inventory/" data-area="software" data-slug="inventory" aria-expanded="false">We find out we're out of stock when a customer asks</a>
+        <a class="problem" href="/products/crm/" data-area="software" data-slug="crm" aria-expanded="false">Leads fall through the cracks between calls</a>
+        <a class="problem" href="/products/marketplace/" data-area="software" data-slug="marketplace" aria-expanded="false">We want buyers and sellers on one platform, and a cut</a>
+        <a class="problem" href="/products/bookings/" data-area="software" data-slug="bookings" aria-expanded="false">Our rooms, courts or chairs sit empty between bookings</a>
+        <a class="problem" href="/products/quote-engine/" data-area="software" data-slug="quote-engine" aria-expanded="false">Quotes wait on the one person who gets the spreadsheet</a>
+        <a class="problem" href="/products/mobile-apps/" data-area="software" data-slug="mobile-apps" aria-expanded="false">Our customers want an app, not a website</a>
+        <a class="problem" href="/products/ops-analyst/" data-area="software" data-slug="ops-analyst" aria-expanded="false">Managers' questions queue behind one analyst</a>
+        <a class="problem" href="/services/protocol-decode/" data-area="hardware" data-slug="protocol-decode" aria-expanded="false">My machine won't talk to anything</a>
+        <a class="problem" href="/services/design-review/" data-area="hardware" data-slug="design-review" aria-expanded="false">My board keeps coming back from the fab wrong</a>
+        <a class="problem" href="/services/firmware-rescue/" data-area="hardware" data-slug="firmware-rescue" aria-expanded="false">Our firmware works on the bench and dies in the field</a>
+        <a class="problem" href="/services/board-to-fab/" data-area="hardware" data-slug="board-to-fab" aria-expanded="false">I need a real board, not a box of dev kits</a>
+        <a class="problem" href="/products/efuelpro/" data-area="hardware" data-slug="efuelpro" aria-expanded="false">I can't see what my forecourt actually sold</a>
+        <a class="problem" href="/services/remote-decode/" data-area="hardware" data-slug="remote-decode" aria-expanded="false">The machine is abroad and nobody can fly out</a>
+        <a class="problem" href="/products/digital-twin/" data-area="frontier" data-slug="digital-twin" aria-expanded="false">I want to see my whole site live, in 3D, from anywhere</a>
+        <a class="problem" href="/products/robotics-infra/" data-area="frontier" data-slug="robotics-infra" aria-expanded="false">Our robot-learning runs keep falling over</a>
+        <a class="problem" href="/products/sensing/" data-area="frontier" data-slug="sensing" aria-expanded="false">Our sensors drift and nobody trusts the readings</a>
+        <a class="problem" href="/services/device-pentest/" data-area="security" data-slug="device-pentest" aria-expanded="false">A customer asked whether our device is secure</a>
+        <a class="problem" href="/services/authz-review/" data-area="security" data-slug="authz-review" aria-expanded="false">An enterprise asked if tenants can see each other's data</a>
+      </div>
+      <div class="fix" hidden aria-live="polite"></div>
+      <script type="application/json" data-finder-offers>{"dashboards": {"name": "Sales & Admin Dashboards", "tier": "Software", "line": "The dashboard your business should already have: revenue, orders, margins and stock, pulled live from the systems you already run, with the admin tools to act on what you see.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "3–4 weeks", "url": "/products/dashboards/"}, "inventory": {"name": "Inventory & Stock", "tier": "Software", "line": "Stock levels, reorder points, suppliers and movements across every location, updated the moment something is sold or received — with the reorder suggested before the shelf is empty.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "4–6 weeks", "url": "/products/inventory/"}, "crm": {"name": "CRM & Case Management", "tier": "Software", "line": "A pipeline, a customer record and a case history in one place — built around how your team actually sells and follows up, not around a template for a company that is not yours.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "4–6 weeks", "url": "/products/crm/"}, "marketplace": {"name": "Marketplaces", "tier": "Software", "line": "A multi-vendor marketplace with separate portals for buyers, sellers and your team — catalogue, orders, commission and payouts — where every party sees exactly what is theirs and nothing else.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "6–10 weeks", "url": "/products/marketplace/"}, "bookings": {"name": "Booking & Scheduling", "tier": "Software", "line": "Online booking, point of sale and a scheduler that packs time to maximise occupancy — for courts, rooms, chairs, bays or anything else people reserve by the hour. Your brand and your customers, not a marketplace's.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "4–6 weeks", "url": "/products/bookings/"}, "quote-engine": {"name": "Quote Engine", "tier": "Software", "line": "Configure-price-quote for made-to-measure products. Your sales team enters dimensions, the engine derives cost from your own formulas, and the customer gets a dimensioned technical quotation as a PDF — before your competitor has opened a spreadsheet.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "3–5 weeks", "url": "/products/quote-engine/"}, "mobile-apps": {"name": "Mobile Apps", "tier": "Software", "line": "iOS and Android from one codebase, including the hard parts — live camera, AR, offline use, biometric verification and push notifications — on the mid-range handsets your customers actually own.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "6–10 weeks", "url": "/products/mobile-apps/"}, "ops-analyst": {"name": "Ops Analyst", "tier": "Software", "line": "An AI analyst over your own operational data that answers in plain language — and can propose changes, but never make one without a human clicking approve. Scoped by the same permissions as the rest of your app.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "4–6 weeks", "url": "/products/ops-analyst/"}, "protocol-decode": {"name": "Protocol Decode Sprint", "tier": "Engagements", "line": "A serial bus with no published specification, no vendor support and no integration partner willing to return a call. We capture it, decode it, and hand you a validated parser plus the written specification nobody else has.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "2–4 weeks", "url": "/services/protocol-decode/"}, "design-review": {"name": "Pre-Fab Design Review", "tier": "Engagements", "line": "Send us your schematic and BOM before you commit to fabrication. We review it the way we review our own and send back a written findings list, ranked by what it would cost you to discover later.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "3–5 days", "url": "/services/design-review/"}, "firmware-rescue": {"name": "Firmware Rescue", "tier": "Engagements", "line": "We take over an embedded codebase nobody understands any more and make it reliable: bring-up, fault detection, watchdogs, automatic recovery, and an update path so the next fix does not need a site visit.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "3–6 weeks", "url": "/services/firmware-rescue/"}, "board-to-fab": {"name": "Board-to-Fab", "tier": "Engagements", "line": "Schematic capture, PCB layout, custom symbol and footprint libraries drawn from datasheets, an orderable BOM and a complete fabrication package. Everything needed to build it again without us.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "6–10 weeks", "url": "/services/board-to-fab/"}, "efuelpro": {"name": "eFuelPro", "tier": "Products", "line": "A forecourt terminal that reads the dispenser directly off the bus — not from a person typing numbers into a phone. Verifiable receipts, RFID loyalty and attendance, and a ledger that keeps working when the link drops.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "install in a day", "url": "/products/efuelpro/"}, "remote-decode": {"name": "Remote Protocol Decode", "tier": "Desk work", "line": "The decode half of a Protocol Decode Sprint, without the site visit. We specify a capture rig, you run the stimulus matrix on your own machine, and we turn the resulting logs into a written specification and a working parser.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "1–2 weeks", "url": "/services/remote-decode/"}, "digital-twin": {"name": "Digital Twins", "tier": "Frontier", "line": "A navigable 3D model of a physical site — a station, a warehouse, a plant floor — wired to the machines inside it, so the model shows what is actually happening right now. Click any machine to see its live state.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "6–10 weeks", "url": "/products/digital-twin/"}, "robotics-infra": {"name": "Robot-Learning Infrastructure", "tier": "Frontier", "line": "Distributed training infrastructure for embodied AI — reinforcement learning and vision-language-action models — provisioned on rented GPUs, kept running, and monitored, so your researchers do research.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "3–6 weeks", "url": "/products/robotics-infra/"}, "sensing": {"name": "Sensing & Calibration", "tier": "Frontier", "line": "Instrumentation that has to be trusted — force, pressure, tactile, motion — designed, calibrated and characterised, with drift correction and a calibration pipeline that survives a re-flash.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "4–8 weeks", "url": "/products/sensing/"}, "device-pentest": {"name": "Device Penetration Test", "tier": "Security", "line": "Firmware extraction, debug-port discovery, bus interception, secrets in flash, update-path integrity. A hardware security assessment by people who design hardware — and a written report you can hand to a customer who asked whether your device is safe.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "2–3 weeks", "url": "/services/device-pentest/"}, "authz-review": {"name": "Authorisation Model Review", "tier": "Security", "line": "Multi-tenant isolation testing against your real schema and policies. Most testing proves you cannot log in as someone else. This proves that once you are legitimately logged in, you still cannot reach what is not yours.", "price": "Contact sales", "note": "Quoted per project, after a call", "duration": "1 week", "url": "/services/authz-review/"}}</script>
+    </div>
+  </section>
+
+  <!-- ═══ Epsilon1: the feature band ═══════════════════════════════════ -->
+  <section class="blk blk--stone wide win-sec sec--open" id="epsilon1" data-scene="traces">
+    <div class="hrow" style="position:relative">
+      <h2>Epsilon1</h2>
+      <a class="ulink" href="/products/epsilon1/">The platform <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a>
+    </div>
+    <div class="win band-win" aria-label="The Epsilon1 board, drawn by the same point field as the hero" role="img"></div>
+    <div class="band-cap" style="position:relative">
+      <p class="mono">Designed in Lahore<br>Running in the field</p>
+      <div>
+        <b>Epsilon1</b>
+        <p>A 120 mm terminal that reads machines with undocumented protocols — the board behind eFuelPro.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ selected work (paper) ════════════════════════════════════════ -->
+  <section class="blk blk--paper wide" id="work">
+    <div class="hrow">
+      <h2>Proof</h2>
+      <a class="ulink" href="/work/">More work <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a>
+    </div>
+    <div class="story">
+      <div>
+        <p class="story__k">001 · Hardware + Software</p>
+        <h3>A fuel dispenser nobody had documented, decoded frame by frame.</h3>
+        <p>
+          25-byte frames at 38400 8N1, BCD fields, a bus shared with legacy equipment —
+          then the 120 mm board that listens to it and the ledger the owner reads from
+          anywhere.
+        </p>
+        <a class="ulink" href="/work/efuelpro/">Read the case study <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      </div>
+      <div class="frames frames--live" aria-label="A live RS485 capture from the dispenser" role="img"><div class="frames__roll"><b>04 02 28 43 91 78 00 24 75 00 26 03 78 FC 00 <mark>43 45</mark> <mark>01 19</mark> 2A 07 00 03 42 06</b>
+<i>04 20 05 04</i>
+<i>04 20 05 04</i>
+<i>04 21 05</i>
+<b>04 02 28 43 91 78 00 24 75 00 26 03 78 FC 00 <mark>43 45</mark> <mark>01 19</mark> 2A 07 00 03 42 06</b>
+<i>04 20 05 04</i>
+<i>04 20 05 04</i>
+<i>04 20 05 04</i>
+<b>04 02 28 43 91 78 00 24 75 00 26 03 78 FC 00 <mark>43 45</mark> <mark>01 19</mark> 2A 07 00 03 42 06</b>
+<i>04 21 05</i>
+<i>04 20 05 04</i>
+<b>04 02 28 43 91 78 00 24 75 00 26 03 78 FC 00 <mark>43 45</mark> <mark>01 19</mark> 2A 07 00 03 42 06</b>
+<i>04 20 05 04</i>
+<i>04 20 05 04</i>
+<i>04 21 05</i>
+<b>04 02 28 43 91 78 00 24 75 00 26 03 78 FC 00 <mark>43 45</mark> <mark>01 19</mark> 2A 07 00 03 42 06</b>
+<i>04 20 05 04</i>
+<i>04 20 05 04</i>
+<i>04 20 05 04</i>
+<b>04 02 28 43 91 78 00 24 75 00 26 03 78 FC 00 <mark>43 45</mark> <mark>01 19</mark> 2A 07 00 03 42 06</b>
+<i>04 21 05</i>
+<i>04 20 05 04</i></div></div>
+    </div>
+
+
+    <p class="clientline">Built for Total Parco · Master Paints · Lineamode · Fabricport · The Courts · The Padel Reserve · YS Group · Al Maymanah</p>
+  </section>
+
+  <!-- ═══ the two practices ════════════════════════════════════════════ -->
+  <section class="split" id="practices">
+    <a href="/hardware/">
+      <div class="hrow">
+        <h2>Hardware</h2>
+        <span class="ulink">Read more <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span>
+      </div>
+      <p>Boards, firmware, and machines that were never meant to talk to a computer — taken all the way to the factory floor.</p>
+      <span class="split__big" aria-hidden="true">HW — 01 / 02</span>
+    </a>
+    <a href="/software/">
+      <div class="hrow">
+        <h2>Software</h2>
+        <span class="ulink">Read more <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span>
+      </div>
+      <p>The software a company actually runs on — what your staff use all day and what your customers see. Built for you, owned by you.</p>
+      <span class="split__big" aria-hidden="true">SW — 02 / 02</span>
+    </a>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot__top">
+    <a class="foot__mark" href="/" aria-label="Epsilon Labs — home"><i class="mark" aria-hidden="true"></i><span>Epsilon Labs</span></a>
+    <div class="foot__cols">
+      <div>
+        <h4>Offers</h4>
+        <ul>
+          <li><a href="/software/">Software</a></li>
+          <li><a href="/hardware/">Hardware</a></li>
+          <li><a href="/catalogue/#tier-lab">Frontier</a></li>
+          <li><a href="/catalogue/#tier-security">Security</a></li>
+          <li><a href="/catalogue/">Catalogue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/work/">Work</a></li>
+          <li><a href="/start/">Start a project</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For agents</h4>
+        <ul>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/catalogue.json">catalogue.json</a></li>
+          <li><a href="/sitemap.xml">sitemap.xml</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div class="foot__legal">
+      <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
+      <span>Lahore, Pakistan · Hardware and software, built to tolerance.</span>
+    </div>
+    <div class="foot__contact">
+      <h4>Contact</h4>
+      <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/demos.js" defer></script>
+<script type="module" src="/assets/js/scene.js"></script>
+<script type="module" src="/assets/js/twin.js"></script>
+</body>
+</html>

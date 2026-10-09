@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js"{{BOOT}}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESC}}">
+<meta name="theme-color" content="#08090A">
+<link rel="icon" href="/assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{URL}}">
+{{ALT}}<link rel="describedby" type="text/plain" href="{{SITE}}/llms.txt">
+
+<meta property="og:url" content="{{URL}}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{TITLE}}">
+<meta property="og:description" content="{{DESC}}">
+<meta property="og:image" content="{{SITE}}/assets/brand/og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script>
+/* The boot curtain. Set before the first paint so the page never flashes in
+   behind it, and armed with its own timeout: if WebGL is missing or the
+   glyph never loads, the curtain lifts anyway and the page is just a page. */
+(function () {
+  var r = document.documentElement;
+  if (r.dataset.boot !== '1') return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* Once per tab. An arrival you sit through on every visit home stops
+     being an arrival and becomes a toll. */
+  try {
+    if (sessionStorage.getItem('eps:arrived')) return;
+    sessionStorage.setItem('eps:arrived', '1');
+  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+  r.classList.add('booting');
+  var lift = function () {
+    if (!r.classList.contains('booting')) return;
+    r.classList.remove('booting');
+    r.classList.add('booted');
+  };
+  document.addEventListener('epsilon:ready', lift);
+  setTimeout(lift, 4000);
+})();
+</script>
+{{JSONLD}}
+</head>
+
+<body data-scene="{{SCENE}}"{{LAYOUT}}>
+<a class="skip" href="#main">Skip to content</a>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+{{BOOTUI}}
+<div class="scrim" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__in">
+    <a class="nav__mark" href="/" aria-label="Epsilon Labs — home">
+      <i class="mark" aria-hidden="true"></i>
+      <span>Epsilon Labs</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="/software/"{{NAV_SOFTWARE}} data-mega="software" aria-controls="mega-software" aria-expanded="false">Software</a>
+      <a href="/hardware/"{{NAV_HARDWARE}} data-mega="hardware" aria-controls="mega-hardware" aria-expanded="false">Hardware</a>
+      <a href="/catalogue/#tier-lab" data-mega="frontier" aria-controls="mega-frontier" aria-expanded="false">Frontier</a>
+      <a href="/catalogue/#tier-security" data-mega="security" aria-controls="mega-security" aria-expanded="false">Security</a>
+      <a href="/catalogue/"{{NAV_CATALOGUE}}>Catalogue</a>
+      <a href="/work/"{{NAV_WORK}}>Work</a>
+    </nav>
+    <div class="nav__right">
+      <a href="/start/">Start a project</a>
+      <div class="nav__co" id="navco">
+        <button type="button" aria-expanded="false" aria-controls="navdrop">Company</button>
+        <div class="nav__drop" id="navdrop">
+          <a href="/about/"{{NAV_ABOUT}}>About</a>
+          <a href="/contact/"{{NAV_CONTACT}}>Contact</a>
+          <a href="/llms.txt">For AI agents</a>
+        </div>
+      </div>
+    </div>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+      <i></i><i></i>
+    </button>
+  </div>
+{{MEGA}}
+</header>
+
+<nav class="menu" id="menu" aria-label="Mobile" aria-hidden="true">
+  <a href="/software/"{{NAV_SOFTWARE}}>Software</a>
+  <a href="/hardware/"{{NAV_HARDWARE}}>Hardware</a>
+  <a href="/catalogue/#tier-lab">Frontier</a>
+  <a href="/catalogue/#tier-security">Security</a>
+  <a href="/catalogue/"{{NAV_CATALOGUE}}>Catalogue</a>
+  <a href="/work/"{{NAV_WORK}}>Work</a>
+  <a href="/about/"{{NAV_ABOUT}}>About</a>
+  <a href="/start/">Start a project</a>
+</nav>
+
+<main class="page" id="main">
+{{MAIN}}
+</main>
+
+<footer class="foot">
+  <div class="foot__top">
+    <a class="foot__mark" href="/" aria-label="Epsilon Labs — home"><i class="mark" aria-hidden="true"></i><span>Epsilon Labs</span></a>
+    <div class="foot__cols">
+      <div>
+        <h4>Offers</h4>
+        <ul>
+          <li><a href="/software/">Software</a></li>
+          <li><a href="/hardware/">Hardware</a></li>
+          <li><a href="/catalogue/#tier-lab">Frontier</a></li>
+          <li><a href="/catalogue/#tier-security">Security</a></li>
+          <li><a href="/catalogue/">Catalogue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/work/">Work</a></li>
+          <li><a href="/start/">Start a project</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For agents</h4>
+        <ul>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/catalogue.json">catalogue.json</a></li>
+          <li><a href="/sitemap.xml">sitemap.xml</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div class="foot__legal">
+      <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
+      <span>Lahore, Pakistan · Hardware and software, built to tolerance.</span>
+    </div>
+    <div class="foot__contact">
+      <h4>Contact</h4>
+      <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/demos.js" defer></script>
+<script type="module" src="/assets/js/scene.js"></script>
+<script type="module" src="/assets/js/twin.js"></script>
+</body>
+</html>

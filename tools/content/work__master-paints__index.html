@@ -1,0 +1,101 @@
+  <section class="sec sec--flush sec--open" data-scene="mark" style="padding-block:calc(var(--nav-h) + var(--s-128)) var(--s-64)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-24)">
+        <a href="/work/" style="color:inherit">Work</a> · 002 · Mobile + AR
+      </p>
+      <h1 class="h1 reveal" style="max-width:15ch">Master Paints</h1>
+      <p class="lede reveal" style="margin-top:var(--s-32);max-width:46ch">
+        Nobody can picture a colour from a chip the size of a stamp. So we put it on
+        their wall.
+      </p>
+    </div>
+  </section>
+
+  <section class="sec" id="problem">
+    <div class="shell">
+      <p class="sec__label"><b>01</b> <i>The problem</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Two colours, two currencies of doubt.</h2>
+        <div class="prose reveal">
+          <p>
+            A paint buyer hesitates twice. First about the colour — a swatch under
+            shop lighting is a poor promise about a living room at dusk. Then about the
+            purchase — cash on delivery, from a dealer they have to find.
+          </p>
+          <p>
+            Both hesitations lose the sale, and neither is a marketing problem. They
+            are product problems, one on the customer's phone and one in the back
+            office.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="ar">
+    <div class="shell">
+      <p class="sec__label"><b>02</b> <i>Colour on the wall</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <div>
+          <h2 class="h2 reveal">Live AR, on the phone people actually own.</h2>
+          <div class="prose reveal" style="margin-top:var(--s-24)">
+            <p>
+              The visualiser paints the Master Paints and Valpaint ranges onto a wall in
+              the live camera feed. The hard constraint was not the rendering — it was
+              the device. This has to run on a mid-range Android handset, because that
+              is what the customer is holding.
+            </p>
+            <p>
+              Valpaint's decorative finishes are not flat colour; they have texture that
+              a hex value cannot describe. Those are captured to a protocol rather than
+              guessed at, so what the app shows is traceable to a real sample.
+            </p>
+          </div>
+        </div>
+        <dl class="spec spec--panel reveal">
+          <div><dt>App</dt><dd>Expo, React Native<small>New Architecture; versions resolved by Expo, never hand-written</small></dd></div>
+          <div><dt>AR</dt><dd>Live camera wall detection and recolour</dd></div>
+          <div><dt>Ranges</dt><dd>Master Paints and Valpaint<small>Including textured decorative finishes</small></dd></div>
+          <div><dt>Data</dt><dd>Supabase, Postgres<small>Shared schema package across app and portal</small></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="ops">
+    <div class="shell">
+      <p class="sec__label"><b>03</b> <i>The other half</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">An order is not a sale until a dealer has it.</h2>
+        <div class="prose reveal">
+          <p>
+            The app produces cash-on-delivery orders. Those have to reach a specific
+            dealer, in a specific area, on a channel that dealer already reads — which
+            in this market means WhatsApp, not a portal login they will never use.
+          </p>
+          <p>
+            So the internal side is an ops portal where an agent sees the incoming
+            order, picks the dealer, and routes it. The clever part is deliberately not
+            automated: a human confirms the dealer, because getting that wrong costs a
+            relationship rather than a click.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="next">
+    <div class="shell">
+      <p class="sec__label"><b>Next</b> Case study 003</p>
+      <ol class="work">
+        <li>
+          <a class="work__row reveal" href="/work/deskless/">
+            <span class="work__idx">003</span>
+            <span><span class="work__name">deskless</span></span>
+            <span class="work__what">Statutory deadlines and ombudsman-grade evidence for UK letting agents.</span>
+            <span class="work__tags"><span class="tag tag--sw">Product</span></span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </section>

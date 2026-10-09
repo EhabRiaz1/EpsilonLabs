@@ -1,0 +1,94 @@
+  <section class="sec sec--flush sec--open" data-scene="mark" style="padding-block:calc(var(--nav-h) + var(--s-128)) var(--s-64)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-24)">
+        <a href="/work/" style="color:inherit">Work</a> · 003 · Product
+      </p>
+      <h1 class="h1 reveal" style="max-width:15ch">deskless</h1>
+      <p class="lede reveal" style="margin-top:var(--s-32);max-width:48ch">
+        The compliance and evidence layer for UK letting agents. Repairs, complaints,
+        documents and money on one statutory clock.
+      </p>
+    </div>
+  </section>
+
+  <section class="sec" id="problem">
+    <div class="shell">
+      <p class="sec__label"><b>01</b> <i>The problem</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">The deadline is the product.</h2>
+        <div class="prose reveal">
+          <p>
+            A letting agent's exposure is not that a repair is slow. It is that when
+            an ombudsman asks what happened and when, the answer lives across an inbox,
+            a spreadsheet and somebody's memory. Section 11 and Awaab's Law both run on
+            clocks with legal consequences, and neither clock is in the software the
+            agent already pays for.
+          </p>
+          <p>
+            deskless puts repairs, complaints, documents and money on that one clock,
+            and produces a record built to be handed to a redress scheme rather than
+            reconstructed for one.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="positioning">
+    <div class="shell">
+      <p class="sec__label"><b>02</b> <i>Where it does not compete</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Knowing what not to build was the design work.</h2>
+        <div class="prose reveal">
+          <p>
+            The incumbent ships AI repair triage in the UK at around £1 per property,
+            with distribution through property management systems and a training set of
+            tens of thousands of labelled repairs. deskless does not beat that on
+            triage and does not try.
+          </p>
+          <p>
+            It wins on the statutory and evidence layer, which the incumbent does not
+            do: redress-scheme complaint handling with an evidence pack, on the same
+            timer engine as the repair obligations.
+          </p>
+          <p>
+            It is also <strong>not an emergency line</strong>. Email is the only channel
+            and nobody reads email at 2am, so the product handles everything that is not
+            a 999 call. For a genuine emergency it does exactly one thing: shows the
+            tenant a hardcoded safety instruction and flags the ticket. No escalation
+            chain, no AI-mediated emergency response. Pretending otherwise would be the
+            dangerous feature.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="stack">
+    <div class="shell">
+      <p class="sec__label"><b>03</b> <i>Build</i></p>
+      <dl class="spec reveal">
+        <div><dt>Core</dt><dd>A single timer engine<small>Section 11, Awaab's Law and redress-scheme windows are all the same primitive</small></dd></div>
+        <div><dt>Output</dt><dd>Evidence packs<small>Assembled continuously, not generated in a panic</small></dd></div>
+        <div><dt>Channel</dt><dd>Email in, structured record out</dd></div>
+        <div><dt>Front end</dt><dd>React, Vite, TypeScript</dd></div>
+        <div><dt>Data</dt><dd>Supabase, Postgres, row-level security</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec" id="next">
+    <div class="shell">
+      <p class="sec__label"><b>Next</b> Case study 004</p>
+      <ol class="work">
+        <li>
+          <a class="work__row reveal" href="/work/finance-ai/">
+            <span class="work__idx">004</span>
+            <span><span class="work__name">Finance AI</span></span>
+            <span class="work__what">An investment terminal with live market data and an analyst that has read the positions.</span>
+            <span class="work__tags"><span class="tag tag--sw">Product</span><span class="tag">Applied AI</span></span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </section>

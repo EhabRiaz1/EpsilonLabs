@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software — Epsilon Labs</title>
+<meta name="description" content="Software solutions from Epsilon Labs: CRM, ERP, inventory, dashboards, web and mobile apps, macOS and Windows apps, CLI tools, integrations, AI agents and automation.">
+<meta name="theme-color" content="#08090A">
+<link rel="icon" href="/assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://epsilon-labs.co/software/">
+<link rel="describedby" type="text/plain" href="https://epsilon-labs.co/llms.txt">
+
+<meta property="og:url" content="https://epsilon-labs.co/software/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Software — Epsilon Labs">
+<meta property="og:description" content="Software solutions from Epsilon Labs: CRM, ERP, inventory, dashboards, web and mobile apps, macOS and Windows apps, CLI tools, integrations, AI agents and automation.">
+<meta property="og:image" content="https://epsilon-labs.co/assets/brand/og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script>
+/* The boot curtain. Set before the first paint so the page never flashes in
+   behind it, and armed with its own timeout: if WebGL is missing or the
+   glyph never loads, the curtain lifts anyway and the page is just a page. */
+(function () {
+  var r = document.documentElement;
+  if (r.dataset.boot !== '1') return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* Once per tab. An arrival you sit through on every visit home stops
+     being an arrival and becomes a toll. */
+  try {
+    if (sessionStorage.getItem('eps:arrived')) return;
+    sessionStorage.setItem('eps:arrived', '1');
+  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+  r.classList.add('booting');
+  var lift = function () {
+    if (!r.classList.contains('booting')) return;
+    r.classList.remove('booting');
+    r.classList.add('booted');
+  };
+  document.addEventListener('epsilon:ready', lift);
+  setTimeout(lift, 4000);
+})();
+</script>
+
+</head>
+
+<body data-scene="lattice">
+<a class="skip" href="#main">Skip to content</a>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<div class="scrim" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__in">
+    <a class="nav__mark" href="/" aria-label="Epsilon Labs — home">
+      <i class="mark" aria-hidden="true"></i>
+      <span>Epsilon Labs</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="/software/" aria-current="page" data-mega="software" aria-controls="mega-software" aria-expanded="false">Software</a>
+      <a href="/hardware/" data-mega="hardware" aria-controls="mega-hardware" aria-expanded="false">Hardware</a>
+      <a href="/catalogue/#tier-lab" data-mega="frontier" aria-controls="mega-frontier" aria-expanded="false">Frontier</a>
+      <a href="/catalogue/#tier-security" data-mega="security" aria-controls="mega-security" aria-expanded="false">Security</a>
+      <a href="/catalogue/">Catalogue</a>
+      <a href="/work/">Work</a>
+    </nav>
+    <div class="nav__right">
+      <a href="/start/">Start a project</a>
+      <div class="nav__co" id="navco">
+        <button type="button" aria-expanded="false" aria-controls="navdrop">Company</button>
+        <div class="nav__drop" id="navdrop">
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/llms.txt">For AI agents</a>
+        </div>
+      </div>
+    </div>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+      <i></i><i></i>
+    </button>
+  </div>
+<div class="mega" id="mega-software" data-mega-panel="software" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Software</p><a class="ulink" href="/software/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/software/#business">Business systems</a></p><p class="mega__b">The systems a company runs on, every day.</p><ul><li><a href="/software/crm/"><span>CRM</span></a></li><li><a href="/software/erp/"><span>ERP</span></a></li><li><a href="/software/inventory/"><span>Inventory</span></a></li><li><a href="/software/#business"><small>+ 3 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#customer">Customer-facing</a></p><p class="mega__b">What your customers see, tap and pay through.</p><ul><li><a href="/software/web-apps/"><span>Web apps</span></a></li><li><a href="/software/mobile-apps/"><span>Mobile apps</span></a></li><li><a href="/software/marketplaces/"><span>Marketplaces</span></a></li><li><a href="/software/#customer"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#platform">Desktop &amp; developer</a></p><p class="mega__b">Native apps, tools and the plumbing between systems.</p><ul><li><a href="/software/macos-apps/"><span>macOS apps</span></a></li><li><a href="/software/windows-apps/"><span>Windows apps</span></a></li><li><a href="/software/cli-tools/"><span>Developer tools</span></a></li><li><a href="/software/#platform"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#ai">AI &amp; automation</a></p><p class="mega__b">Work that should not need a person doing it by hand.</p><ul><li><a href="/software/ai-agents/"><span>AI agents</span></a></li><li><a href="/software/automation/"><span>Automation</span></a></li><li><a href="/software/document-ai/"><span>Reading documents</span></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-hardware" data-mega-panel="hardware" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Hardware</p><a class="ulink" href="/hardware/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/hardware/#industrial">Industrial automation</a></p><p class="mega__b">Plants, mills and lines that run themselves and report back.</p><ul><li><a href="/hardware/factory-automation/"><span>Factory automation</span></a></li><li><a href="/hardware/mill-automation/"><span>Mill automation</span></a></li><li><a href="/hardware/retrofits/"><span>Machine retrofits</span></a></li><li><a href="/hardware/#industrial"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#monitoring">Monitoring &amp; IoT</a></p><p class="mega__b">Machines and sites you can see from anywhere, live.</p><ul><li><a href="/hardware/industrial-iot/"><span>Machine monitoring</span></a></li><li><a href="/hardware/energy-monitoring/"><span>Energy &amp; generators</span></a></li><li><a href="/hardware/cold-chain/"><span>Cold chain</span></a></li><li><a href="/hardware/#monitoring"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#products">Hardware products</a></p><p class="mega__b">Devices designed, built and put in customers' hands.</p><ul><li><a href="/hardware/custom-hardware/"><span>Custom devices</span></a></li><li><a href="/hardware/pos-terminals/"><span>Tills &amp; kiosks</span></a></li><li><a href="/hardware/rfid-attendance/"><span>Access &amp; attendance</span></a></li><li><a href="/hardware/#products"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#engineering">Engineering</a></p><p class="mega__b">The board, the firmware and the build behind all of it.</p><ul><li><a href="/hardware/pcb-design/"><span>PCB design</span></a></li><li><a href="/hardware/embedded-firmware/"><span>Embedded firmware</span></a></li><li><a href="/hardware/sensing/"><span>Sensors &amp; calibration</span></a></li><li><a href="/hardware/#engineering"><small>+ 1 more</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-frontier" data-mega-panel="frontier" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Frontier</p><a class="ulink" href="/catalogue/#tier-lab">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">The hard ones</p><ul><li><a href="/products/digital-twin/"><span>Digital Twins</span><small>6–10 weeks</small></a></li><li><a href="/products/robotics-infra/"><span>Robot-Learning Infrastructure</span><small>3–6 weeks</small></a></li><li><a href="/products/sensing/"><span>Sensing &amp; Calibration</span><small>4–8 weeks</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-security" data-mega-panel="security" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Security</p><a class="ulink" href="/catalogue/#tier-security">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">Assessments</p><ul><li><a href="/services/device-pentest/"><span>Device Penetration Test</span><small>2–3 weeks</small></a></li><li><a href="/services/authz-review/"><span>Authorisation Model Review</span><small>1 week</small></a></li></ul></div></div></div></div>
+</header>
+
+<nav class="menu" id="menu" aria-label="Mobile" aria-hidden="true">
+  <a href="/software/" aria-current="page">Software</a>
+  <a href="/hardware/">Hardware</a>
+  <a href="/catalogue/#tier-lab">Frontier</a>
+  <a href="/catalogue/#tier-security">Security</a>
+  <a href="/catalogue/">Catalogue</a>
+  <a href="/work/">Work</a>
+  <a href="/about/">About</a>
+  <a href="/start/">Start a project</a>
+</nav>
+
+<main class="page" id="main">
+
+  <section class="sec sec--flush sec--open" data-scene="lattice" style="padding-block:calc(var(--nav-h) + var(--s-96)) var(--s-48)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-24)">Software · 17 solutions</p>
+      <h1 class="h1 reveal" style="max-width:16ch">Software, whatever shape it needs to be.</h1>
+      <p class="lede reveal" style="margin-top:var(--s-32);max-width:48ch">Business systems, customer apps, desktop software, developer tools, AI agents and automation — designed, built and handed over, owned by you.</p>
+    </div>
+  </section>
+  <div id="solutions">
+  <section class="blk blk--void wide cgroup" id="business">
+    <div class="hrow"><h2>Business systems</h2><p class="cgroup__blurb">The systems a company runs on, every day.</p></div>
+    <div class="rowlist"><a class="row reveal" href="/software/crm/" id=""><span class="row__n">CRM</span><span class="row__what">Every lead, deal and customer in one place.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/erp/" id=""><span class="row__n">ERP</span><span class="row__what">Purchasing, stock, production and accounts that agree with each other.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/inventory/" id=""><span class="row__n">Inventory</span><span class="row__what">Know you are running low before your customer does.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/dashboards/" id=""><span class="row__n">Dashboards</span><span class="row__what">Every number you check, in one place, live.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/internal-tools/" id=""><span class="row__n">Admin tools</span><span class="row__what">The back office your team actually wants to use.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/quoting/" id=""><span class="row__n">Quoting</span><span class="row__what">A quote in thirty seconds, not three days.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a></div>
+  </section>
+  <section class="blk sec sec--paper wide cgroup" id="customer">
+    <div class="hrow"><h2>Customer-facing</h2><p class="cgroup__blurb">What your customers see, tap and pay through.</p></div>
+    <div class="rowlist"><a class="row reveal" href="/software/web-apps/" id=""><span class="row__n">Web apps</span><span class="row__what">Software your customers use in a browser, fast.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/mobile-apps/" id=""><span class="row__n">Mobile apps</span><span class="row__what">iOS and Android from one codebase.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/marketplaces/" id=""><span class="row__n">Marketplaces</span><span class="row__what">Buyers, sellers and your cut in the middle.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/booking/" id=""><span class="row__n">Booking</span><span class="row__what">Stop selling slots. Start filling them.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a></div>
+  </section>
+  <section class="blk sec sec--stone wide cgroup" id="platform">
+    <div class="hrow"><h2>Desktop &amp; developer</h2><p class="cgroup__blurb">Native apps, tools and the plumbing between systems.</p></div>
+    <div class="rowlist"><a class="row reveal" href="/software/macos-apps/" id=""><span class="row__n">macOS apps</span><span class="row__what">Native Mac software that feels like it belongs there.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/windows-apps/" id=""><span class="row__n">Windows apps</span><span class="row__what">Desktop software for the machines on the shop floor.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/cli-tools/" id=""><span class="row__n">Developer tools</span><span class="row__what">Tools your engineers reach for every day.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/integrations/" id=""><span class="row__n">Integrations</span><span class="row__what">Make your systems talk to each other.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a></div>
+  </section>
+  <section class="blk blk--void wide cgroup" id="ai">
+    <div class="hrow"><h2>AI &amp; automation</h2><p class="cgroup__blurb">Work that should not need a person doing it by hand.</p></div>
+    <div class="rowlist"><a class="row reveal" href="/software/ai-agents/" id=""><span class="row__n">AI agents</span><span class="row__what">Agents that do real work — and ask before they change anything.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/automation/" id=""><span class="row__n">Automation</span><span class="row__what">The repetitive work, done without anyone doing it.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a><a class="row reveal" href="/software/document-ai/" id=""><span class="row__n">Reading documents</span><span class="row__what">PDFs, scans and emails turned into clean data.</span><span class="row__go">Open <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></span></a></div>
+  </section>
+  </div>
+  <section class="sec sec--slate sec--end" id="cta">
+    <div class="shell">
+      <p class="sec__label"><b>Next</b> Not on the list</p>
+      <h2 class="display reveal">If it runs on code or current, ask.</h2>
+      <p class="lede reveal" style="margin-top:var(--s-24);max-width:46ch">The list above is what we are asked for most, not the limit. Describe the problem in two lines and we will tell you whether it is ours.</p>
+      <div class="reveal" style="display:flex;flex-wrap:wrap;gap:var(--s-12);margin-top:var(--s-48)">
+        <a class="btn" href="/start/">Describe the problem <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="btn btn--ghost" href="/catalogue/">What we sell</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot__top">
+    <a class="foot__mark" href="/" aria-label="Epsilon Labs — home"><i class="mark" aria-hidden="true"></i><span>Epsilon Labs</span></a>
+    <div class="foot__cols">
+      <div>
+        <h4>Offers</h4>
+        <ul>
+          <li><a href="/software/">Software</a></li>
+          <li><a href="/hardware/">Hardware</a></li>
+          <li><a href="/catalogue/#tier-lab">Frontier</a></li>
+          <li><a href="/catalogue/#tier-security">Security</a></li>
+          <li><a href="/catalogue/">Catalogue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/work/">Work</a></li>
+          <li><a href="/start/">Start a project</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For agents</h4>
+        <ul>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/catalogue.json">catalogue.json</a></li>
+          <li><a href="/sitemap.xml">sitemap.xml</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div class="foot__legal">
+      <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
+      <span>Lahore, Pakistan · Hardware and software, built to tolerance.</span>
+    </div>
+    <div class="foot__contact">
+      <h4>Contact</h4>
+      <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/demos.js" defer></script>
+<script type="module" src="/assets/js/scene.js"></script>
+<script type="module" src="/assets/js/twin.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+# Epsilon Labs
+
+> A hardware and software lab in Lahore, Pakistan. We design circuit boards and the systems that run on them, and we decode industrial protocols that have never been documented. Founded January 2025 by Ehab Riaz; founder-led. On-site hardware work is delivered in Pakistan, the Gulf and the UK. Software, Frontier and Desk work offers are delivered remotely and sold worldwide.
+
+The deepest proof is protocol work: for eFuelPro we recovered 25-byte frames at 38400 8N1 with 0x04/0x06 delimiters and BCD-encoded fields off a fuel dispenser with no specification, then built a decode engine that works out that protocol's field layout by itself at each new site.
+
+Every offer below has a written scope, a typical duration, an explicit statement of who it is NOT for, and names the work it is based on. Several offers rest on a single project, sometimes our own product rather than a client's; each page says so. We do not publish prices: every engagement is scoped and quoted by hand after a short call. To get a number, write to er@epsilon-labs.co with what the work has to do and when it has to be done.
+
+## Engagements
+
+- [Pre-Fab Design Review](https://epsilon-labs.co/services/design-review/index.md): Find the board-killer before you pay for a hundred of them. Typically 3–5 days. Priced per project.
+- [Protocol Decode Sprint](https://epsilon-labs.co/services/protocol-decode/index.md): Your machine is already talking. We work out what it is saying. Typically 2–4 weeks. Priced per project.
+- [Board-to-Fab](https://epsilon-labs.co/services/board-to-fab/index.md): Schematic to fabrication-ready, owned by you. Typically 6–10 weeks. Priced per project.
+- [Firmware Rescue](https://epsilon-labs.co/services/firmware-rescue/index.md): It half-works, and whoever wrote it is gone. Typically 3–6 weeks. Priced per project.
+
+## Security
+
+- [Device Penetration Test](https://epsilon-labs.co/services/device-pentest/index.md): We take your device apart the way an attacker would. Typically 2–3 weeks. Priced per project.
+- [Authorisation Model Review](https://epsilon-labs.co/services/authz-review/index.md): Can tenant A read tenant B's row? We find out properly. Typically 1 week. Priced per project.
+
+## Desk work
+
+- [Remote Protocol Decode](https://epsilon-labs.co/services/remote-decode/index.md): You capture it. We decode it. Nobody gets on a plane. Typically 1–2 weeks. Priced per project.
+- [BOM Risk Audit](https://epsilon-labs.co/services/bom-audit/index.md): Find the part that goes end-of-life before your product does. Typically 3–5 days. Priced per project.
+- [Datasheet to Footprint](https://epsilon-labs.co/services/footprint/index.md): A footprint drawn from the mechanical drawing, not from the internet. Typically 2–3 days. Priced per project.
+
+## Products
+
+- [eFuelPro](https://epsilon-labs.co/products/efuelpro/index.md): Every litre has a record, and the record has a receipt. Typically install in a day. Priced per project.
+
+## Platform
+
+- [Epsilon1](https://epsilon-labs.co/products/epsilon1/index.md): A terminal that reads machines with undocumented protocols. Typically 2–6 weeks to first vertical. Priced per project.
+- [Epsilon1 Design Package](https://epsilon-labs.co/products/epsilon1-kit/index.md): The whole board, licensed, so you can build it yourself. Typically immediate. Priced per project.
+
+## Software
+
+- [Booking & Scheduling](https://epsilon-labs.co/products/bookings/index.md): Stop selling slots. Start filling them. Typically 4–6 weeks. Priced per project.
+- [Quote Engine](https://epsilon-labs.co/products/quote-engine/index.md): A quote in thirty seconds, not three days. Typically 3–5 weeks. Priced per project.
+- [Ops Analyst](https://epsilon-labs.co/products/ops-analyst/index.md): Ask your database a question. Approve what it wants to change. Typically 4–6 weeks. Priced per project.
+- [Sales & Admin Dashboards](https://epsilon-labs.co/products/dashboards/index.md): Every number you check, in one place, live. Typically 3–4 weeks. Priced per project.
+- [Inventory & Stock](https://epsilon-labs.co/products/inventory/index.md): Know you're running low before your customer does. Typically 4–6 weeks. Priced per project.
+- [CRM & Case Management](https://epsilon-labs.co/products/crm/index.md): No lead left in somebody's inbox. Typically 4–6 weeks. Priced per project.
+- [Marketplaces](https://epsilon-labs.co/products/marketplace/index.md): Buyers on one side, sellers on the other, your cut in the middle. Typically 6–10 weeks. Priced per project.
+- [Mobile Apps](https://epsilon-labs.co/products/mobile-apps/index.md): Your customers live on their phones. So should you. Typically 6–10 weeks. Priced per project.
+
+## Frontier
+
+- [Digital Twins](https://epsilon-labs.co/products/digital-twin/index.md): Your whole site, live, in 3D, from anywhere. Typically 6–10 weeks. Priced per project.
+- [Robot-Learning Infrastructure](https://epsilon-labs.co/products/robotics-infra/index.md): Your training runs should fail for research reasons, not DevOps ones. Typically 3–6 weeks. Priced per project.
+- [Sensing & Calibration](https://epsilon-labs.co/products/sensing/index.md): Sensors that stay accurate after the first week. Typically 4–8 weeks. Priced per project.
+
+## Software solutions
+
+Kinds of system we build, each with a typical starting price. The examples on these pages show range; they are not a client list.
+
+- [CRM](https://epsilon-labs.co/software/crm/) (Business systems): Every lead, deal and customer in one place.
+- [ERP](https://epsilon-labs.co/software/erp/) (Business systems): Purchasing, stock, production and accounts that agree with each other.
+- [Inventory](https://epsilon-labs.co/software/inventory/) (Business systems): Know you are running low before your customer does.
+- [Dashboards](https://epsilon-labs.co/software/dashboards/) (Business systems): Every number you check, in one place, live.
+- [Admin tools](https://epsilon-labs.co/software/internal-tools/) (Business systems): The back office your team actually wants to use.
+- [Quoting](https://epsilon-labs.co/software/quoting/) (Business systems): A quote in thirty seconds, not three days.
+- [Web apps](https://epsilon-labs.co/software/web-apps/) (Customer-facing): Software your customers use in a browser, fast.
+- [Mobile apps](https://epsilon-labs.co/software/mobile-apps/) (Customer-facing): iOS and Android from one codebase.
+- [Marketplaces](https://epsilon-labs.co/software/marketplaces/) (Customer-facing): Buyers, sellers and your cut in the middle.
+- [Booking](https://epsilon-labs.co/software/booking/) (Customer-facing): Stop selling slots. Start filling them.
+- [macOS apps](https://epsilon-labs.co/software/macos-apps/) (Desktop & developer): Native Mac software that feels like it belongs there.
+- [Windows apps](https://epsilon-labs.co/software/windows-apps/) (Desktop & developer): Desktop software for the machines on the shop floor.
+- [Developer tools](https://epsilon-labs.co/software/cli-tools/) (Desktop & developer): Tools your engineers reach for every day.
+- [Integrations](https://epsilon-labs.co/software/integrations/) (Desktop & developer): Make your systems talk to each other.
+- [AI agents](https://epsilon-labs.co/software/ai-agents/) (AI & automation): Agents that do real work — and ask before they change anything.
+- [Automation](https://epsilon-labs.co/software/automation/) (AI & automation): The repetitive work, done without anyone doing it.
+- [Reading documents](https://epsilon-labs.co/software/document-ai/) (AI & automation): PDFs, scans and emails turned into clean data.
+
+## Hardware solutions
+
+Kinds of system we build, each with a typical starting price. The examples on these pages show range; they are not a client list.
+
+- [Factory automation](https://epsilon-labs.co/hardware/factory-automation/) (Industrial automation): A production line that reports on itself.
+- [Mill automation](https://epsilon-labs.co/hardware/mill-automation/) (Industrial automation): Flour, rice and textile mills that run on numbers, not guesses.
+- [Machine retrofits](https://epsilon-labs.co/hardware/retrofits/) (Industrial automation): Old machines, new data.
+- [Operator screens](https://epsilon-labs.co/hardware/hmi-scada/) (Industrial automation): Screens operators can read at a glance.
+- [Machine monitoring](https://epsilon-labs.co/hardware/industrial-iot/) (Monitoring & IoT): Every machine you own, visible from anywhere.
+- [Energy & generators](https://epsilon-labs.co/hardware/energy-monitoring/) (Monitoring & IoT): Know what your power actually costs.
+- [Cold chain](https://epsilon-labs.co/hardware/cold-chain/) (Monitoring & IoT): Temperature you can prove.
+- [Tank levels](https://epsilon-labs.co/hardware/tank-monitoring/) (Monitoring & IoT): Levels you never have to dip by hand.
+- [Custom devices](https://epsilon-labs.co/hardware/custom-hardware/) (Hardware products): From an idea on paper to a device in your hand.
+- [Tills & kiosks](https://epsilon-labs.co/hardware/pos-terminals/) (Hardware products): Counters and kiosks that print, scan and never lose a sale.
+- [Access & attendance](https://epsilon-labs.co/hardware/rfid-attendance/) (Hardware products): Know who was where, and when.
+- [Fuel forecourts](https://epsilon-labs.co/hardware/fuel-forecourt/) (Hardware products): Every litre has a record, and the record has a receipt.
+- [PCB design](https://epsilon-labs.co/hardware/pcb-design/) (Engineering): Boards that come back from the fab right the first time.
+- [Embedded firmware](https://epsilon-labs.co/hardware/embedded-firmware/) (Engineering): Firmware that keeps running when things go wrong.
+- [Sensors & calibration](https://epsilon-labs.co/hardware/sensing/) (Engineering): Readings you can trust after the first week.
+- [Enclosures & small runs](https://epsilon-labs.co/hardware/small-batch/) (Engineering): From one prototype to your first hundred units.
+
+## Evidence
+
+- [eFuelPro case study](https://epsilon-labs.co/work/efuelpro/): the fuel forecourt terminal, from protocol capture to a board in the field.
+- [All work](https://epsilon-labs.co/work/): every engagement, including Master Paints, deskless, Finance AI, Lineamode, Fabricport and The Courts.
+
+## Optional
+
+- [Catalogue as JSON](https://epsilon-labs.co/catalogue.json): every offer with price, duration, deliverables and anti-fit, in one fetch.
+- [About](https://epsilon-labs.co/about/): who runs the lab and how it works.
+- [Start a project](https://epsilon-labs.co/start/): four questions that route an enquiry to the right offer.

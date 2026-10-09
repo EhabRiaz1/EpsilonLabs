@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start a project — Epsilon Labs</title>
+<meta name="description" content="Four questions that tell you which Epsilon Labs offer your problem is, what it costs, and whether we are the wrong people for it.">
+<meta name="theme-color" content="#08090A">
+<link rel="icon" href="/assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://epsilon-labs.co/start/">
+<link rel="describedby" type="text/plain" href="https://epsilon-labs.co/llms.txt">
+
+<meta property="og:url" content="https://epsilon-labs.co/start/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Start a project — Epsilon Labs">
+<meta property="og:description" content="Four questions that tell you which Epsilon Labs offer your problem is, what it costs, and whether we are the wrong people for it.">
+<meta property="og:image" content="https://epsilon-labs.co/assets/brand/og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script>
+/* The boot curtain. Set before the first paint so the page never flashes in
+   behind it, and armed with its own timeout: if WebGL is missing or the
+   glyph never loads, the curtain lifts anyway and the page is just a page. */
+(function () {
+  var r = document.documentElement;
+  if (r.dataset.boot !== '1') return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* Once per tab. An arrival you sit through on every visit home stops
+     being an arrival and becomes a toll. */
+  try {
+    if (sessionStorage.getItem('eps:arrived')) return;
+    sessionStorage.setItem('eps:arrived', '1');
+  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+  r.classList.add('booting');
+  var lift = function () {
+    if (!r.classList.contains('booting')) return;
+    r.classList.remove('booting');
+    r.classList.add('booted');
+  };
+  document.addEventListener('epsilon:ready', lift);
+  setTimeout(lift, 4000);
+})();
+</script>
+
+</head>
+
+<body data-scene="mark">
+<a class="skip" href="#main">Skip to content</a>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<div class="scrim" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__in">
+    <a class="nav__mark" href="/" aria-label="Epsilon Labs — home">
+      <i class="mark" aria-hidden="true"></i>
+      <span>Epsilon Labs</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="/software/" data-mega="software" aria-controls="mega-software" aria-expanded="false">Software</a>
+      <a href="/hardware/" data-mega="hardware" aria-controls="mega-hardware" aria-expanded="false">Hardware</a>
+      <a href="/catalogue/#tier-lab" data-mega="frontier" aria-controls="mega-frontier" aria-expanded="false">Frontier</a>
+      <a href="/catalogue/#tier-security" data-mega="security" aria-controls="mega-security" aria-expanded="false">Security</a>
+      <a href="/catalogue/">Catalogue</a>
+      <a href="/work/">Work</a>
+    </nav>
+    <div class="nav__right">
+      <a href="/start/">Start a project</a>
+      <div class="nav__co" id="navco">
+        <button type="button" aria-expanded="false" aria-controls="navdrop">Company</button>
+        <div class="nav__drop" id="navdrop">
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/llms.txt">For AI agents</a>
+        </div>
+      </div>
+    </div>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+      <i></i><i></i>
+    </button>
+  </div>
+<div class="mega" id="mega-software" data-mega-panel="software" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Software</p><a class="ulink" href="/software/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/software/#business">Business systems</a></p><p class="mega__b">The systems a company runs on, every day.</p><ul><li><a href="/software/crm/"><span>CRM</span></a></li><li><a href="/software/erp/"><span>ERP</span></a></li><li><a href="/software/inventory/"><span>Inventory</span></a></li><li><a href="/software/#business"><small>+ 3 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#customer">Customer-facing</a></p><p class="mega__b">What your customers see, tap and pay through.</p><ul><li><a href="/software/web-apps/"><span>Web apps</span></a></li><li><a href="/software/mobile-apps/"><span>Mobile apps</span></a></li><li><a href="/software/marketplaces/"><span>Marketplaces</span></a></li><li><a href="/software/#customer"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#platform">Desktop &amp; developer</a></p><p class="mega__b">Native apps, tools and the plumbing between systems.</p><ul><li><a href="/software/macos-apps/"><span>macOS apps</span></a></li><li><a href="/software/windows-apps/"><span>Windows apps</span></a></li><li><a href="/software/cli-tools/"><span>Developer tools</span></a></li><li><a href="/software/#platform"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#ai">AI &amp; automation</a></p><p class="mega__b">Work that should not need a person doing it by hand.</p><ul><li><a href="/software/ai-agents/"><span>AI agents</span></a></li><li><a href="/software/automation/"><span>Automation</span></a></li><li><a href="/software/document-ai/"><span>Reading documents</span></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-hardware" data-mega-panel="hardware" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Hardware</p><a class="ulink" href="/hardware/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/hardware/#industrial">Industrial automation</a></p><p class="mega__b">Plants, mills and lines that run themselves and report back.</p><ul><li><a href="/hardware/factory-automation/"><span>Factory automation</span></a></li><li><a href="/hardware/mill-automation/"><span>Mill automation</span></a></li><li><a href="/hardware/retrofits/"><span>Machine retrofits</span></a></li><li><a href="/hardware/#industrial"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#monitoring">Monitoring &amp; IoT</a></p><p class="mega__b">Machines and sites you can see from anywhere, live.</p><ul><li><a href="/hardware/industrial-iot/"><span>Machine monitoring</span></a></li><li><a href="/hardware/energy-monitoring/"><span>Energy &amp; generators</span></a></li><li><a href="/hardware/cold-chain/"><span>Cold chain</span></a></li><li><a href="/hardware/#monitoring"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#products">Hardware products</a></p><p class="mega__b">Devices designed, built and put in customers' hands.</p><ul><li><a href="/hardware/custom-hardware/"><span>Custom devices</span></a></li><li><a href="/hardware/pos-terminals/"><span>Tills &amp; kiosks</span></a></li><li><a href="/hardware/rfid-attendance/"><span>Access &amp; attendance</span></a></li><li><a href="/hardware/#products"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#engineering">Engineering</a></p><p class="mega__b">The board, the firmware and the build behind all of it.</p><ul><li><a href="/hardware/pcb-design/"><span>PCB design</span></a></li><li><a href="/hardware/embedded-firmware/"><span>Embedded firmware</span></a></li><li><a href="/hardware/sensing/"><span>Sensors &amp; calibration</span></a></li><li><a href="/hardware/#engineering"><small>+ 1 more</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-frontier" data-mega-panel="frontier" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Frontier</p><a class="ulink" href="/catalogue/#tier-lab">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">The hard ones</p><ul><li><a href="/products/digital-twin/"><span>Digital Twins</span><small>6–10 weeks</small></a></li><li><a href="/products/robotics-infra/"><span>Robot-Learning Infrastructure</span><small>3–6 weeks</small></a></li><li><a href="/products/sensing/"><span>Sensing &amp; Calibration</span><small>4–8 weeks</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-security" data-mega-panel="security" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Security</p><a class="ulink" href="/catalogue/#tier-security">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">Assessments</p><ul><li><a href="/services/device-pentest/"><span>Device Penetration Test</span><small>2–3 weeks</small></a></li><li><a href="/services/authz-review/"><span>Authorisation Model Review</span><small>1 week</small></a></li></ul></div></div></div></div>
+</header>
+
+<nav class="menu" id="menu" aria-label="Mobile" aria-hidden="true">
+  <a href="/software/">Software</a>
+  <a href="/hardware/">Hardware</a>
+  <a href="/catalogue/#tier-lab">Frontier</a>
+  <a href="/catalogue/#tier-security">Security</a>
+  <a href="/catalogue/">Catalogue</a>
+  <a href="/work/">Work</a>
+  <a href="/about/">About</a>
+  <a href="/start/">Start a project</a>
+</nav>
+
+<main class="page" id="main">
+  <section class="sec sec--flush sec--open" data-scene="mark" style="padding-block:calc(var(--nav-h) + var(--s-96)) var(--s-48)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-24)">Start</p>
+      <h1 class="h1 reveal" style="max-width:17ch">Four questions, then a real answer.</h1>
+      <p class="lede reveal" style="margin-top:var(--s-32);max-width:46ch">
+        Enough to tell you which of our offers this is, what it costs, and whether
+        we are the wrong people for it.
+      </p>
+    </div>
+  </section>
+
+  <section class="sec" id="intake-sec">
+    <div class="shell">
+      <p class="sec__label"><b>01</b> <i>Tell us what you have</i></p>
+
+      <!-- No JavaScript: this whole block is replaced by the picker below.
+           Left visible by default so the page is never a dead end. -->
+      <noscript>
+        <div class="note" style="max-width:var(--measure);margin-bottom:var(--s-48)">
+          <p>
+            The picker needs JavaScript. Email us instead and include the four
+            answers below — it reaches the same place.
+          </p>
+        </div>
+      </noscript>
+
+      <script type="application/json" id="offer-index">{"/services/design-review/": "Pre-Fab Design Review", "/services/protocol-decode/": "Protocol Decode Sprint", "/services/board-to-fab/": "Board-to-Fab", "/services/firmware-rescue/": "Firmware Rescue", "/products/efuelpro/": "eFuelPro", "/products/epsilon1/": "Epsilon1", "/services/device-pentest/": "Device Penetration Test", "/services/authz-review/": "Authorisation Model Review", "/services/remote-decode/": "Remote Protocol Decode", "/services/bom-audit/": "BOM Risk Audit", "/services/footprint/": "Datasheet to Footprint", "/products/epsilon1-kit/": "Epsilon1 Design Package", "/products/bookings/": "Booking & Scheduling", "/products/quote-engine/": "Quote Engine", "/products/ops-analyst/": "Ops Analyst", "/products/dashboards/": "Sales & Admin Dashboards", "/products/inventory/": "Inventory & Stock", "/products/crm/": "CRM & Case Management", "/products/marketplace/": "Marketplaces", "/products/mobile-apps/": "Mobile Apps", "/products/digital-twin/": "Digital Twins", "/products/robotics-infra/": "Robot-Learning Infrastructure", "/products/sensing/": "Sensing & Calibration"}</script>
+      <div id="intake" class="intake" hidden>
+        <fieldset class="intake__step">
+          <legend class="mono">1 — What is the work?</legend>
+          <div class="intake__opts" data-group="need">
+            <button type="button" data-value="A board about to go to fabrication" data-offer="/services/design-review/">A board about to go to fabrication</button>
+            <button type="button" data-value="A machine speaking a protocol nobody has documented" data-offer="/services/protocol-decode/">A machine nobody can read</button>
+            <button type="button" data-value="A product that needs a PCB designed" data-offer="/services/board-to-fab/">A product that needs a board designed</button>
+            <button type="button" data-value="Firmware that half-works" data-offer="/services/firmware-rescue/">Firmware that half-works</button>
+            <button type="button" data-value="A fuel forecourt I cannot see into" data-offer="/products/efuelpro/">A fuel forecourt I cannot see into</button>
+            <button type="button" data-value="Machines I cannot see in real time" data-offer="/products/epsilon1/">Machines I cannot see in real time</button>
+            <button type="button" data-value="Software, or something not listed" data-offer="">Software, or something not on this list</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="intake__step">
+          <legend class="mono">2 — When does it have to be done?</legend>
+          <div class="intake__opts" data-group="when">
+            <button type="button" data-value="Inside a month">Inside a month</button>
+            <button type="button" data-value="One to three months">One to three months</button>
+            <button type="button" data-value="This quarter, no hard date">This quarter, no hard date</button>
+            <button type="button" data-value="Exploring — no date yet">Exploring, no date yet</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="intake__step">
+          <legend class="mono">3 — What is the budget?</legend>
+          <div class="intake__opts" data-group="budget">
+            <button type="button" data-value="Under $2,000">Under $2k</button>
+            <button type="button" data-value="$2,000 – $10,000">$2k – $10k</button>
+            <button type="button" data-value="$10,000 – $50,000">$10k – $50k</button>
+            <button type="button" data-value="Over $50,000">Over $50k</button>
+            <button type="button" data-value="Not established yet">Not established yet</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="intake__step">
+          <legend class="mono">4 — The constraint you are most worried about</legend>
+          <textarea id="intake-note" rows="4" placeholder="The deadline, the unit cost, the protocol nobody has documented, the thing that keeps failing in the field…"></textarea>
+        </fieldset>
+
+        <div class="intake__out" id="intake-out" aria-live="polite">
+          <p class="mono">Where this lands</p>
+          <p class="intake__match" id="intake-match">Answer the first question and we will tell you.</p>
+          <a class="btn" id="intake-send" href="mailto:er@epsilon-labs.co">
+            Send this
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <p class="intake__hint">Opens your email app with everything filled in. Nothing is sent from this page.</p>
+        </div>
+      </div>
+
+      <div class="prose" id="intake-fallback">
+        <p>Email <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a> and include:</p>
+        <ol style="list-style:decimal;padding-left:1.4em;margin-top:var(--s-16);color:var(--muted)">
+          <li>What the work is — a board, a protocol, firmware, a forecourt, machines you cannot see</li>
+          <li>When it has to be done</li>
+          <li>The budget band</li>
+          <li>The constraint you are most worried about</li>
+        </ol>
+        <p style="margin-top:var(--s-24)">
+          If there is hardware involved, a model number and a photograph of the
+          connector will save us both a week.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--paper" id="expect">
+    <div class="shell">
+      <p class="sec__label"><b>02</b> <i>What happens next</i></p>
+      <dl class="spec reveal">
+        <div><dt>1 — Reply</dt><dd>Within two working days, from a person who has read it</dd></div>
+        <div><dt>2 — A call</dt><dd>Thirty minutes about constraints, not features<small>If it is not a fit we will say so on this call rather than send a proposal</small></dd></div>
+        <div><dt>3 — Shape and price</dt><dd>Written scope against one of the offers in the catalogue<small>Unknowns get a timebox and a decision point, never a hopeful estimate</small></dd></div>
+      </dl>
+      <p class="reveal" style="margin-top:var(--s-48)">
+        <a class="arrow" href="/catalogue/">
+          See the catalogue first
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot__top">
+    <a class="foot__mark" href="/" aria-label="Epsilon Labs — home"><i class="mark" aria-hidden="true"></i><span>Epsilon Labs</span></a>
+    <div class="foot__cols">
+      <div>
+        <h4>Offers</h4>
+        <ul>
+          <li><a href="/software/">Software</a></li>
+          <li><a href="/hardware/">Hardware</a></li>
+          <li><a href="/catalogue/#tier-lab">Frontier</a></li>
+          <li><a href="/catalogue/#tier-security">Security</a></li>
+          <li><a href="/catalogue/">Catalogue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/work/">Work</a></li>
+          <li><a href="/start/">Start a project</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For agents</h4>
+        <ul>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/catalogue.json">catalogue.json</a></li>
+          <li><a href="/sitemap.xml">sitemap.xml</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div class="foot__legal">
+      <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
+      <span>Lahore, Pakistan · Hardware and software, built to tolerance.</span>
+    </div>
+    <div class="foot__contact">
+      <h4>Contact</h4>
+      <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/demos.js" defer></script>
+<script type="module" src="/assets/js/scene.js"></script>
+<script type="module" src="/assets/js/twin.js"></script>
+</body>
+</html>

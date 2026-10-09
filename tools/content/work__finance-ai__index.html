@@ -1,0 +1,79 @@
+  <section class="sec sec--flush sec--open" data-scene="mark" style="padding-block:calc(var(--nav-h) + var(--s-128)) var(--s-64)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-24)">
+        <a href="/work/" style="color:inherit">Work</a> · 004 · Product + Applied AI
+      </p>
+      <h1 class="h1 reveal" style="max-width:15ch">Finance AI</h1>
+      <p class="lede reveal" style="margin-top:var(--s-32);max-width:46ch">
+        An institutional-grade investment terminal for a private portfolio — and an
+        analyst that has actually read it.
+      </p>
+    </div>
+  </section>
+
+  <section class="sec" id="problem">
+    <div class="shell">
+      <p class="sec__label"><b>01</b> <i>The problem</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Retail apps answer the wrong question.</h2>
+        <div class="prose reveal">
+          <p>
+            A consumer brokerage app is built to tell you whether today was green. A
+            serious holder wants exposure, concentration, correlation to a rate move,
+            and what changed since the last time they looked — the questions a desk
+            asks, answered against their own positions.
+          </p>
+          <p>
+            And they want to ask them in words, without exporting a CSV into a chat
+            window and hoping.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="build">
+    <div class="shell">
+      <p class="sec__label"><b>02</b> <i>Build</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <div>
+          <h2 class="h2 reveal">Density over decoration.</h2>
+          <div class="prose reveal" style="margin-top:var(--s-24)">
+            <p>
+              Black and amber, tabular figures, no wasted chrome — the visual language of
+              a terminal, because the user is reading numbers in columns, not browsing.
+            </p>
+            <p>
+              The analyst is the part most people get wrong. It is scoped to the caller's
+              data by the same row-level security that governs the rest of the app, so it
+              can only reason about positions its user is entitled to see. An assistant
+              that can read every portfolio is not a feature; it is an incident.
+            </p>
+          </div>
+        </div>
+        <dl class="spec spec--panel reveal">
+          <div><dt>Front end</dt><dd>React, Vite<small>Auth-gated, black/amber terminal UI</small></dd></div>
+          <div><dt>Data</dt><dd>Supabase — Auth, Postgres, RLS, Edge Functions</dd></div>
+          <div><dt>Feeds</dt><dd>Finnhub, FRED<small>Live market data and macro series</small></dd></div>
+          <div><dt>Research</dt><dd>TradingView workspace, portfolio news feed</dd></div>
+          <div><dt>Analyst</dt><dd>Claude, portfolio-aware<small>Scoped by the caller's own RLS policies</small></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="next">
+    <div class="shell">
+      <p class="sec__label"><b>Next</b> Case study 005</p>
+      <ol class="work">
+        <li>
+          <a class="work__row reveal" href="/work/lineamode/">
+            <span class="work__idx">005</span>
+            <span><span class="work__name">Lineamode</span></span>
+            <span class="work__what">An editorial-grade site for an apparel house, built to a real brand system.</span>
+            <span class="work__tags"><span class="tag tag--sw">Web</span></span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </section>

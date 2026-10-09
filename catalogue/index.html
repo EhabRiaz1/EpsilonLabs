@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalogue — Epsilon Labs</title>
+<meta name="description" content="Everything Epsilon Labs sells, priced. Pre-fab design review, protocol decode, board-to-fab, firmware rescue, eFuelPro and the Epsilon1 terminal.">
+<meta name="theme-color" content="#08090A">
+<link rel="icon" href="/assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://epsilon-labs.co/catalogue/">
+<link rel="describedby" type="text/plain" href="https://epsilon-labs.co/llms.txt">
+
+<meta property="og:url" content="https://epsilon-labs.co/catalogue/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Catalogue — Epsilon Labs">
+<meta property="og:description" content="Everything Epsilon Labs sells, priced. Pre-fab design review, protocol decode, board-to-fab, firmware rescue, eFuelPro and the Epsilon1 terminal.">
+<meta property="og:image" content="https://epsilon-labs.co/assets/brand/og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script>
+/* The boot curtain. Set before the first paint so the page never flashes in
+   behind it, and armed with its own timeout: if WebGL is missing or the
+   glyph never loads, the curtain lifts anyway and the page is just a page. */
+(function () {
+  var r = document.documentElement;
+  if (r.dataset.boot !== '1') return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* Once per tab. An arrival you sit through on every visit home stops
+     being an arrival and becomes a toll. */
+  try {
+    if (sessionStorage.getItem('eps:arrived')) return;
+    sessionStorage.setItem('eps:arrived', '1');
+  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+  r.classList.add('booting');
+  var lift = function () {
+    if (!r.classList.contains('booting')) return;
+    r.classList.remove('booting');
+    r.classList.add('booted');
+  };
+  document.addEventListener('epsilon:ready', lift);
+  setTimeout(lift, 4000);
+})();
+</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","@id":"https://epsilon-labs.co/catalogue/#list","name":"Epsilon Labs catalogue","numberOfItems":23,"itemListElement":[{"@type":"ListItem","position":1,"url":"https://epsilon-labs.co/services/design-review/","name":"Pre-Fab Design Review"},{"@type":"ListItem","position":2,"url":"https://epsilon-labs.co/services/protocol-decode/","name":"Protocol Decode Sprint"},{"@type":"ListItem","position":3,"url":"https://epsilon-labs.co/services/board-to-fab/","name":"Board-to-Fab"},{"@type":"ListItem","position":4,"url":"https://epsilon-labs.co/services/firmware-rescue/","name":"Firmware Rescue"},{"@type":"ListItem","position":5,"url":"https://epsilon-labs.co/products/efuelpro/","name":"eFuelPro"},{"@type":"ListItem","position":6,"url":"https://epsilon-labs.co/products/epsilon1/","name":"Epsilon1"},{"@type":"ListItem","position":7,"url":"https://epsilon-labs.co/services/device-pentest/","name":"Device Penetration Test"},{"@type":"ListItem","position":8,"url":"https://epsilon-labs.co/services/authz-review/","name":"Authorisation Model Review"},{"@type":"ListItem","position":9,"url":"https://epsilon-labs.co/services/remote-decode/","name":"Remote Protocol Decode"},{"@type":"ListItem","position":10,"url":"https://epsilon-labs.co/services/bom-audit/","name":"BOM Risk Audit"},{"@type":"ListItem","position":11,"url":"https://epsilon-labs.co/services/footprint/","name":"Datasheet to Footprint"},{"@type":"ListItem","position":12,"url":"https://epsilon-labs.co/products/epsilon1-kit/","name":"Epsilon1 Design Package"},{"@type":"ListItem","position":13,"url":"https://epsilon-labs.co/products/bookings/","name":"Booking & Scheduling"},{"@type":"ListItem","position":14,"url":"https://epsilon-labs.co/products/quote-engine/","name":"Quote Engine"},{"@type":"ListItem","position":15,"url":"https://epsilon-labs.co/products/ops-analyst/","name":"Ops Analyst"},{"@type":"ListItem","position":16,"url":"https://epsilon-labs.co/products/dashboards/","name":"Sales & Admin Dashboards"},{"@type":"ListItem","position":17,"url":"https://epsilon-labs.co/products/inventory/","name":"Inventory & Stock"},{"@type":"ListItem","position":18,"url":"https://epsilon-labs.co/products/crm/","name":"CRM & Case Management"},{"@type":"ListItem","position":19,"url":"https://epsilon-labs.co/products/marketplace/","name":"Marketplaces"},{"@type":"ListItem","position":20,"url":"https://epsilon-labs.co/products/mobile-apps/","name":"Mobile Apps"},{"@type":"ListItem","position":21,"url":"https://epsilon-labs.co/products/digital-twin/","name":"Digital Twins"},{"@type":"ListItem","position":22,"url":"https://epsilon-labs.co/products/robotics-infra/","name":"Robot-Learning Infrastructure"},{"@type":"ListItem","position":23,"url":"https://epsilon-labs.co/products/sensing/","name":"Sensing & Calibration"}]}</script>
+
+</head>
+
+<body data-scene="mark">
+<a class="skip" href="#main">Skip to content</a>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<div class="scrim" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="nav__in">
+    <a class="nav__mark" href="/" aria-label="Epsilon Labs — home">
+      <i class="mark" aria-hidden="true"></i>
+      <span>Epsilon Labs</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="/software/" data-mega="software" aria-controls="mega-software" aria-expanded="false">Software</a>
+      <a href="/hardware/" data-mega="hardware" aria-controls="mega-hardware" aria-expanded="false">Hardware</a>
+      <a href="/catalogue/#tier-lab" data-mega="frontier" aria-controls="mega-frontier" aria-expanded="false">Frontier</a>
+      <a href="/catalogue/#tier-security" data-mega="security" aria-controls="mega-security" aria-expanded="false">Security</a>
+      <a href="/catalogue/" aria-current="page">Catalogue</a>
+      <a href="/work/">Work</a>
+    </nav>
+    <div class="nav__right">
+      <a href="/start/">Start a project</a>
+      <div class="nav__co" id="navco">
+        <button type="button" aria-expanded="false" aria-controls="navdrop">Company</button>
+        <div class="nav__drop" id="navdrop">
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/llms.txt">For AI agents</a>
+        </div>
+      </div>
+    </div>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+      <i></i><i></i>
+    </button>
+  </div>
+<div class="mega" id="mega-software" data-mega-panel="software" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Software</p><a class="ulink" href="/software/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/software/#business">Business systems</a></p><p class="mega__b">The systems a company runs on, every day.</p><ul><li><a href="/software/crm/"><span>CRM</span></a></li><li><a href="/software/erp/"><span>ERP</span></a></li><li><a href="/software/inventory/"><span>Inventory</span></a></li><li><a href="/software/#business"><small>+ 3 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#customer">Customer-facing</a></p><p class="mega__b">What your customers see, tap and pay through.</p><ul><li><a href="/software/web-apps/"><span>Web apps</span></a></li><li><a href="/software/mobile-apps/"><span>Mobile apps</span></a></li><li><a href="/software/marketplaces/"><span>Marketplaces</span></a></li><li><a href="/software/#customer"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#platform">Desktop &amp; developer</a></p><p class="mega__b">Native apps, tools and the plumbing between systems.</p><ul><li><a href="/software/macos-apps/"><span>macOS apps</span></a></li><li><a href="/software/windows-apps/"><span>Windows apps</span></a></li><li><a href="/software/cli-tools/"><span>Developer tools</span></a></li><li><a href="/software/#platform"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/software/#ai">AI &amp; automation</a></p><p class="mega__b">Work that should not need a person doing it by hand.</p><ul><li><a href="/software/ai-agents/"><span>AI agents</span></a></li><li><a href="/software/automation/"><span>Automation</span></a></li><li><a href="/software/document-ai/"><span>Reading documents</span></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-hardware" data-mega-panel="hardware" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Hardware</p><a class="ulink" href="/hardware/">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k"><a href="/hardware/#industrial">Industrial automation</a></p><p class="mega__b">Plants, mills and lines that run themselves and report back.</p><ul><li><a href="/hardware/factory-automation/"><span>Factory automation</span></a></li><li><a href="/hardware/mill-automation/"><span>Mill automation</span></a></li><li><a href="/hardware/retrofits/"><span>Machine retrofits</span></a></li><li><a href="/hardware/#industrial"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#monitoring">Monitoring &amp; IoT</a></p><p class="mega__b">Machines and sites you can see from anywhere, live.</p><ul><li><a href="/hardware/industrial-iot/"><span>Machine monitoring</span></a></li><li><a href="/hardware/energy-monitoring/"><span>Energy &amp; generators</span></a></li><li><a href="/hardware/cold-chain/"><span>Cold chain</span></a></li><li><a href="/hardware/#monitoring"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#products">Hardware products</a></p><p class="mega__b">Devices designed, built and put in customers' hands.</p><ul><li><a href="/hardware/custom-hardware/"><span>Custom devices</span></a></li><li><a href="/hardware/pos-terminals/"><span>Tills &amp; kiosks</span></a></li><li><a href="/hardware/rfid-attendance/"><span>Access &amp; attendance</span></a></li><li><a href="/hardware/#products"><small>+ 1 more</small></a></li></ul></div><div class="mega__col"><p class="mega__k"><a href="/hardware/#engineering">Engineering</a></p><p class="mega__b">The board, the firmware and the build behind all of it.</p><ul><li><a href="/hardware/pcb-design/"><span>PCB design</span></a></li><li><a href="/hardware/embedded-firmware/"><span>Embedded firmware</span></a></li><li><a href="/hardware/sensing/"><span>Sensors &amp; calibration</span></a></li><li><a href="/hardware/#engineering"><small>+ 1 more</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-frontier" data-mega-panel="frontier" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Frontier</p><a class="ulink" href="/catalogue/#tier-lab">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">The hard ones</p><ul><li><a href="/products/digital-twin/"><span>Digital Twins</span><small>6–10 weeks</small></a></li><li><a href="/products/robotics-infra/"><span>Robot-Learning Infrastructure</span><small>3–6 weeks</small></a></li><li><a href="/products/sensing/"><span>Sensing &amp; Calibration</span><small>4–8 weeks</small></a></li></ul></div></div></div></div>
+<div class="mega" id="mega-security" data-mega-panel="security" hidden><div class="mega__in"><div class="mega__intro"><p class="mega__title">Security</p><a class="ulink" href="/catalogue/#tier-security">View all <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" stroke="currentColor" stroke-width="1.3"/></svg></a></div><div class="mega__cols"><div class="mega__col"><p class="mega__k">Assessments</p><ul><li><a href="/services/device-pentest/"><span>Device Penetration Test</span><small>2–3 weeks</small></a></li><li><a href="/services/authz-review/"><span>Authorisation Model Review</span><small>1 week</small></a></li></ul></div></div></div></div>
+</header>
+
+<nav class="menu" id="menu" aria-label="Mobile" aria-hidden="true">
+  <a href="/software/">Software</a>
+  <a href="/hardware/">Hardware</a>
+  <a href="/catalogue/#tier-lab">Frontier</a>
+  <a href="/catalogue/#tier-security">Security</a>
+  <a href="/catalogue/" aria-current="page">Catalogue</a>
+  <a href="/work/">Work</a>
+  <a href="/about/">About</a>
+  <a href="/start/">Start a project</a>
+</nav>
+
+<main class="page" id="main">
+
+  <section class="sec sec--flush sec--open" data-scene="mark" style="padding-block:calc(var(--nav-h) + var(--s-64)) var(--s-32)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-16)">Catalogue</p>
+      <h1 class="h1 reveal" style="max-width:16ch">What you can hire us for.</h1>
+      <p class="lede reveal" style="margin-top:var(--s-24);max-width:48ch">
+        Every one of these has a written scope, a typical length, and a line
+        saying who it is not for. Prices are not published: we quote the work
+        after a call, because a number without a scope is a guess.
+      </p>
+    </div>
+  </section>
+  <section class="sec " id="offers-0">
+    <div class="shell">
+      <div class="cat__group" id="tier-service">
+        <p class="sec__label"><b>01</b> <i>Engagements</i></p>
+        <p class="cat__blurb reveal">Fixed scope, fixed fee, a written deliverable and a clean ending.</p>
+        <ol class="cat">
+          <li>
+            <a class="cat__row reveal" href="/services/design-review/">
+              <span class="cat__name">Pre-Fab Design Review</span>
+              <span class="cat__what">Find the board-killer before you pay for a hundred of them.</span>
+              <span class="cat__price"><b>3–5 days</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/protocol-decode/">
+              <span class="cat__name">Protocol Decode Sprint</span>
+              <span class="cat__what">Your machine is already talking. We work out what it is saying.</span>
+              <span class="cat__price"><b>2–4 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/board-to-fab/">
+              <span class="cat__name">Board-to-Fab</span>
+              <span class="cat__what">Schematic to fabrication-ready, owned by you.</span>
+              <span class="cat__price"><b>6–10 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/firmware-rescue/">
+              <span class="cat__name">Firmware Rescue</span>
+              <span class="cat__what">It half-works, and whoever wrote it is gone.</span>
+              <span class="cat__price"><b>3–6 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="sec sec--paper" id="offers-1">
+    <div class="shell">
+      <div class="cat__group" id="tier-security">
+        <p class="sec__label"><b>02</b> <i>Security</i></p>
+        <p class="cat__blurb reveal">Hardware and authorisation, not compliance sign-off. We test devices and data isolation; we are not an accredited firm and will say so.</p>
+        <ol class="cat">
+          <li>
+            <a class="cat__row reveal" href="/services/device-pentest/">
+              <span class="cat__name">Device Penetration Test</span>
+              <span class="cat__what">We take your device apart the way an attacker would.</span>
+              <span class="cat__price"><b>2–3 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/authz-review/">
+              <span class="cat__name">Authorisation Model Review</span>
+              <span class="cat__what">Can tenant A read tenant B's row? We find out properly.</span>
+              <span class="cat__price"><b>1 week</b><small>Contact sales</small></span>
+            </a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="sec sec--stone" id="offers-2">
+    <div class="shell">
+      <div class="cat__group" id="tier-desk">
+        <p class="sec__label"><b>03</b> <i>Desk work</i></p>
+        <p class="cat__blurb reveal">Flat fee, done remotely, no site visit. You send files; we send findings.</p>
+        <ol class="cat">
+          <li>
+            <a class="cat__row reveal" href="/services/remote-decode/">
+              <span class="cat__name">Remote Protocol Decode</span>
+              <span class="cat__what">You capture it. We decode it. Nobody gets on a plane.</span>
+              <span class="cat__price"><b>1–2 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/bom-audit/">
+              <span class="cat__name">BOM Risk Audit</span>
+              <span class="cat__what">Find the part that goes end-of-life before your product does.</span>
+              <span class="cat__price"><b>3–5 days</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/footprint/">
+              <span class="cat__name">Datasheet to Footprint</span>
+              <span class="cat__what">A footprint drawn from the mechanical drawing, not from the internet.</span>
+              <span class="cat__price"><b>2–3 days</b><small>Contact sales</small></span>
+            </a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="sec sec--slate" id="offers-3">
+    <div class="shell">
+      <div class="cat__group" id="tier-product">
+        <p class="sec__label"><b>04</b> <i>Products</i></p>
+        <p class="cat__blurb reveal">Hardware we designed and own, with the software that makes it useful.</p>
+        <ol class="cat">
+          <li>
+            <a class="cat__row reveal" href="/products/efuelpro/">
+              <span class="cat__name">eFuelPro</span>
+              <span class="cat__what">Every litre has a record, and the record has a receipt.</span>
+              <span class="cat__price"><b>install in a day</b><small>Contact sales</small></span>
+            </a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="sec " id="offers-4">
+    <div class="shell">
+      <div class="cat__group" id="tier-platform">
+        <p class="sec__label"><b>05</b> <i>Platform</i></p>
+        <p class="cat__blurb reveal">The terminal and the decode engine, licensed to build on.</p>
+        <ol class="cat">
+          <li>
+            <a class="cat__row reveal" href="/products/epsilon1/">
+              <span class="cat__name">Epsilon1</span>
+              <span class="cat__what">A terminal that reads machines with undocumented protocols.</span>
+              <span class="cat__price"><b>2–6 weeks to first vertical</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/epsilon1-kit/">
+              <span class="cat__name">Epsilon1 Design Package</span>
+              <span class="cat__what">The whole board, licensed, so you can build it yourself.</span>
+              <span class="cat__price"><b>immediate</b><small>Contact sales</small></span>
+            </a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="sec " id="offers-5">
+    <div class="shell">
+      <div class="cat__group" id="tier-saas">
+        <p class="sec__label"><b>06</b> <i>Software</i></p>
+        <p class="cat__blurb reveal">The software every business runs on — dashboards, inventory, CRM, marketplaces, bookings, apps. Built for you, owned by you.</p>
+        <ol class="cat">
+          <li>
+            <a class="cat__row reveal" href="/products/bookings/">
+              <span class="cat__name">Booking &amp; Scheduling</span>
+              <span class="cat__what">Stop selling slots. Start filling them.</span>
+              <span class="cat__price"><b>4–6 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/quote-engine/">
+              <span class="cat__name">Quote Engine</span>
+              <span class="cat__what">A quote in thirty seconds, not three days.</span>
+              <span class="cat__price"><b>3–5 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/ops-analyst/">
+              <span class="cat__name">Ops Analyst</span>
+              <span class="cat__what">Ask your database a question. Approve what it wants to change.</span>
+              <span class="cat__price"><b>4–6 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/dashboards/">
+              <span class="cat__name">Sales &amp; Admin Dashboards</span>
+              <span class="cat__what">Every number you check, in one place, live.</span>
+              <span class="cat__price"><b>3–4 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/inventory/">
+              <span class="cat__name">Inventory &amp; Stock</span>
+              <span class="cat__what">Know you're running low before your customer does.</span>
+              <span class="cat__price"><b>4–6 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/crm/">
+              <span class="cat__name">CRM &amp; Case Management</span>
+              <span class="cat__what">No lead left in somebody's inbox.</span>
+              <span class="cat__price"><b>4–6 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/marketplace/">
+              <span class="cat__name">Marketplaces</span>
+              <span class="cat__what">Buyers on one side, sellers on the other, your cut in the middle.</span>
+              <span class="cat__price"><b>6–10 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/mobile-apps/">
+              <span class="cat__name">Mobile Apps</span>
+              <span class="cat__what">Your customers live on their phones. So should you.</span>
+              <span class="cat__price"><b>6–10 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="sec sec--paper" id="offers-6">
+    <div class="shell">
+      <div class="cat__group" id="tier-lab">
+        <p class="sec__label"><b>07</b> <i>Frontier</i></p>
+        <p class="cat__blurb reveal">The hard ones. Digital twins, robot-learning infrastructure, sensing that has to be trusted. Scoped honestly, priced as discovery.</p>
+        <ol class="cat">
+          <li>
+            <a class="cat__row reveal" href="/products/digital-twin/">
+              <span class="cat__name">Digital Twins</span>
+              <span class="cat__what">Your whole site, live, in 3D, from anywhere.</span>
+              <span class="cat__price"><b>6–10 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/robotics-infra/">
+              <span class="cat__name">Robot-Learning Infrastructure</span>
+              <span class="cat__what">Your training runs should fail for research reasons, not DevOps ones.</span>
+              <span class="cat__price"><b>3–6 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/products/sensing/">
+              <span class="cat__name">Sensing &amp; Calibration</span>
+              <span class="cat__what">Sensors that stay accurate after the first week.</span>
+              <span class="cat__price"><b>4–8 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--ore sec--end" id="cta">
+    <div class="shell">
+      <p class="sec__label"><b>Next</b> Not sure which</p>
+      <h2 class="display reveal">Not sure which one it is?</h2>
+      <p class="lede reveal" style="margin-top:var(--s-24);max-width:42ch">
+        Describe the thing that is going wrong. We will tell you which of
+        these it is, or that it is none of them.
+      </p>
+      <div class="reveal" style="display:flex;flex-wrap:wrap;gap:var(--s-12);margin-top:var(--s-48)">
+        <a class="btn" href="/start/">Start here <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="btn btn--ghost" href="/work/">See the work</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot__top">
+    <a class="foot__mark" href="/" aria-label="Epsilon Labs — home"><i class="mark" aria-hidden="true"></i><span>Epsilon Labs</span></a>
+    <div class="foot__cols">
+      <div>
+        <h4>Offers</h4>
+        <ul>
+          <li><a href="/software/">Software</a></li>
+          <li><a href="/hardware/">Hardware</a></li>
+          <li><a href="/catalogue/#tier-lab">Frontier</a></li>
+          <li><a href="/catalogue/#tier-security">Security</a></li>
+          <li><a href="/catalogue/">Catalogue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/work/">Work</a></li>
+          <li><a href="/start/">Start a project</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For agents</h4>
+        <ul>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/catalogue.json">catalogue.json</a></li>
+          <li><a href="/sitemap.xml">sitemap.xml</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot__bottom">
+    <div class="foot__legal">
+      <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
+      <span>Lahore, Pakistan · Hardware and software, built to tolerance.</span>
+    </div>
+    <div class="foot__contact">
+      <h4>Contact</h4>
+      <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/demos.js" defer></script>
+<script type="module" src="/assets/js/scene.js"></script>
+<script type="module" src="/assets/js/twin.js"></script>
+</body>
+</html>
