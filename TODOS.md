@@ -12,6 +12,17 @@ Deferred work with context. Added by /plan-ceo-review 2026-10-09.
   product-grade (logged, restorable), so migration is a lift-and-shift.
 - **Effort:** M → S with CC. **Blocked by:** eval gate passed + auto-ack tier reached.
 
+## P2 — Phone approvals for Epsilon OS drafts
+- **What:** Approve/reject approval-queue drafts from a phone (hosted dashboard
+  behind Supabase login restricted to the founder, or approve-by-reply email).
+- **Why:** Eng review D3 keeps the dashboard local on the Mac, so drafts wait
+  until the founder is at the Mac; inbound acks go stale while travelling.
+- **Pros:** Faster replies, less Mac dependence. **Cons:** Auth + RLS policies
+  for an `authenticated` founder role; new internet-facing attack surface.
+- **Context:** Plan: docs/designs/epsilon-os-build.md (D3, D4 outbox). Do it
+  together with the agent-server migration above.
+- **Effort:** M → S with CC. **Blocked by:** eval gate passed + OS stable at stage 2.
+
 ## P2 — SHOW_PRICES revisit (day-90 decision)
 - **What:** Reconsider `SHOW_PRICES = False` in tools/offers.py with real funnel data.
 - **Why:** README's own analysis: AI assistants can't match a budget to a page
