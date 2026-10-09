@@ -116,26 +116,45 @@
     </div>
   </section>
 
-  <!-- ═══ clients we've built for ══════════════════════════════════════ -->
-  <section class="sec sec--paper">
-    <div class="shell">
-      <p class="sec__label"><b>00</b> Clients</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--s-32);margin-top:var(--s-48)">
-        <div class="reveal" style="display:flex;align-items:center;justify-content:center;min-height:120px;background:rgba(0,0,0,0.02);border-radius:var(--s-8);padding:var(--s-16)">
-          <img src="/assets/clients/total-parco.png" alt="Total Parco" style="max-height:100px;max-width:100%;object-fit:contain">
-        </div>
-        <div class="reveal" style="display:flex;align-items:center;justify-content:center;min-height:120px;background:rgba(0,0,0,0.02);border-radius:var(--s-8);padding:var(--s-16)">
-          <img src="/assets/clients/master-paints.png" alt="Master Paints" style="max-height:100px;max-width:100%;object-fit:contain">
-        </div>
-        <div class="reveal" style="display:flex;align-items:center;justify-content:center;min-height:120px;background:rgba(0,0,0,0.02);border-radius:var(--s-8);padding:var(--s-16)">
-          <img src="/assets/clients/areeb-areel.webp" alt="Areeb Areel" style="max-height:100px;max-width:100%;object-fit:contain">
-        </div>
-        <div class="reveal" style="display:flex;align-items:center;justify-content:center;min-height:120px;background:rgba(0,0,0,0.02);border-radius:var(--s-8);padding:var(--s-16)">
-          <img src="/assets/clients/deskless.png" alt="deskless" style="max-height:100px;max-width:100%;object-fit:contain">
-        </div>
-        <div class="reveal" style="display:flex;align-items:center;justify-content:center;min-height:120px;background:rgba(0,0,0,0.02);border-radius:var(--s-8);padding:var(--s-16)">
-          <img src="/assets/clients/al-maymanah.png" alt="Al Maymanah" style="max-height:100px;max-width:100%;object-fit:contain">
-        </div>
+  <!-- ═══ clients we've built for ════════════════════════════════════════ -->
+  <section class="sec" style="padding-block:var(--s-48) var(--s-48);background:var(--void-lift)">
+    <style>
+      .clients-rail {
+        overflow: hidden;
+        background: var(--void-lift);
+      }
+      .clients-marquee {
+        display: flex;
+        gap: var(--s-32);
+        animation: marquee 30s linear infinite;
+        width: max-content;
+      }
+      .clients-marquee:hover {
+        animation-play-state: paused;
+      }
+      .clients-marquee img {
+        height: 60px;
+        width: auto;
+        object-fit: contain;
+        flex-shrink: 0;
+      }
+      @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+    </style>
+    <div class="clients-rail">
+      <div class="clients-marquee">
+        <img src="/assets/clients/total-parco.png" alt="Total Parco">
+        <img src="/assets/clients/master-paints.png" alt="Master Paints">
+        <img src="/assets/clients/areeb-areel.webp" alt="Areeb Areel">
+        <img src="/assets/clients/deskless.png" alt="deskless">
+        <img src="/assets/clients/al-maymanah.png" alt="Al Maymanah">
+        <img src="/assets/clients/total-parco.png" alt="Total Parco">
+        <img src="/assets/clients/master-paints.png" alt="Master Paints">
+        <img src="/assets/clients/areeb-areel.webp" alt="Areeb Areel">
+        <img src="/assets/clients/deskless.png" alt="deskless">
+        <img src="/assets/clients/al-maymanah.png" alt="Al Maymanah">
       </div>
     </div>
   </section>
