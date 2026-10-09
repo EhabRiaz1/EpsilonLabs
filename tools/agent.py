@@ -165,6 +165,7 @@ def llms_txt():
     L.append('')
     L.append(f'- [Catalogue as JSON]({SITE}/catalogue.json): every offer with '
              'price, duration, deliverables and anti-fit, in one fetch.')
+    L.append(f'- [Capabilities]({SITE}/capabilities/): what the lab is known for, and the full range from PCB to cloud.')
     L.append(f'- [About]({SITE}/about/): who runs the lab and how it works.')
     L.append(f'- [Start a project]({SITE}/start/): four questions that route an '
              'enquiry to the right offer.')

@@ -1,0 +1,135 @@
+  <!-- ═══ hero ═══════════════════════════════════════════════════════ -->
+  <section class="sec sec--flush sec--open" data-scene="traces" style="padding-block:calc(var(--nav-h) + var(--s-128)) var(--s-64)">
+    <div class="shell">
+      <p class="mono reveal" style="margin-bottom:var(--s-24)">Capabilities</p>
+      <h1 class="h1 reveal" style="max-width:16ch">What Epsilon Labs can do.</h1>
+      <p class="lede reveal" style="margin-top:var(--s-32);max-width:46ch">
+        We design circuit boards and the software that runs on them. Three kinds of
+        work are what we are known for. The rest of the range is below them.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ 01 known for ═══════════════════════════════════════════════ -->
+  <section class="sec" id="fuel">
+    <div class="shell">
+      <p class="sec__label"><b>01</b> Known for <i>Fuel retail</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Fuel retail automation.</h2>
+        <div class="prose reveal">
+          <p>
+            eFuelPro is a forecourt terminal that reads the dispenser directly off its
+            RS485 bus, rather than relying on a person typing numbers into a phone. It
+            prints verifiable receipts, runs RFID loyalty and attendance, and keeps a
+            ledger that carries on working when the link drops.
+          </p>
+          <p>
+            The dispenser protocol was reverse-engineered from raw frames and the board
+            was designed in-house, so the protocol work, the hardware, the firmware and
+            the cloud ledger come from one team. It runs in production on live
+            dispenser hardware.
+          </p>
+        </div>
+      </div>
+      <div class="wedge__links reveal">
+        <a class="arrow" href="/work/efuelpro/">The eFuelPro case study <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/hardware/fuel-forecourt/">Fuel forecourts <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/products/efuelpro/">eFuelPro <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/products/epsilon1/">Epsilon1 terminal <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--paper" id="industrial">
+    <div class="shell">
+      <p class="sec__label"><b>02</b> Known for <i>Industrial</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Industrial monitoring and retrofits.</h2>
+        <div class="prose reveal">
+          <p>
+            Mills, factories, generators and cold rooms: we add sensors, controllers
+            and a live dashboard to the machines you already own, including ones
+            that were never designed to be connected and ones with undocumented
+            protocols.
+          </p>
+          <p>
+            The Epsilon1 board behind eFuelPro is built for this. It reads any RS485
+            or Modbus machine into a ledger you can audit, on a terminal that keeps
+            working when the network does not. Fuel retail is our case study; the
+            other categories are range, not a client list.
+          </p>
+        </div>
+      </div>
+      <div class="wedge__links reveal">
+        <a class="arrow" href="/hardware/mill-automation/">Mill automation <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/hardware/factory-automation/">Factory automation <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/hardware/retrofits/">Machine retrofits <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/hardware/energy-monitoring/">Energy &amp; generators <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/hardware/cold-chain/">Cold chain <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/hardware/industrial-iot/">Machine monitoring <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="decode">
+    <div class="shell">
+      <p class="sec__label"><b>03</b> Known for <i>Worldwide, remote</i></p>
+      <div class="grid grid--2" style="align-items:start">
+        <h2 class="h2 reveal">Remote protocol decode and firmware rescue.</h2>
+        <div class="prose reveal">
+          <p>
+            A serial bus with no published specification and no vendor willing to help:
+            we decode it and hand you a working parser and the written specification.
+            Done remotely, you run a capture rig to our instructions, we turn your logs
+            into the spec, and nobody gets on a plane.
+          </p>
+          <p>
+            And an embedded codebase nobody understands any more: we take it over and
+            make it reliable, with fault detection, watchdogs, automatic recovery and
+            an update path, so the next fix does not need a site visit.
+          </p>
+        </div>
+      </div>
+      <div class="wedge__links reveal">
+        <a class="arrow" href="/services/remote-decode/">Remote Protocol Decode <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/services/protocol-decode/">Protocol Decode Sprint <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/services/firmware-rescue/">Firmware Rescue <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="arrow" href="/hardware/embedded-firmware/">Embedded firmware <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 04 everything between ══════════════════════════════════════ -->
+  <section class="sec sec--stone" id="range">
+    <div class="shell">
+      <p class="sec__label"><b>04</b> The full range</p>
+      <h2 class="h2 reveal" style="max-width:20ch">And everything between PCB and cloud.</h2>
+      <p class="lede reveal" style="margin-top:var(--s-24);max-width:46ch;margin-bottom:var(--s-64)">
+        The same team does the board, the firmware, the cloud and the interface. Every
+        category below has its own page. Everything is scoped and quoted after a call.
+      </p>
+<!--CAPINDEX-->
+      <p class="reveal" style="margin-top:var(--s-64)">
+        <a class="arrow" href="/catalogue/">
+          Or see the catalogue of named offers
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ cta ════════════════════════════════════════════════════════ -->
+  <section class="sec sec--ore sec--end" id="cta">
+    <div class="shell">
+      <div class="grid grid--2" style="align-items:end">
+        <h2 class="h2 reveal">Tell us what it has to do.</h2>
+        <div class="reveal" style="display:flex;flex-wrap:wrap;gap:var(--s-12)">
+          <a class="btn" href="/start/">
+            Start a project
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="/work/">See the work</a>
+        </div>
+      </div>
+    </div>
+  </section>

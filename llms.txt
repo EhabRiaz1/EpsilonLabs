@@ -101,5 +101,6 @@ Kinds of system we build, each with a typical starting price. The examples on th
 ## Optional
 
 - [Catalogue as JSON](https://epsilon-labs.co/catalogue.json): every offer with price, duration, deliverables and anti-fit, in one fetch.
+- [Capabilities](https://epsilon-labs.co/capabilities/): what the lab is known for, and the full range from PCB to cloud.
 - [About](https://epsilon-labs.co/about/): who runs the lab and how it works.
 - [Start a project](https://epsilon-labs.co/start/): four questions that route an enquiry to the right offer.

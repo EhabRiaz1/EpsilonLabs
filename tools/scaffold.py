@@ -98,6 +98,12 @@ PAGES = {
         'Four questions that tell you which Epsilon Labs offer your problem is, '
         'what it costs, and whether we are the wrong people for it.'),
 
+    'capabilities/index.html': ('capabilities', 'traces',
+        'Capabilities — Epsilon Labs',
+        'What Epsilon Labs can do: fuel retail automation, industrial monitoring and '
+        'retrofits, remote protocol decode and firmware rescue, and the full range from '
+        'PCB to cloud.'),
+
     'catalogue/index.html': ('catalogue', 'mark',
         'Catalogue — Epsilon Labs',
         'Everything Epsilon Labs sells, priced. Pre-fab design review, protocol '
@@ -159,6 +165,7 @@ def expand_markers(body):
                    body)
     body = body.replace('<!--MOSAIC-->', render.mosaic())
     body = body.replace('<!--BUILD-->', render_cats.home_build())
+    body = body.replace('<!--CAPINDEX-->', render_cats.capability_index())
     body = body.replace('<!--OFFERINDEX-->', render.offer_index())
     body = _re.sub(r'<!--FINDER(?::([a-z]+))?-->', finder, body)
     body = _re.sub(r'<!--SHOW:([^>]+?)-->', show, body)
@@ -228,7 +235,7 @@ def main():
             ]))
         out = out.replace('{{MAIN}}', body.rstrip())
 
-        for key in ('catalogue', 'hardware', 'software', 'work', 'about', 'contact'):
+        for key in ('catalogue', 'hardware', 'software', 'work', 'about', 'contact', 'capabilities'):
             out = out.replace('{{NAV_%s}}' % key.upper(),
                               CURRENT if key == navkey else '')
 

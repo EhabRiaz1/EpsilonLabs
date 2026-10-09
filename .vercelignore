@@ -1,0 +1,9 @@
+# Site deploys as static files; keep internal material out of the deployment.
+epsilon-os/
+tools/
+docs/
+PLAN.md
+TODOS.md
+CLAUDE.md
+README.md
+.gstack/

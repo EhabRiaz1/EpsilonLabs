@@ -346,6 +346,27 @@ def home_build():
     return '\n'.join(out)
 
 
+def capability_index():
+    """Every category, compactly, grouped as the area indexes group them.
+    Names link straight to the category page; generated so the index on
+    /capabilities/ cannot drift from tools/categories.py."""
+    out = []
+    for area, A in AREAS.items():
+        groups = ''
+        for g, label, blurb in GROUPS[area]:
+            links = ''.join(
+                f'<li><a href="{cat_url(c)}">{e(c["name"])}</a></li>'
+                for c in cats_in(area, g))
+            groups += (f'<div class="capidx__g"><h3><a href="{A["path"]}#{g}">{e(label)}</a></h3>'
+                       f'<ul>{links}</ul></div>')
+        out.append(f'      <div class="capidx reveal">\n'
+                   f'        <div class="hrow"><h3 class="capidx__area">{e(A["label"])}</h3>'
+                   f'<a class="ulink" href="{A["path"]}">All {e(A["label"].lower())} solutions {UP}</a></div>\n'
+                   f'        <div class="capidx__groups">{groups}</div>\n'
+                   f'      </div>')
+    return '\n'.join(out)
+
+
 def mega_cols(area):
     """A menu column per group: the group itself, the three things people ask
     for most, and a way to the rest. The whole catalogue in a dropdown was
