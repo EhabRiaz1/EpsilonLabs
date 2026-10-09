@@ -5,3 +5,4 @@ node_modules/
 # Epsilon OS secrets
 epsilon-os/.env
 .env
+supabaseSecrets.txt
