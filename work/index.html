@@ -117,7 +117,7 @@
   </section>
 
   <!-- ═══ clients we've built for ════════════════════════════════════════ -->
-  <section class="sec" style="padding-block:var(--s-48) var(--s-48);background:var(--void-lift)">
+  <section class="sec" style="padding-block:var(--s-32) var(--s-32);background:var(--void-lift)">
     <style>
       .clients-rail {
         overflow: hidden;
@@ -125,22 +125,28 @@
       }
       .clients-marquee {
         display: flex;
-        gap: var(--s-32);
-        animation: marquee 30s linear infinite;
+        gap: var(--s-48);
+        animation: marquee 60s linear infinite;
         width: max-content;
+        align-items: center;
       }
       .clients-marquee:hover {
         animation-play-state: paused;
       }
       .clients-marquee img {
-        height: 60px;
-        width: auto;
+        max-width: 140px;
+        height: auto;
         object-fit: contain;
         flex-shrink: 0;
+        opacity: 0.9;
+        transition: opacity 0.2s;
+      }
+      .clients-marquee img:hover {
+        opacity: 1;
       }
       @keyframes marquee {
         0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
+        100% { transform: translateX(calc(-50% - var(--s-48))); }
       }
     </style>
     <div class="clients-rail">
