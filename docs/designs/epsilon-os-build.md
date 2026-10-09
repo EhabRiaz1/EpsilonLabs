@@ -176,6 +176,120 @@ in keychain (`epsilon-os-anthropic`); Supabase service key in keychain
 - `touches_message_id_uq` unique index — dedupe for IMAP re-fetch.
 - `is_suppressed()` SQL function — guard calls it.
 
+## Dashboard design spec (design review 2026-10-10)
+
+Approved direction: **Morning briefing → Focus deck** (variants C + B; mockups in
+`~/.gstack/projects/epsilon-labs/designs/epsilon-os-dashboard-20261010/`).
+Classifier: APP UI. Calm surfaces, one accent per meaning, utility copy.
+
+### Information architecture
+
+```
+┌ top bar ─────────────────────────────────────────────────────────────────┐
+│ ε Epsilon OS   Today · Pipeline · Health          ● All agents OK  $1.84/$10 │
+└──────────────────────────────────────────────────────────────────────────┘
+TODAY (home, /)                                   right rail (300px)
+  1 Greeting + one-sentence state                  Agents: last run per agent
+    "7 drafts need you. 1 is held."                Spend today: bar vs cap
+  2 [ Start  ↵ ]  primary, only filled button      Watchdog: last ping
+  3 Four numbers (30d): Conversations · Quotes out ·
+    Collected (vs $3–4k target) · Interested-reply %
+  4 Needs you: compact list (time · who · subject · tags), click = open deck at that item
+  5 Held: separate tray (injection / lint-red), never mixed into the deck flow
+DECK (/deck, focus mode, rail hidden)
+  progress pips · "3 of 7" · Esc back to Today
+  card: who + why-it's-here line → THEY WROTE (untrusted, left) | YOU'LL SEND (right)
+  meta strip: classifier · lint · to-address · thread
+  actions: Reject R · Edit E · Approve & send A (primary) · Later L
+PIPELINE (/pipeline): stage-grouped table (Lead → Conversation → Scoping → Quote out →
+  Won/Lost); columns company · channel chip · value · days in stage (amber >7, red >14) ·
+  next step; row click opens deal side panel; filter by channel.
+HEALTH (/health): per-agent run log (last 20), failures with error text,
+  cost per day (14d), backup last-restore-test date.
+```
+First thing seen: the greeting sentence (state in words). Second: Start. Third: numbers.
+
+### Interaction states
+
+```
+FEATURE        | LOADING              | EMPTY                                   | ERROR                                   | SUCCESS                        | PARTIAL
+---------------|----------------------|-----------------------------------------|-----------------------------------------|--------------------------------|------------------------------
+Today greeting | skeleton line 1.2s   | "Inbox zero. Nothing needs you." + last | "Can't reach the database." + Retry,    | sentence + Start               | "Agents partly down" amber
+               | max, no spinners     | sent time + "Open pipeline" link        | rail shows which agent/credential       |                                | rail rows, queue still usable
+Numbers        | dashes "—"           | 0 shown as 0, never blank; target shown | "—" + tooltip reason                    | value + delta                  | per-number fallback
+Deck card      | card frame, text fade| "All clear. 7 sent, 1 rejected, 0 left."| send fails → card returns with red      | slides left 160ms, next card in| draft missing → "Draft failed,
+               |                      | + Back to Today; quiet copper check     | 'Not sent: <reason>' + Retry            | "Sent · undo 10s" toast        | write it yourself" editor open
+Lint warning   | —                    | —                                       | —                                       | —                              | red bar above draft listing each
+               |                      |                                         |                                         |                                | hit; A needs A again (2-step)
+Late item      | —                    | —                                       | —                                       | —                              | amber "Late 2h" + "ack was not
+               |                      |                                         |                                         |                                | sent in time, consider rewording"
+Verify (sending>10m)| —               | —                                       | "Unsure if sent" amber; buttons: Check Sent folder / Mark sent / Retry  | —                     | —
+Held tray      | —                    | hidden when empty                       | —                                       | release / delete / suppress    | —
+Pipeline       | row skeletons        | "No deals yet. They appear when inbox   | as Today                                | table                          | —
+               |                      | or prospector creates one."             |                                         |                                |
+```
+
+### Journey (morning, ~5 minutes)
+```
+STEP | DOES                         | FEELS                 | SUPPORTED BY
+1    | opens 127.0.0.1:8787 (pinned) | oriented, not alarmed | one sentence of state; red only if real
+2    | reads 4 numbers              | grounded in the goal  | Collected vs target, no vanity charts
+3    | presses Enter                | focused               | deck hides everything else
+4    | reads they-wrote / you'll-send| in control           | untrusted text visibly fenced; lint explains itself
+5    | A / E / R per card           | fast, safe            | 10s undo; 2-step only when lint is red
+6    | sees "All clear"             | done, small win       | summary counts, back to Today
+```
+
+### Visual system (from assets/css/site.css; dashboard ships its own small css)
+- Tokens: --void #08090A page, --void-lift #0E1113 card, --void-lift-2 hover, --rule hairlines,
+  --ink text, --muted secondary. Accents with fixed meanings: --copper = needs attention/primary
+  focus, --signal = software/sent/ok, red #E5534B = blocked/lint, amber #E0A84E = late/verify.
+  Green only for the status dot.
+- Type: Instrument Sans (UI; 15px draft body, 22px card title, 28px greeting), IBM Plex Mono
+  11px uppercase .08em for labels, times, counts. Body text ≥15px, contrast ≥4.5:1.
+- Radius: 6px controls, 12px deck card only. No shadows, no gradients, no icons-in-circles.
+- Motion: card exit 160ms ease-out + next card 200ms; reduced-motion = instant. Nothing else moves.
+- Untrusted text: recessed #0B0D0E panel, dashed --rule-bright border, label "They wrote · untrusted".
+
+### Keyboard (primary input)
+Enter start deck · A approve & send · E edit (Cmd+Enter save, Esc cancel) · R reject (asks reason,
+optional) · L later (moves to end) · U undo last send (10s) · J/K prev/next · Esc back to Today ·
+? shortcut sheet · Cmd+K jump (deals, contacts). Every action also has a visible button.
+
+### Responsive & accessibility
+Desktop-only by D3 (local Mac). Layouts: ≥1280 two columns in card + rail; 1024–1279 rail
+collapses into top-bar status popover; <1024 card columns stack (they-wrote above you'll-send).
+Landmarks: header/nav/main/aside; deck card is a region labelled by sender; toast is
+aria-live polite; focus moves to card title on advance; visible 2px focus ring in --copper;
+buttons ≥40px tall; colour never the only signal (every badge has text).
+
+### Design decisions (founder, 2026-10-10)
+| # | Decision |
+|---|---|
+| DD1 | Direction: Morning briefing home (C) → focus deck (B). |
+| DD2 | **10-second undo** on approve: toast "Sent · Undo"; U or click reverts to pending. Outbox only claims rows with `decided_at < now() - 10s` (eng impact: claim filter, test for undo-before-claim). |
+| DD3 | **Held tray**: injection-suspected and red-lint drafts never enter the deck; red-edged tray on Today with reason; actions Release to deck / Reject / Suppress sender. |
+| DD4 | **Inline edit + auto diff**: E edits in place, Cmd+Enter sends; note "You changed N sentences"; diff stored; `material_edit` computed (normalized-text diff > 15% of sentences or any changed number/address/date), never asked. |
+| DD5 | **Pipeline = stage-grouped table**, stall colouring at 7/14 days. |
+
+### Design NOT in scope
+- Mobile/phone layout: deferred with hosted dashboard (TODOS P2 phone approvals).
+- Light theme: console is dark-only; matches site, one theme to maintain.
+- Charts on Today: numbers only; trend charts live in Health (cost) until there is real data.
+- Notifications/sounds inside the dashboard: alerts go via watchdog + brief email.
+
+### What already exists (design)
+- `assets/css/site.css` tokens and type scale: the dashboard copies the token values, not the site's layout CSS.
+- `/start/` wizard pattern (one card at a time, progress bar, keyboard-free) informed the deck.
+
+## Approved Mockups
+
+| Screen/Section | Mockup Path | Direction | Notes |
+|----------------|-------------|-----------|-------|
+| Today (home) | ~/.gstack/projects/epsilon-labs/designs/epsilon-os-dashboard-20261010/variant-C.png | Greeting, 4 numbers, needs-you list, agent rail | Add Start button + Held tray (DD3); remove inline-expand |
+| Deck | ~/.gstack/projects/epsilon-labs/designs/epsilon-os-dashboard-20261010/variant-B.png | One card, they-wrote / you'll-send, pips, A/E/R/L | Add undo toast (DD2), inline edit diff note (DD4) |
+| Source HTML | same folder, variant-*.html + base.css | Real tokens/fonts | Starting point for dashboard templates |
+
 ## Implementation Tasks
 - [ ] **T1 (P1, human: ~1h / CC: ~15min)** — outbox — Zoho Message-ID spike (D13)
 - [ ] **T2 (P1, human: ~1d / CC: ~4h)** — core — venv 3.12, core modules, migration epsilon_os_v2 (D4, D5, D6)
@@ -183,7 +297,9 @@ in keychain (`epsilon-os-anthropic`); Supabase service key in keychain
 - [ ] **T4 (P1, human: ~1.5d / CC: ~3h)** — outbox — state machine with atomic claim (D4, D13)
 - [ ] **T5 (P1, human: ~4h / CC: ~45min)** — safety — deterministic draft lint (D11)
 - [ ] **T6 (P1, human: ~1d / CC: ~2h)** — eval — hardened runnable golden set (D7, D12)
-- [ ] **T7 (P2, human: ~2d / CC: ~4h)** — dashboard — local, 127.0.0.1 (D3; design review first)
+- [ ] **T7 (P2, human: ~2.5d / CC: ~5h)** — dashboard — Today + Deck + Held tray + Pipeline + Health per design spec (D3, DD1–DD5)
+- [ ] **T13 (P2, human: ~2h / CC: ~20min)** — outbox — 10s undo window in claim filter + test (DD2)
+- [ ] **T14 (P2, human: ~3h / CC: ~30min)** — dashboard — material_edit diff computation + tests (DD4)
 - [ ] **T8 (P2, human: ~1d / CC: ~3h)** — ops — brief, heartbeats, watchdog, backup, launchd (D10)
 - [ ] **T9 (P2, human: ~3h / CC: ~30min)** — cost — tiered models + daily cap (D9)
 - [ ] **T10 (P2, human: ~1d / CC: ~2h)** — quote — assembler from catalogue.json bands
@@ -197,11 +313,11 @@ in keychain (`epsilon-os-anthropic`); Supabase service key in keychain
 | CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | CLEAN | Growth plan (PLAN.md); founder later overrode volume gating to build full OS |
 | Codex Review | `/codex review` | Independent 2nd opinion | 1 | ISSUES (claude subagent) | 10 findings; 6 accepted as D10–D13, 3 scope points held by founder decision, 1 partly stale |
 | Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR | 12 issues, 0 critical gaps |
-| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | dashboard design review requested next |
+| Design Review | `/plan-design-review` | UI/UX gaps | 1 | CLEAR (FULL) | score: 2/10 → 9/10, 6 decisions |
 | DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
 
 **CROSS-MODEL:** Outside voice agreed on architecture; tension on scope (it argued for gating the build behind the cash play) resolved by founder decision to build all now, with a guardrail that the build never blocks referral sends. D7 eval hook superseded by D12.
 
-**VERDICT:** CEO + ENG CLEARED — ready to implement after the dashboard design review.
+**VERDICT:** CEO + ENG + DESIGN CLEARED — ready to implement.
 
 NO UNRESOLVED DECISIONS
