@@ -125,8 +125,8 @@
       }
       .clients-marquee {
         display: flex;
-        gap: var(--s-48);
-        animation: marquee 60s linear infinite;
+        gap: var(--s-64);
+        animation: marquee 90s linear infinite;
         width: max-content;
         align-items: center;
       }
@@ -134,11 +134,11 @@
         animation-play-state: paused;
       }
       .clients-marquee img {
-        max-width: 140px;
-        height: auto;
+        max-width: 180px;
+        height: 80px;
         object-fit: contain;
         flex-shrink: 0;
-        opacity: 0.9;
+        opacity: 0.85;
         transition: opacity 0.2s;
       }
       .clients-marquee img:hover {
@@ -146,19 +146,23 @@
       }
       @keyframes marquee {
         0% { transform: translateX(0); }
-        100% { transform: translateX(calc(-50% - var(--s-48))); }
+        100% { transform: translateX(calc(-50% - var(--s-64))); }
       }
     </style>
     <div class="clients-rail">
       <div class="clients-marquee">
         <img src="/assets/clients/total-parco.png" alt="Total Parco">
-        <img src="/assets/clients/master-paints.png" alt="Master Paints">
+        <img src="/assets/clients/master-paints.webp" alt="Master Paints">
         <img src="/assets/clients/areeb-areel.webp" alt="Areeb Areel">
+        <img src="/assets/clients/fabricport.png" alt="Fabricport">
+        <img src="/assets/clients/the-courts.png" alt="The Courts">
         <img src="/assets/clients/deskless.png" alt="deskless">
         <img src="/assets/clients/al-maymanah.png" alt="Al Maymanah">
         <img src="/assets/clients/total-parco.png" alt="Total Parco">
-        <img src="/assets/clients/master-paints.png" alt="Master Paints">
+        <img src="/assets/clients/master-paints.webp" alt="Master Paints">
         <img src="/assets/clients/areeb-areel.webp" alt="Areeb Areel">
+        <img src="/assets/clients/fabricport.png" alt="Fabricport">
+        <img src="/assets/clients/the-courts.png" alt="The Courts">
         <img src="/assets/clients/deskless.png" alt="deskless">
         <img src="/assets/clients/al-maymanah.png" alt="Al Maymanah">
       </div>
