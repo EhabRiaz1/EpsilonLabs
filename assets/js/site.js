@@ -209,82 +209,335 @@
   }
 
 
-  /* ═══ start: qualifying intake ═════════════════════════════════════ */
+  /* ═══ start: guided intake ═════════════════════════════════════════ */
 
-  /* Composes a mailto rather than posting anywhere. A static site cannot
-     process a form without a third party, and a form that silently fails is
-     worse than no form — so the answers go into the visitor's own email
-     client where they can see exactly what is being sent. */
+  /* One question per card, branching on software / hardware / both. It
+     composes a mailto rather than posting anywhere: a static site cannot
+     process a form without a third party, and the visitor sees exactly what
+     is sent. Offer names come from #offer-index (rendered from offers.py). */
 
-  var intake = $('#intake');
-  if (intake) {
-    /* Only reveal the picker once we know scripting works; the plain
-       instructions stay for everyone else. */
-    intake.hidden = false;
-    var fallback = $('#intake-fallback');
-    if (fallback) fallback.hidden = true;
+  var wiz = $('#wiz');
+  if (wiz) {
+    wiz.hidden = false;
+    var wizFallback = $('#intake-fallback');
+    if (wizFallback) wizFallback.hidden = true;
 
-    var picked = { need: '', when: '', budget: '' };
-    var offer = '';
-
-    /* Names and prices come from the page, which renders them from
-       tools/offers.py. A hand-copied table here drifted once already
-       (eFuelPro stayed at $550 after the offer moved to $650). */
     var OFFER_NAMES = {};
     try { OFFER_NAMES = JSON.parse(($('#offer-index') || {}).textContent || '{}'); }
     catch (err) { console.error('intake: bad offer index', err); }
 
-    var match = $('#intake-match');
-    var send = $('#intake-send');
-    var note = $('#intake-note');
+    var ICONS = {
+      software: '<svg viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M11 13l-3 3 3 3M21 13l3 3-3 3M17 12l-2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      hardware: '<svg viewBox="0 0 32 32" fill="none"><rect x="9" y="9" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M13 9V5M19 9V5M13 27v-4M19 27v-4M9 13H5M9 19H5M27 13h-4M27 19h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="16" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>',
+      both: '<svg viewBox="0 0 32 32" fill="none"><rect x="3" y="11" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="18" y="8" width="11" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M14 16.5h4" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1.5"/></svg>'
+    };
 
-    var refresh = function () {
-      if (offer && OFFER_NAMES[offer]) {
-        match.innerHTML = 'Looks like <b>' + OFFER_NAMES[offer] + '</b>. ' +
-          '<a href="' + offer + '" style="box-shadow:inset 0 -1px 0 var(--rule-bright)">Read the scope</a> ' +
-          'before you send, if you like.';
-      } else if (picked.need) {
-        match.textContent = 'Not one of the listed offers — which is fine. ' +
-          'Tell us the constraint and we will say whether we are the right people.';
-      }
+    var TRACKS = [
+      { v: 'software', t: 'Software', d: 'Apps, dashboards, internal tools, AI agents — the systems a business runs on.' },
+      { v: 'hardware', t: 'Hardware', d: 'Boards, firmware, devices, and machines that speak protocols nobody documented.' },
+      { v: 'both', t: 'Both', d: 'A device in the field and the software that makes its data worth having.' }
+    ];
 
-      var body = [
-        'What the work is: ' + (picked.need || '—'),
-        'Deadline: ' + (picked.when || '—'),
-        'Budget: ' + (picked.budget || '—'),
+    var NEEDS = {
+      software: [
+        { t: 'An app my customers use', d: 'Mobile or web — ordering, accounts, a product in their pocket.', o: '/products/mobile-apps/' },
+        { t: 'A dashboard for numbers I already have', d: 'Sales, admin, ops — one screen instead of six spreadsheets.', o: '/products/dashboards/' },
+        { t: 'Inventory, stock or orders', d: 'Know what you have, where it is, and what is running out.', o: '/products/inventory/' },
+        { t: 'A CRM or case system', d: 'Every customer, deal and ticket in one place with a history.', o: '/products/crm/' },
+        { t: 'Bookings and scheduling', d: 'Courts, rooms, appointments — packed tight, never double-booked.', o: '/products/bookings/' },
+        { t: 'A marketplace', d: 'Buyers, sellers, roles, payments and the admin behind it.', o: '/products/marketplace/' },
+        { t: 'Quotes that take too long', d: 'Turn a two-day quoting loop into a two-minute one.', o: '/products/quote-engine/' },
+        { t: 'An AI agent that does real work', d: 'Reads your data, answers the question, drafts the next step.', o: '/products/ops-analyst/' },
+        { t: 'Something else', d: 'Describe it at the end — we will say whether we are the right people.', o: '' }
+      ],
+      hardware: [
+        { t: 'A board about to go to fabrication', d: 'Catch the board-killer before you pay for a hundred of them.', o: '/services/design-review/' },
+        { t: 'A product that needs a board designed', d: 'From a requirement to a fab-ready PCB and first articles.', o: '/services/board-to-fab/' },
+        { t: 'Firmware that half-works', d: 'Resets, lockups, a field failure nobody can reproduce.', o: '/services/firmware-rescue/' },
+        { t: 'A machine nobody can read', d: 'An undocumented protocol on the wire, decoded frame by frame.', o: '/services/protocol-decode/' },
+        { t: 'Captures I can send remotely', d: 'Logic-analyser or serial dumps — decoded without a site visit.', o: '/services/remote-decode/' },
+        { t: 'A BOM I am worried about', d: 'Lifecycle, single-source and counterfeit risk before you buy.', o: '/services/bom-audit/' },
+        { t: 'A device that needs a security test', d: 'Hardware and authorisation testing — not compliance sign-off.', o: '/services/device-pentest/' },
+        { t: 'Something else', d: 'Describe it at the end — we will say whether we are the right people.', o: '' }
+      ],
+      both: [
+        { t: 'A fuel forecourt I cannot see into', d: 'Every pump, every litre, on a live ledger you read from anywhere.', o: '/products/efuelpro/' },
+        { t: 'Machines I cannot see in real time', d: 'Mills, generators, lines — live status and alerts off the wire.', o: '/products/epsilon1/' },
+        { t: 'An old machine that should report', d: 'Retrofit sensing and a dashboard without replacing the machine.', o: '/hardware/retrofits/', n: 'Machine retrofits' },
+        { t: 'A connected product, device to app', d: 'The board, the firmware, the cloud and the interface — one team.', o: '/hardware/custom-hardware/', n: 'Custom hardware' },
+        { t: 'A digital twin of a real system', d: 'A live model of the plant, fed by the plant.', o: '/products/digital-twin/' },
+        { t: 'Sensing that has to be trusted', d: 'Measurement, calibration and the data chain behind it.', o: '/products/sensing/' },
+        { t: 'Something else', d: 'Describe it at the end — we will say whether we are the right people.', o: '' }
+      ]
+    };
+
+    var STATE_Q = {
+      software: { q: 'What runs this today?', opts: [
+        { t: 'Nothing yet', d: 'It is an idea, or a process that lives in people’s heads.' },
+        { t: 'Spreadsheets and WhatsApp', d: 'It works, until it does not.' },
+        { t: 'A system we are outgrowing', d: 'Off-the-shelf or old custom software that no longer fits.' },
+        { t: 'A system that is broken', d: 'Something exists and needs rescuing or replacing.' }
+      ]},
+      hardware: { q: 'What is in your hands right now?', opts: [
+        { t: 'An idea and a datasheet', d: 'Requirements, maybe a sketch, no board yet.' },
+        { t: 'A prototype on the bench', d: 'It mostly works. Mostly.' },
+        { t: 'Units already in the field', d: 'Shipped, deployed, and something needs fixing.' },
+        { t: 'A machine we did not build', d: 'Someone else’s equipment we need to read or control.' }
+      ]},
+      both: { q: 'Where is it stuck?', opts: [
+        { t: 'We have not started', d: 'Clean slate — hardware and software both to build.' },
+        { t: 'Hardware works, software does not', d: 'The data exists; nobody can see it.' },
+        { t: 'Software is ready, nothing feeds it', d: 'A system waiting for a device to talk to.' },
+        { t: 'The two do not talk', d: 'Both exist, the link between them is the problem.' }
+      ]}
+    };
+
+    var WHEN = [
+      { t: 'Inside a month', d: 'There is a hard date.' },
+      { t: 'One to three months', d: 'Soon, with room to plan.' },
+      { t: 'This quarter', d: 'No hard date, but not someday.' },
+      { t: 'Exploring', d: 'Working out whether it is worth doing.' }
+    ];
+
+    var BUDGET = [
+      { t: 'Under $2k', d: 'A review, an audit, a decode.' },
+      { t: '$2k – $10k', d: 'A focused build or a rescue.' },
+      { t: '$10k – $50k', d: 'A product, a platform, a fleet.' },
+      { t: 'Over $50k', d: 'Multi-phase, multi-site.' },
+      { t: 'Not set yet', d: 'Tell us the scope and we will tell you the range.' }
+    ];
+
+    var PLACEHOLDER = {
+      software: 'Who uses it, what it has to connect to, and the thing that keeps going wrong today…',
+      hardware: 'Model numbers, the interface (RS485, CAN, Modbus…), unit volume, and what fails in the field…',
+      both: 'The equipment, how many sites, what you want to see on the screen, and what it connects to…'
+    };
+
+    var a = { track: '', need: null, state: '', when: '', budget: '', name: '', company: '', note: '' };
+    var step = 0;
+    var TOTAL = 7;
+
+    var stage = $('#wiz-stage');
+    var back = $('#wiz-back');
+    var count = $('#wiz-count');
+    var fill = $('#wiz-fill');
+
+    var el = function (tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    };
+
+    var offerName = function () {
+      if (!a.need || !a.need.o) return '';
+      return OFFER_NAMES[a.need.o] || a.need.n || '';
+    };
+
+    var mailto = function () {
+      var lines = [
+        'Track: ' + (a.track ? a.track.charAt(0).toUpperCase() + a.track.slice(1) : '—'),
+        'What the work is: ' + (a.need ? a.need.t : '—'),
+        'Where it stands: ' + (a.state || '—'),
+        'Deadline: ' + (a.when || '—'),
+        'Budget: ' + (a.budget || '—'),
         '',
-        'The constraint I am most worried about:',
-        (note && note.value.trim()) || '',
+        'Details:',
+        a.note || '',
+        '',
+        a.name ? '— ' + a.name + (a.company ? ', ' + a.company : '') : '',
         '',
         '---',
         'Sent from epsilon-labs.co/start/'
-      ].join('\n');
-
-      var subject = offer && OFFER_NAMES[offer]
-        ? OFFER_NAMES[offer].split(' — ')[0] + ' — enquiry'
-        : 'Project enquiry';
-
-      send.href = 'mailto:er@epsilon-labs.co?subject=' +
-        encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      ];
+      var on = offerName();
+      var subject = (on ? on : 'Project enquiry') + (a.company ? ' — ' + a.company : '');
+      return 'mailto:er@epsilon-labs.co?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(lines.join('\n'));
     };
 
-    $$('.intake__opts').forEach(function (group) {
-      var key = group.getAttribute('data-group');
-      $$('button', group).forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          $$('button', group).forEach(function (b) {
-            b.setAttribute('aria-pressed', String(b === btn));
-          });
-          picked[key] = btn.getAttribute('data-value');
-          if (key === 'need') offer = btn.getAttribute('data-offer') || '';
-          refresh();
-        });
-        btn.setAttribute('aria-pressed', 'false');
+    var card = function (opt, picked, accent, onPick, big) {
+      var b = el('button', 'wiz__card' + (big ? ' wiz__card--big' : ''));
+      b.type = 'button';
+      if (accent) b.setAttribute('data-accent', accent);
+      b.setAttribute('aria-pressed', String(picked));
+      if (big && ICONS[opt.v]) {
+        var ic = el('span', 'wiz__icon');
+        ic.innerHTML = ICONS[opt.v];
+        b.appendChild(ic);
+      }
+      b.appendChild(el('span', 'wiz__t', opt.t));
+      if (opt.d) b.appendChild(el('span', 'wiz__d', opt.d));
+      b.addEventListener('click', function () {
+        $$('.wiz__card', b.parentNode).forEach(function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+        onPick();
+        setTimeout(function () { go(step + 1); }, reduced ? 0 : 220);
       });
-    });
+      return b;
+    };
 
-    if (note) note.addEventListener('input', refresh);
-    refresh();
+    var question = function (kicker, q, sub) {
+      var h = el('div', 'wiz__q');
+      h.appendChild(el('p', 'mono wiz__kicker', kicker));
+      var h2 = el('h2', 'wiz__h', q);
+      h2.tabIndex = -1;
+      h.appendChild(h2);
+      if (sub) h.appendChild(el('p', 'wiz__sub', sub));
+      return h;
+    };
+
+    var grid = function (cls) { return el('div', 'wiz__grid' + (cls ? ' ' + cls : '')); };
+
+    var accentFor = function () {
+      return a.track === 'software' ? 'signal' : a.track === 'hardware' ? 'copper' : 'both';
+    };
+
+    var render = function () {
+      var view = el('div', 'wiz__view');
+      var g;
+
+      if (step === 0) {
+        view.appendChild(question('First', 'What are we building?', 'Pick the closest. You can change it later.'));
+        g = grid('wiz__grid--3');
+        TRACKS.forEach(function (t) {
+          var acc = t.v === 'software' ? 'signal' : t.v === 'hardware' ? 'copper' : 'both';
+          g.appendChild(card(t, a.track === t.v, acc, function () {
+            if (a.track !== t.v) { a.need = null; a.state = ''; }
+            a.track = t.v;
+          }, true));
+        });
+        view.appendChild(g);
+      }
+
+      if (step === 1) {
+        var heads = { software: 'What should the software do?', hardware: 'What is the hardware problem?', both: 'What should the system do?' };
+        view.appendChild(question(a.track.charAt(0).toUpperCase() + a.track.slice(1), heads[a.track]));
+        g = grid();
+        NEEDS[a.track].forEach(function (n) {
+          g.appendChild(card(n, a.need === n, accentFor(), function () { a.need = n; }));
+        });
+        view.appendChild(g);
+      }
+
+      if (step === 2) {
+        var sq = STATE_Q[a.track];
+        view.appendChild(question('Where it stands', sq.q));
+        g = grid('wiz__grid--2');
+        sq.opts.forEach(function (o) {
+          g.appendChild(card(o, a.state === o.t, accentFor(), function () { a.state = o.t; }));
+        });
+        view.appendChild(g);
+      }
+
+      if (step === 3) {
+        view.appendChild(question('Timing', 'When does it have to be done?'));
+        g = grid('wiz__grid--2');
+        WHEN.forEach(function (o) {
+          g.appendChild(card(o, a.when === o.t, accentFor(), function () { a.when = o.t; }));
+        });
+        view.appendChild(g);
+      }
+
+      if (step === 4) {
+        view.appendChild(question('Budget', 'What is the budget band?', 'A band, not a commitment. It tells us which shape of answer to give you.'));
+        g = grid();
+        BUDGET.forEach(function (o) {
+          g.appendChild(card(o, a.budget === o.t, accentFor(), function () { a.budget = o.t; }));
+        });
+        view.appendChild(g);
+      }
+
+      if (step === 5) {
+        view.appendChild(question('Details', 'The part that matters most.',
+          a.track === 'software' ? 'What you would tell an engineer in the first five minutes.' :
+          'If there is hardware involved, a model number and a photo of the connector save us both a week.'));
+        var form = el('form', 'wiz__form');
+        var row = el('div', 'wiz__row');
+        var mk = function (label, key, ph, type) {
+          var w = el('label', 'wiz__field');
+          w.appendChild(el('span', 'mono', label));
+          var i = el('input');
+          i.type = type || 'text'; i.placeholder = ph; i.value = a[key];
+          i.addEventListener('input', function () { a[key] = i.value.trim(); });
+          w.appendChild(i);
+          return w;
+        };
+        row.appendChild(mk('Your name', 'name', 'Name'));
+        row.appendChild(mk('Company', 'company', 'Company (optional)'));
+        form.appendChild(row);
+        var tw = el('label', 'wiz__field');
+        tw.appendChild(el('span', 'mono', 'The constraint you are most worried about'));
+        var ta = el('textarea');
+        ta.rows = 5; ta.placeholder = PLACEHOLDER[a.track]; ta.value = a.note;
+        ta.addEventListener('input', function () { a.note = ta.value.trim(); });
+        tw.appendChild(ta);
+        form.appendChild(tw);
+        var nx = el('button', 'btn wiz__next', 'Review');
+        nx.type = 'submit';
+        form.appendChild(nx);
+        form.addEventListener('submit', function (e) { e.preventDefault(); go(6); });
+        view.appendChild(form);
+      }
+
+      if (step === 6) {
+        var on = offerName();
+        view.appendChild(question('Where this lands', on ? on : 'A conversation first.',
+          on ? 'That is the offer this maps to. Read the scope if you like, then send.' :
+               'Not one of the listed offers — which is fine. We will reply and say whether we are the right people.'));
+        var sum = el('dl', 'wiz__sum');
+        [['Track', a.track.charAt(0).toUpperCase() + a.track.slice(1), 0],
+         ['The work', a.need ? a.need.t : '—', 1],
+         ['Today', a.state || '—', 2],
+         ['Timing', a.when || '—', 3],
+         ['Budget', a.budget || '—', 4],
+         ['Details', a.note || '—', 5]].forEach(function (r) {
+          var d = el('div');
+          d.appendChild(el('dt', 'mono', r[0]));
+          var dd = el('dd', null, r[1]);
+          var ed = el('button', 'wiz__edit', 'Edit');
+          ed.type = 'button';
+          ed.addEventListener('click', function () { go(r[2]); });
+          d.appendChild(dd);
+          d.appendChild(ed);
+          sum.appendChild(d);
+        });
+        view.appendChild(sum);
+        var acts = el('div', 'wiz__acts');
+        var send = el('a', 'btn', 'Send to er@epsilon-labs.co');
+        send.href = mailto();
+        acts.appendChild(send);
+        if (on && a.need.o) {
+          var rd = el('a', 'arrow', 'Read the scope');
+          rd.href = a.need.o;
+          acts.appendChild(rd);
+        }
+        view.appendChild(acts);
+        view.appendChild(el('p', 'wiz__hint', 'Opens your email app with everything filled in. Nothing is sent from this page.'));
+      }
+
+      return view;
+    };
+
+    var go = function (n) {
+      if (n > 0 && !a.track) n = 0;
+      step = Math.max(0, Math.min(TOTAL - 1, n));
+      var view = render();
+      stage.innerHTML = '';
+      stage.appendChild(view);
+      back.hidden = step === 0;
+      var sec = $('#intake-sec');
+      if (sec) sec.classList.toggle('is-going', step > 0);
+      count.textContent = String(step + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+      fill.style.width = ((step + 1) / TOTAL * 100) + '%';
+      wiz.setAttribute('data-accent', a.track ? accentFor() : '');
+      var h = $('.wiz__h', view);
+      if (h && document.activeElement && document.activeElement !== document.body) h.focus({ preventScroll: true });
+      var top = wiz.getBoundingClientRect().top;
+      if (top < 0) wiz.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    };
+
+    back.addEventListener('click', function () { go(step - 1); });
+    go(0);
   }
 
   /* ═══ problem finder ═══════════════════════════════════════════════ */

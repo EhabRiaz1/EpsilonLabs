@@ -1,87 +1,36 @@
-  <section class="sec sec--flush sec--open" data-scene="mark" style="padding-block:calc(var(--nav-h) + var(--s-96)) var(--s-48)">
+  <section class="sec sec--flush sec--open wiz-sec" data-scene="mark" id="intake-sec">
     <div class="shell">
-      <p class="mono reveal" style="margin-bottom:var(--s-24)">Start</p>
-      <h1 class="h1 reveal" style="max-width:17ch">Four questions, then a real answer.</h1>
-      <p class="lede reveal" style="margin-top:var(--s-32);max-width:46ch">
-        Enough to tell you which of our offers this is, what it costs, and whether
-        we are the wrong people for it.
-      </p>
-    </div>
-  </section>
+      <header class="wiz__head">
+        <p class="mono reveal">Start a project</p>
+        <h1 class="h2 reveal">Tell us what you are building.</h1>
+        <p class="lede reveal">A few questions, one at a time. At the end you get the offer it maps to and an email ready to send.</p>
+      </header>
 
-  <section class="sec" id="intake-sec">
-    <div class="shell">
-      <p class="sec__label"><b>01</b> <i>Tell us what you have</i></p>
-
-      <!-- No JavaScript: this whole block is replaced by the picker below.
-           Left visible by default so the page is never a dead end. -->
       <noscript>
-        <div class="note" style="max-width:var(--measure);margin-bottom:var(--s-48)">
-          <p>
-            The picker needs JavaScript. Email us instead and include the four
-            answers below — it reaches the same place.
-          </p>
+        <div class="note" style="max-width:var(--measure);margin:var(--s-48) auto 0">
+          <p>The guided picker needs JavaScript. Email us instead with the details below — it reaches the same place.</p>
         </div>
       </noscript>
 
       <!--OFFERINDEX-->
-      <div id="intake" class="intake" hidden>
-        <fieldset class="intake__step">
-          <legend class="mono">1 — What is the work?</legend>
-          <div class="intake__opts" data-group="need">
-            <button type="button" data-value="A board about to go to fabrication" data-offer="/services/design-review/">A board about to go to fabrication</button>
-            <button type="button" data-value="A machine speaking a protocol nobody has documented" data-offer="/services/protocol-decode/">A machine nobody can read</button>
-            <button type="button" data-value="A product that needs a PCB designed" data-offer="/services/board-to-fab/">A product that needs a board designed</button>
-            <button type="button" data-value="Firmware that half-works" data-offer="/services/firmware-rescue/">Firmware that half-works</button>
-            <button type="button" data-value="A fuel forecourt I cannot see into" data-offer="/products/efuelpro/">A fuel forecourt I cannot see into</button>
-            <button type="button" data-value="Machines I cannot see in real time" data-offer="/products/epsilon1/">Machines I cannot see in real time</button>
-            <button type="button" data-value="Software, or something not listed" data-offer="">Software, or something not on this list</button>
-          </div>
-        </fieldset>
-
-        <fieldset class="intake__step">
-          <legend class="mono">2 — When does it have to be done?</legend>
-          <div class="intake__opts" data-group="when">
-            <button type="button" data-value="Inside a month">Inside a month</button>
-            <button type="button" data-value="One to three months">One to three months</button>
-            <button type="button" data-value="This quarter, no hard date">This quarter, no hard date</button>
-            <button type="button" data-value="Exploring — no date yet">Exploring, no date yet</button>
-          </div>
-        </fieldset>
-
-        <fieldset class="intake__step">
-          <legend class="mono">3 — What is the budget?</legend>
-          <div class="intake__opts" data-group="budget">
-            <button type="button" data-value="Under $2,000">Under $2k</button>
-            <button type="button" data-value="$2,000 – $10,000">$2k – $10k</button>
-            <button type="button" data-value="$10,000 – $50,000">$10k – $50k</button>
-            <button type="button" data-value="Over $50,000">Over $50k</button>
-            <button type="button" data-value="Not established yet">Not established yet</button>
-          </div>
-        </fieldset>
-
-        <fieldset class="intake__step">
-          <legend class="mono">4 — The constraint you are most worried about</legend>
-          <textarea id="intake-note" rows="4" placeholder="The deadline, the unit cost, the protocol nobody has documented, the thing that keeps failing in the field…"></textarea>
-        </fieldset>
-
-        <div class="intake__out" id="intake-out" aria-live="polite">
-          <p class="mono">Where this lands</p>
-          <p class="intake__match" id="intake-match">Answer the first question and we will tell you.</p>
-          <a class="btn" id="intake-send" href="mailto:er@epsilon-labs.co">
-            Send this
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
-          <p class="intake__hint">Opens your email app with everything filled in. Nothing is sent from this page.</p>
+      <div id="wiz" class="wiz" hidden>
+        <div class="wiz__bar" aria-hidden="true"><i id="wiz-fill"></i></div>
+        <div class="wiz__nav">
+          <button type="button" class="wiz__back" id="wiz-back" hidden>
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back
+          </button>
+          <span class="mono wiz__count" id="wiz-count"></span>
         </div>
+        <div class="wiz__stage" id="wiz-stage" aria-live="polite"></div>
       </div>
 
-      <div class="prose" id="intake-fallback">
+      <div class="prose wiz__fallback" id="intake-fallback">
         <p>Email <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a> and include:</p>
         <ol style="list-style:decimal;padding-left:1.4em;margin-top:var(--s-16);color:var(--muted)">
-          <li>What the work is — a board, a protocol, firmware, a forecourt, machines you cannot see</li>
-          <li>When it has to be done</li>
-          <li>The budget band</li>
+          <li>Software, hardware, or both</li>
+          <li>What the work is, and what exists today</li>
+          <li>When it has to be done, and the budget band</li>
           <li>The constraint you are most worried about</li>
         </ol>
         <p style="margin-top:var(--s-24)">
