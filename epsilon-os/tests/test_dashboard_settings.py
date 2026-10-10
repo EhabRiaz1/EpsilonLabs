@@ -43,7 +43,7 @@ def test_get_settings_renders_form_nav_and_status(live):
     assert 'action="/act/settings"' in body and 'name="csrf"' in body
     for name in ("per_day", "daily_budget", "daily_cap", "address", "paused"):
         assert f'name="{name}"' in body
-    assert body.count('name="segments"') == 3 and body.count("checked") == 3   # all three segments on by default
+    assert body.count('name="segments"') == 3 and len(re.findall(r'name="segments" value="\w+" checked', body)) == 3   # all three segments on by default
     assert re.search(r'href="/settings" class=on aria-current=page', body)        # sidebar entry, active
     assert "Outreach status" in body and "Configured" in body and "Sent today" in body and "Today's cap" in body
     assert "script-src 'self'" in h["Content-Security-Policy"]
@@ -81,7 +81,7 @@ def test_invalid_post_shows_inline_errors_keeps_input_and_saves_nothing(live):
     assert s == 422 and db.rows("settings") == []
     assert "Nothing was saved" in body
     assert body.count('class="fielderr"') + body.count('role="alert"') >= 4
-    assert "from 0 to 50" in body and "from 50 to 1000" in body and "from 0 to 100" in body
+    assert "from 0 to 80" in body and "from 50 to 1000" in body and "from 0 to 100" in body
     assert "Pick at least one segment" in body
     assert 'value="99"' in body and 'value="abc"' in body            # what you typed is kept
     assert 'aria-invalid=true' in body

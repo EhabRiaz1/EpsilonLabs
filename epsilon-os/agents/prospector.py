@@ -7,7 +7,11 @@ calls, and nothing is ever sent: the draft lands in approval_queue (kind 'outbou
 Order of work per prospect: dedupe and suppression first (cheap), then the two LLM writes, then the DB
 writes. A budget stop or a failed dossier therefore never leaves a half-made company behind.
 
-    python -m agents.prospector --dry-run --segment industrial --n 3
+    python -m agents.prospector --dry-run --strategy s2_trigger --n 3
+
+Strategies S2-S5 (prompts/strategies.py) replace the old three-segment search. Each strategy has a daily quota
+(Settings strategy.quotas). S6, the learning loop, moves quota toward the strategy with the best positive-reply rate,
+weekly and within bounds, and never touches a pinned strategy.
 """
 import argparse
 import json
@@ -20,12 +24,30 @@ from zoneinfo import ZoneInfo
 from agents.inbox import first_name
 from core import config, ledger, lint, llm as llm_mod, settings as settings_mod
 from core.db import DB
-from prompts import loader, schemas
-from prompts.segments import SEGMENT_BRIEFS
+from prompts import loader, schemas, strategies as strat
 
 AGENT = "prospector"
 BATCH = 5
-CALLS_PER_SEGMENT = 3
+CALLS_PER_STRATEGY = 3
+STALE_POST_DAYS = 45        # S5 last resort: a full-time post must be older than this ...
+SMALL_COMPANY = 50          # ... and the company smaller than this
+RECENCY_DAYS = {"funding": 120, "expansion": 120, "grant": 365}   # per trigger type; others use Strategy.max_age_days
+MIN_SENDS = 40              # S6: sends in 30 days a strategy needs before it takes part in a rebalance
+REBALANCE_STEP = 2          # S6: at most this many quota units move per week
+REBALANCE_FLOOR = 2         # S6: a donor never goes below this
+POSITIVE_LABELS = ("inquiry", "interested")
+APPROVED = ("approved", "edited_approved", "sending", "sent")
+LEGACY = "legacy"
+JOB_URL = re.compile(r"greenhouse\.io|lever\.co|workable\.com|ashbyhq\.com|recruitee\.com|bamboohr\.com|indeed\.|linkedin\.com/jobs"
+                     r"|/careers?(?:/|$|\?)|/jobs?(?:/|$|\?)|/vacanc|/positions?/|/openings?", re.I)
+JOB_TEXT = re.compile(r"\b(full[- ]time|permanent (?:position|role)|we(?:'re| are) hiring|job (?:opening|description)|apply now|"
+                      r"join our team|vacanc(?:y|ies)|years of experience|salary)\b", re.I)
+OUTSOURCE = re.compile(r"\b(rfq|rfp|request for (?:proposals?|quotations?|quotes?|information)|statement of work|sow|outsourc\w*|"
+                       r"development partner|(?:looking|searching) for (?:an? |the )?(?:\w+ ){0,3}(?:firm|agency|contractor|consultan\w+|vendor|partner|supplier)|"
+                       r"seeking (?:an? )?(?:\w+ ){0,3}(?:firm|agency|contractor|consultan\w+|vendor|partner))\b", re.I)
+# S4 drafts are a peer proposal; code holds one that slides into customer-sales language.
+SALES_WORDS = re.compile(r"\b(our services|our solutions?|affordable|best[- ]in[- ]class|special offer|limited time|save you|"
+                         r"boost your|cost[- ]effective|book a demo|world[- ]class|end[- ]to[- ]end solutions?)\b", re.I)
 MIN_CONFIDENCE = 0.4
 MAX_WORDS = 135
 KNOWN_IN_PROMPT = 300
@@ -37,7 +59,7 @@ EEA = {"IS", "LI", "NO"}
 FREEMAIL = {"gmail.com", "googlemail.com", "yahoo.com", "hotmail.com", "outlook.com", "live.com", "icloud.com",
             "proton.me", "protonmail.com", "aol.com", "gmx.com", "yandex.com", "msn.com"}
 NOT_A_COMPANY = {"linkedin.com", "indeed.com", "glassdoor.com", "reddit.com", "facebook.com", "twitter.com", "x.com",
-                 "github.com", "stackoverflow.com", "stackexchange.com", "youtube.com", "medium.com", "upwork.com",
+                 "kickstarter.com", "indiegogo.com", "crowdsupply.com", "github.com", "stackoverflow.com", "stackexchange.com", "youtube.com", "medium.com", "upwork.com",
                  "fiverr.com", "freelancer.com", "wikipedia.org", "google.com", "naukri.com", "rozee.pk"}
 CONTACT_BATCH = 8
 HIRING_INBOXES = {"careers", "career", "jobs", "job", "hr", "recruiting", "recruitment", "recruiter", "talent", "hiring",
@@ -48,9 +70,10 @@ EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})$")
 
 # ---------------------------------------------------------------- pure helpers
 
-# High-budget markets for cold outreach (founder 2026-10-10). Pakistan is worked through the founder's own network.
-TARGET_MARKETS = frozenset("""US CA GB IE DE NL BE LU FR DK SE NO FI IS CH AT IT ES PT PL CZ EE LT LV SI
-    AE SA QA KW BH OM AU NZ SG JP KR IL""".split())
+# Markets where a client can pay a Pakistan firm and budgets reach $10k+ (founder 2026-10-11). The live list is Settings
+# prospector.markets; Pakistan and sanctioned markets (settings.ALWAYS_EXCLUDED) are rejected whatever the setting says.
+TARGET_MARKETS = frozenset(settings_mod.DEFAULT_MARKETS)  # default list; the live list is Settings prospector.markets
+
 
 
 def region_for(country: str) -> tuple[str, str]:
@@ -135,19 +158,44 @@ def fill_contacts(S, prospects: list[dict]) -> int:
     return found
 
 
-def validate(raw: dict, segment: str, slugs: set[str]) -> tuple[dict | None, str]:
+def _day(v) -> date | None:
+    try:
+        return date.fromisoformat(str(v).strip()[:10]) if str(v or "").strip() else None
+    except ValueError:
+        return None
+
+
+def _int(v) -> int:
+    return v if isinstance(v, int) and not isinstance(v, bool) else 0
+
+
+def is_fulltime_post(raw: dict, quote: str, obs: str) -> bool:
+    """S5: the model said so, or the page looks like a job post and shows no explicit outsourcing language."""
+    if raw.get("trigger_type") == "fulltime_post":
+        return True
+    text = f"{quote} {obs} {raw.get('trigger') or ''}"
+    jobish = bool(JOB_URL.search(str(raw.get("evidence_url") or "")) or JOB_TEXT.search(text))
+    return jobish and not OUTSOURCE.search(text)
+
+
+def validate(raw: dict, strategy: str, slugs: set[str], today: date | None = None,
+             segments: list[str] | None = None, markets=None) -> tuple[dict | None, str]:
     """Code-side check of one research result. Returns (prospect, "") or (None, reason)."""
     if not isinstance(raw, dict):
         return None, "not an object"
+    st = strat.get(strategy)
+    today = today or datetime.now(timezone.utc).date()
     if not valid_url(str(raw.get("evidence_url") or "")):
         return None, "no evidence_url"
     domain = clean_domain(str(raw.get("domain") or ""))
     if not domain:
         return None, "bad domain"
-    if raw.get("segment") != segment:
-        return None, "wrong segment"
+    if raw.get("strategy") != strategy:
+        return None, "wrong strategy"
     if raw.get("suggested_offer_slug") not in slugs:
         return None, "unknown offer slug"
+    if st.strict_offers and raw["suggested_offer_slug"] not in st.offers:
+        return None, "offer outside the strategy's offer set"
     conf = raw.get("confidence")
     if not isinstance(conf, (int, float)) or conf < MIN_CONFIDENCE:
         return None, "low confidence"
@@ -156,17 +204,44 @@ def validate(raw: dict, segment: str, slugs: set[str]) -> tuple[dict | None, str
     name = _one_line(raw.get("name"), 160)
     if not (quote and obs and name and re.fullmatch(r"[A-Z]{2}", country)):
         return None, "missing field"
-    if country not in TARGET_MARKETS:
+    if country in settings_mod.ALWAYS_EXCLUDED or country not in (TARGET_MARKETS if markets is None else markets):
         return None, "outside target markets"
+    ttype = raw.get("trigger_type") if raw.get("trigger_type") in strat.TRIGGER_TYPES else "other"
+    headcount, post_age = _int(raw.get("headcount")), _int(raw.get("post_age_days"))
+    last_resort = False
+    if strategy == "s5_intent" and is_fulltime_post(raw, quote, obs):
+        if not (0 < headcount < SMALL_COMPANY and post_age > STALE_POST_DAYS):
+            return None, "full-time post: only a small company with a stale post qualifies"
+        ttype, last_resort = "fulltime_post", True
+    elif ttype not in st.trigger_types:
+        return None, f"trigger type {ttype} is not a {st.name} trigger"
+    ev_date = _day(raw.get("evidence_date"))
+    if str(raw.get("evidence_date") or "").strip() and ev_date is None:
+        return None, "unreadable evidence_date"
+    if not last_resort:
+        if ev_date is None and ttype in st.dated_types:
+            return None, "trigger without a date"
+        if ev_date is not None:
+            age = (today - ev_date).days
+            limit = RECENCY_DAYS.get(ttype, st.max_age_days)
+            if age < -st.max_future_days:
+                return None, "evidence dated in the future"
+            if limit is not None and age > limit:
+                return None, f"evidence is {age} days old (limit {limit})"
+    seg = raw.get("segment") if raw.get("segment") in schemas.PROSPECT_SEGMENTS else st.segment
+    if segments is not None and seg not in segments:
+        return None, "segment disabled in settings"
     contact, contact_note = check_contact(raw.get("contact"), domain)
     return {"name": name, "domain": domain, "country": country, "sector": _one_line(raw.get("sector"), 80),
-            "segment": segment, "evidence_url": raw["evidence_url"].strip(), "evidence_quote": quote,
+            "strategy": strategy, "segment": seg, "evidence_url": raw["evidence_url"].strip(), "evidence_quote": quote,
+            "evidence_date": ev_date.isoformat() if ev_date else "", "trigger": _one_line(raw.get("trigger"), 200),
+            "trigger_type": ttype, "last_resort": last_resort, "headcount": headcount, "post_age_days": post_age,
             "observation": obs, "offer_slug": raw["suggested_offer_slug"], "contact": contact,
             "contact_note": contact_note, "confidence": float(conf)}, ""
 
 
-def segment_order(enabled: list[str], today: date) -> list[str]:
-    """Round-robin: today's lead segment advances by one each day; the rest follow to top up the quota."""
+def strategy_order(enabled: list[str], today: date) -> list[str]:
+    """Round-robin: today's lead strategy advances by one each day, so a budget stop never starves the same one."""
     if not enabled:
         return []
     i = today.toordinal() % len(enabled)
@@ -186,6 +261,145 @@ def finish_draft(body: str) -> tuple[str, list[str]]:
     return text, problems
 
 
+# ---------------------------------------------------------------- S6: quotas, stats, rebalance
+
+def effective_quotas(quotas: dict, per_day: int) -> dict:
+    """Quotas as set, trimmed in strategy order if their total exceeds prospector.per_day (the form prevents it)."""
+    left, out = per_day, {}
+    for sid in settings_mod.STRATEGY_IDS:
+        out[sid] = max(min(int(quotas.get(sid, 0)), left), 0)
+        left -= out[sid]
+    return out
+
+
+def _ts(v) -> datetime | None:
+    try:
+        d = datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
+
+
+def strategy_stats(db, now: datetime, windows: tuple = (30, 90)) -> dict:
+    """{strategy: {days: {created, approved, sent, replies, positive, optouts, advanced, won_value,
+    reply_rate, positive_rate}}} for each strategy and 'legacy'. Rates are per send (None before the first send).
+
+    created   companies with the strategy created in the window
+    approved  outbound drafts decided into approved/edited_approved/sending/sent in the window
+    sent      touches type 'sent' (outbound) in the window, follow-ups included
+    replies   touches type 'human_reply'; positive = classifier label inquiry or interested
+    optouts   touches type 'opt_out' plus replies the classifier labelled opt_out
+    advanced  deals past 'lead' whose stage last changed (updated_at) in the window
+    won_value sum of value_usd of won deals closed in the window
+    Strategy attribution is deals.strategy, reached from queue rows and touches through deal_id."""
+    ids = list(settings_mod.STRATEGY_IDS) + [LEGACY]
+    flt = f"in.({','.join(ids)})"
+    horizon = (now - timedelta(days=max(windows))).isoformat()
+    deals = db.select("deals", strategy=flt, limit=5000)
+    by_deal = {d["id"]: d["strategy"] for d in deals}
+    companies = db.select("companies", strategy=flt, created_at=f"gte.{horizon}", limit=5000)
+    queue = db.select("approval_queue", agent=AGENT, kind="outbound", decided_at=f"gte.{horizon}", limit=5000)
+    touches = db.select("touches", occurred_at=f"gte.{horizon}", limit=5000)
+    out: dict = {}
+    for sid in ids:
+        out[sid] = {}
+        for days in windows:
+            since = now - timedelta(days=days)
+            m = dict.fromkeys(("created", "approved", "sent", "replies", "positive", "optouts", "advanced"), 0)
+            m["won_value"] = 0.0
+            m["created"] = sum(1 for c in companies if c["strategy"] == sid and (_ts(c.get("created_at")) or since) >= since)
+            m["approved"] = sum(1 for q in queue if by_deal.get(q.get("deal_id")) == sid and q.get("status") in APPROVED
+                                and (_ts(q.get("decided_at")) or since) >= since)
+            for t in touches:
+                if by_deal.get(t.get("deal_id")) != sid or (_ts(t.get("occurred_at")) or since) < since:
+                    continue
+                label = (t.get("classifier") or {}).get("label")
+                if t.get("type") == "sent" and t.get("direction") == "outbound":
+                    m["sent"] += 1
+                elif t.get("type") == "human_reply":
+                    m["replies"] += 1
+                    m["positive"] += 1 if label in POSITIVE_LABELS else 0
+                    m["optouts"] += 1 if label == "opt_out" else 0
+                elif t.get("type") == "opt_out":
+                    m["optouts"] += 1
+            for d in deals:
+                if d["strategy"] != sid:
+                    continue
+                if d.get("stage") != "lead" and (_ts(d.get("updated_at")) or since) >= since:
+                    m["advanced"] += 1
+                if d.get("stage") == "won" and (_ts(d.get("closed_at") or d.get("updated_at")) or since) >= since:
+                    m["won_value"] += float(d.get("value_usd") or 0)
+            m["reply_rate"] = m["replies"] / m["sent"] if m["sent"] else None
+            m["positive_rate"] = m["positive"] / m["sent"] if m["sent"] else None
+            out[sid][days] = m
+    return out
+
+
+def rebalance(quotas: dict, stats30: dict, pinned, *, min_sends: int = MIN_SENDS, step: int = REBALANCE_STEP,
+              floor: int = REBALANCE_FLOOR) -> dict | None:
+    """Weekly S6 move. Only strategies with at least `min_sends` sends in 30 days, a quota above 0 (0 means switched off)
+    and not pinned take part, and at least two must qualify. Up to `step` quota units move from the lowest
+    positive-reply-rate strategy that is still above `floor` to the highest-rate one; nothing moves unless the
+    recipient's rate is strictly higher. Total quota is conserved. Returns the change or None."""
+    rate = {}
+    for sid in settings_mod.STRATEGY_IDS:
+        m = stats30.get(sid) or {}
+        if sid not in pinned and quotas.get(sid, 0) > 0 and m.get("sent", 0) >= min_sends:
+            rate[sid] = m["positive"] / m["sent"]
+    if len(rate) < 2:
+        return None
+    donors = [s for s in rate if quotas[s] > floor]
+    if not donors:
+        return None
+    donor = min(donors, key=lambda s: (rate[s], -quotas[s]))
+    others = [s for s in rate if s != donor]
+    recipient = max(others, key=lambda s: (rate[s], quotas[s] * -1))
+    if rate[recipient] <= rate[donor]:
+        return None
+    moved = min(step, quotas[donor] - floor)
+    new = dict(quotas)
+    new[donor] -= moved
+    new[recipient] += moved
+    return {"from": donor, "to": recipient, "moved": moved, "quotas": new, "rates": {k: round(v, 4) for k, v in rate.items()}}
+
+
+def is_rebalance_day(now: datetime) -> bool:
+    return now.astimezone(ZoneInfo(config.TZ)).weekday() == 0
+
+
+def next_rebalance(now: datetime, checked_today: bool = False) -> date:
+    """The Monday the next weekly rebalance runs (today if it is Monday and has not run yet)."""
+    d = now.astimezone(ZoneInfo(config.TZ)).date()
+    ahead = (7 - d.weekday()) % 7
+    return d + timedelta(days=ahead if ahead or not checked_today else 7)
+
+
+def rebalance_actions(db, now: datetime, limit: int = 1):
+    start = now.astimezone(ZoneInfo(config.TZ)).replace(hour=0, minute=0, second=0, microsecond=0)
+    return start, db.select("actions", agent=AGENT, action="in.(quota_rebalanced,quota_rebalance_checked)",
+                            order="at.desc", limit=limit)
+
+
+def maybe_rebalance(S, settings, now: datetime) -> str:
+    """Mondays only, once per day, live runs only. Writes the new quotas and logs `quota_rebalanced`; a check that
+    changes nothing logs `quota_rebalance_checked` (that is also what stops a second run the same Monday)."""
+    if S.dry or not is_rebalance_day(now) or not settings.get("strategy.auto_rebalance"):
+        return ""
+    start, last = rebalance_actions(S.db, now)
+    if last and (_ts(last[0].get("at")) or start) >= start:
+        return ""
+    quotas, pinned = settings.get("strategy.quotas"), settings.get("strategy.pinned")
+    stats = strategy_stats(S.db, now, (30,))
+    move = rebalance(quotas, {sid: stats[sid][30] for sid in settings_mod.STRATEGY_IDS}, pinned)
+    if move is None:
+        _log(S, "quota_rebalance_checked", detail={"quotas": quotas})
+        return ""
+    settings.set("strategy.quotas", move["quotas"])
+    _log(S, "quota_rebalanced", detail=move)
+    return (f"Quota rebalanced: {move['moved']} from {settings_mod.STRATEGY_LABEL[move['from']]} to "
+            f"{settings_mod.STRATEGY_LABEL[move['to']]} (positive-reply rate)")
+
+
 # ---------------------------------------------------------------- run state
 
 class State:
@@ -196,6 +410,11 @@ class State:
         self.rows: list[dict] = []
         self.notes: list[str] = []
         self.today = ""
+        self.today_date: date | None = None
+        self.segments: list[str] | None = None
+        self.markets: list[str] | None = None
+        self.by = {sid: dict.fromkeys(("research_calls", "returned", "invalid", "created", "drafts", "no_contact"), 0)
+                   for sid in settings_mod.STRATEGY_IDS}
         self.c = dict.fromkeys(("research_calls", "returned", "invalid", "dup", "suppressed", "existing", "created",
                                 "no_contact", "drafts", "held", "dossier_failed", "draft_failed", "research_failed",
                                 "errors"), 0)
@@ -209,22 +428,38 @@ def _log(S, action: str, **kw) -> None:
 
 
 def _facts(p: dict) -> str:
-    return json.dumps({k: p[k] for k in ("name", "domain", "country", "sector", "evidence_url", "evidence_quote",
-                                         "observation")} | {"contact_role": (p["contact"] or {}).get("role", "")},
-                      ensure_ascii=False)
+    return json.dumps({k: p[k] for k in ("name", "domain", "country", "sector", "strategy", "trigger", "trigger_type",
+                                         "evidence_date", "evidence_url", "evidence_quote", "observation")}
+                      | {"contact_role": (p["contact"] or {}).get("role", "")}, ensure_ascii=False)
+
+
+def dossier_header(p: dict) -> str:
+    """Code-written top of every dossier: which strategy found it and why now (the model writes the rest)."""
+    st = strat.get(p["strategy"])
+    lines = [f"**Strategy:** {st.name} ({p['strategy']})"]
+    if p["trigger"]:
+        when = f" ({p['evidence_date']})" if p["evidence_date"] else ""
+        lines.append(f"**Trigger:** {p['trigger_type']}: {p['trigger']}{when}")
+    if p["last_resort"]:
+        lines.append(f"**Last resort:** a full-time post at a company of about {p['headcount']} people, "
+                     f"posted {p['post_age_days']} days ago. Not an explicit request for a contractor.")
+    return "\n".join(lines) + "\n\n"
 
 
 def _dossier(S, p: dict) -> str:
     system = loader.compose("dossier", {})
     data, _ = S.llm.ask(S.db, AGENT, S.run_id, system, _facts(p), schemas.DOSSIER, model="haiku")
-    return data["body_md"]
+    return dossier_header(p) + data["body_md"]
 
 
 def _outbound(S, p: dict) -> dict:
+    st = strat.get(p["strategy"])
     first = first_name((p["contact"] or {}).get("name", ""))
     ctx = (f"first name: {first if first != 'there' else '(none, use \"Hi,\")'}; company: {p['name']}; "
            f"country: {p['country']}")
-    system = loader.compose("outbound", {"context": ctx, "focus": loader.offer_line(p["offer_slug"])})
+    angle = st.angle + (" The signal is a last-resort full-time post: offer a fixed-scope engagement that delivers while they hire."
+                        if p["last_resort"] else "")
+    system = loader.compose(st.outbound, {"context": ctx, "focus": loader.offer_line(p["offer_slug"]), "angle": angle})
     data, _ = S.llm.ask(S.db, AGENT, S.run_id, system, _facts(p), schemas.OUTBOUND, model="sonnet")
     return data
 
@@ -235,8 +470,9 @@ def _write(S, p: dict, dossier: str, draft: dict | None) -> dict:
     region, basis = region_for(p["country"])
     company = db.insert("companies", {
         "name": p["name"], "domain": p["domain"], "country": p["country"], "sector": p["sector"] or None,
-        "wedge": WEDGE[p["segment"]], "is_dream25": False,
-        "notes": f"Prospector ({p['segment']}): {p['observation']} Evidence: {p['evidence_url']}"})[0]
+        "wedge": WEDGE[p["segment"]], "is_dream25": False, "strategy": p["strategy"],
+        "notes": (f"Prospector ({p['strategy']}/{p['segment']}): {p['observation']} Evidence: {p['evidence_url']}"
+                  + (" Last resort: full-time post at a small company, stale." if p["last_resort"] else ""))})[0]
     S.known.add(p["domain"])
     contact = None
     if p["contact"]:
@@ -247,19 +483,22 @@ def _write(S, p: dict, dossier: str, draft: dict | None) -> dict:
     deal = db.insert("deals", {
         "company_id": company["id"], "primary_contact_id": contact["id"] if contact else None,
         "title": ("Outbound: " + p["observation"])[:140], "stage": "lead", "wedge": WEDGE[p["segment"]],
-        "source_channel": "outbound"})[0]
+        "source_channel": "outbound", "strategy": p["strategy"]})[0]
     sources = [{"url": p["evidence_url"], "kind": "evidence", "quote": p["evidence_quote"]}]
     if p["contact"]:
         sources.append({"url": p["contact"]["source_url"], "kind": "contact_address"})
     db.insert("dossiers", {"company_id": company["id"], "version": 1, "body_md": dossier, "sources": sources,
                            "created_by": AGENT}, returning=False)
     _log(S, "prospect_created", target_table="companies", target_id=company["id"],
-         detail={"domain": p["domain"], "segment": p["segment"], "deal_id": deal["id"], "evidence_url": p["evidence_url"]})
+         detail={"domain": p["domain"], "strategy": p["strategy"], "segment": p["segment"], "deal_id": deal["id"],
+                 "evidence_url": p["evidence_url"], "trigger_type": p["trigger_type"], "last_resort": p["last_resort"]})
     out = {"company_id": company["id"], "deal_id": deal["id"], "queued": None}
     if contact and draft:
         body, problems = finish_draft(draft["body"])
         hits = lint.lint(body, {"recipient": contact["email"]})
         reasons = [x for x in problems if "added by code" not in x]
+        if p["strategy"] == "s4_partner" and SALES_WORDS.search(body):
+            reasons.append("sales wording in a partner draft")
         if hits:
             reasons.append("lint: " + ", ".join(sorted({h["type"] for h in hits})))
         held = bool(reasons)
@@ -269,18 +508,20 @@ def _write(S, p: dict, dossier: str, draft: dict | None) -> dict:
             "subject": _one_line(draft["subject"], 120), "run_id": S.run_id, "held": held,
             "held_reason": "; ".join(reasons) or None, "lint": hits})[0]
         S.c["drafts"] += 1
+        S.by[p["strategy"]]["drafts"] += 1
         S.c["held"] += 1 if held else 0
         out["queued"] = row["id"]
         _log(S, "draft_queued", target_table="approval_queue", target_id=row["id"],
-             detail={"kind": "outbound", "held": held, "lint": len(hits), "offer": p["offer_slug"],
+             detail={"kind": "outbound", "held": held, "lint": len(hits), "offer": p["offer_slug"], "strategy": p["strategy"],
                      "notes": (draft.get("notes") or "")[:200]})
     return out
 
 
 def _process(S, p: dict) -> None:
     db = S.db
-    row = {"company": p["name"], "domain": p["domain"], "country": p["country"], "segment": p["segment"],
-           "evidence_url": p["evidence_url"], "evidence_quote": p["evidence_quote"], "observation": p["observation"],
+    row = {"company": p["name"], "domain": p["domain"], "country": p["country"], "strategy": p["strategy"],
+           "segment": p["segment"], "trigger": p["trigger"], "trigger_type": p["trigger_type"],
+           "evidence_date": p["evidence_date"], "last_resort": p["last_resort"], "evidence_url": p["evidence_url"], "evidence_quote": p["evidence_quote"], "observation": p["observation"],
            "offer": p["offer_slug"], "contact": p["contact"], "confidence": p["confidence"]}
     if p["domain"] in S.known:
         S.c["dup"] += 1
@@ -318,8 +559,10 @@ def _process(S, p: dict) -> None:
             _log(S, "draft_failed", detail={"domain": p["domain"], "error": str(e)[:200]})
     else:
         S.c["no_contact"] += 1
+        S.by[p["strategy"]]["no_contact"] += 1
     out = _write(S, p, dossier, draft)
     S.c["created"] += 1
+    S.by[p["strategy"]]["created"] += 1
     S.rows.append({**row, **out, "dossier_chars": len(dossier), "draft": draft and draft["body"],
                    "contact_note": p["contact_note"]})
 
@@ -343,50 +586,66 @@ def _prompt_domains(db, S) -> str:
     return ", ".join(safe) or "(none yet)"
 
 
-def _created_today(db, now: datetime) -> int:
+def _created_today(db, now: datetime) -> dict:
+    """prospect_created actions since PKT midnight, per strategy ('legacy' for rows without one)."""
     start = now.astimezone(ZoneInfo(config.TZ)).replace(hour=0, minute=0, second=0, microsecond=0)
-    return len(db.select("actions", action="prospect_created", at=f"gte.{start.isoformat()}", select="id", limit=1000))
+    out: dict = {}
+    for a in db.select("actions", action="prospect_created", at=f"gte.{start.isoformat()}", limit=1000):
+        sid = (a.get("detail") or {}).get("strategy") or LEGACY
+        out[sid] = out.get(sid, 0) + 1
+    return out
 
 
-def _research_segment(S, seg: str, target: int, slugs: list[str], schema: dict) -> None:
-    for _ in range(CALLS_PER_SEGMENT):
-        if S.c["created"] >= target or S.budget_hit:
+def _preferred_offers(st, slugs: list[str]) -> str:
+    return ", ".join(o for o in st.offers if o in slugs) or ", ".join(slugs)
+
+
+def _research_strategy(S, sid: str, target: int, slugs: list[str], schema: dict) -> None:
+    st, mine = strat.get(sid), S.by[sid]
+    for _ in range(CALLS_PER_STRATEGY):
+        if mine["created"] >= target or S.budget_hit:
             return
-        n = min(BATCH, target - S.c["created"] + 2)
+        n = min(BATCH, target - mine["created"] + 2)
         system = loader.compose("prospect_research", {
-            "n": n, "today": S.today, "segment": seg, "segment_brief": SEGMENT_BRIEFS[seg], "slugs": ", ".join(slugs),
-            "offers": loader.offers_summary(), "known_domains": _prompt_domains(S.db, S)},
+            "n": n, "today": S.today, "strategy": sid, "strategy_name": st.name, "strategy_brief": st.brief,
+            "queries": st.queries, "buyer_rules": st.buyer_rules, "evidence_rules": st.evidence_rules,
+            "preferred_offers": _preferred_offers(st, slugs), "slugs": ", ".join(slugs),
+            "offers": loader.offers_summary(), "markets": ", ".join(S.markets or sorted(TARGET_MARKETS)), "known_domains": _prompt_domains(S.db, S)},
             preamble="preamble_research")
         S.c["research_calls"] += 1
+        mine["research_calls"] += 1
         try:
             data, _ = S.llm.research(S.db, AGENT, S.run_id, system,
-                                     f"Run the research task for segment {seg}. Return up to {n} companies.",
+                                     f"Run the research task for strategy {sid}. Return up to {n} companies.",
                                      schema, model="sonnet")
         except llm_mod.BudgetExceeded:
             S.budget_hit = True
             return
         except llm_mod.LLMError as e:
             S.c["research_failed"] += 1
-            _log(S, "research_failed", detail={"segment": seg, "error": str(e)[:200]})
+            _log(S, "research_failed", detail={"strategy": sid, "error": str(e)[:200]})
             return
         found = data.get("companies") or []
         if data.get("notes"):
-            S.notes.append(f"{seg}: {data['notes'][:300]}")
+            S.notes.append(f"{sid}: {data['notes'][:300]}")
         S.c["returned"] += len(found)
-        _log(S, "research_done", detail={"segment": seg, "returned": len(found), "notes": (data.get("notes") or "")[:200]})
+        mine["returned"] += len(found)
+        _log(S, "research_done", detail={"strategy": sid, "returned": len(found), "notes": (data.get("notes") or "")[:200]})
         if not found:
             return
         valid = []
         for raw in found:
-            p, why = validate(raw, seg, set(slugs))
+            p, why = validate(raw, sid, set(slugs), S.today_date, S.segments, S.markets)
             if p is None:
                 S.c["invalid"] += 1
-                _log(S, "prospect_dropped", detail={"reason": why, "domain": str((raw or {}).get("domain"))[:80]})
+                mine["invalid"] += 1
+                _log(S, "prospect_dropped", detail={"strategy": sid, "reason": why,
+                                                    "domain": str((raw or {}).get("domain"))[:80]})
                 continue
             valid.append(p)
         fill_contacts(S, valid)
         for p in valid:
-            if S.c["created"] >= target or S.budget_hit:
+            if mine["created"] >= target or S.budget_hit:
                 break
             try:
                 _process(S, p)
@@ -396,7 +655,7 @@ def _research_segment(S, seg: str, target: int, slugs: list[str], schema: dict) 
 
 
 def run(db: DB | None = None, llm=llm_mod, settings=None, now: datetime | None = None, *,
-        segment: str | None = None, per_day: int | None = None, dry: bool = False) -> dict:
+        strategy: str | None = None, per_day: int | None = None, dry: bool = False) -> dict:
     db = db or DB()
     settings = settings or settings_mod.Settings(db)
     now = now or datetime.now(timezone.utc)
@@ -410,23 +669,37 @@ def run(db: DB | None = None, llm=llm_mod, settings=None, now: datetime | None =
 
     if not dry and settings.paused():
         return beat("ok", state="paused")
-    enabled = [segment] if segment else settings.segments()
-    want = per_day if per_day is not None else settings.per_day()
-    target = want if dry else want - _created_today(db, now)
-    if not enabled or target <= 0:
-        return beat("ok", state="idle" if enabled else "no segments", target=max(target, 0))
-    slugs = loader.offer_slugs()
-    schema = schemas.research(slugs)
-    S.known = _known_domains(db)
     S.today = now.astimezone(ZoneInfo(config.TZ)).strftime("%A %d %B %Y")
-    order = segment_order(enabled, now.astimezone(ZoneInfo(config.TZ)).date())
-    for seg in order:
-        if S.c["created"] >= target or S.budget_hit:
+    S.today_date = now.astimezone(ZoneInfo(config.TZ)).date()
+    rebalance_note = ""
+    try:
+        rebalance_note = maybe_rebalance(S, settings, now)
+    except Exception as e:  # the weekly move must never stop the daily run
+        _log(S, "quota_rebalance_failed", detail={"error": f"{type(e).__name__}: {str(e)[:200]}"})
+    quotas = effective_quotas(settings.get("strategy.quotas"), per_day if per_day is not None and not dry else settings.per_day())
+    if dry:
+        targets = {strategy: per_day if per_day is not None else 3}
+    else:
+        done = _created_today(db, now)
+        targets = {sid: max(q - done.get(sid, 0), 0) for sid, q in quotas.items() if q > 0 and strategy in (None, sid)}
+    targets = {sid: n for sid, n in targets.items() if n > 0}
+    if not targets:
+        return beat("ok", state="idle", target=0, **({"rebalance": rebalance_note} if rebalance_note else {}))
+    slugs = loader.offer_slugs()
+    S.known = _known_domains(db)
+    S.segments = None if dry else settings.segments()
+    S.markets = [m for m in settings.get("prospector.markets") if m not in settings_mod.ALWAYS_EXCLUDED]
+    order = strategy_order(list(targets), S.today_date)
+    for sid in order:
+        if S.budget_hit:
             break
-        _research_segment(S, seg, target, slugs, schema)
+        _research_strategy(S, sid, targets[sid], slugs, schemas.research_strategy(slugs, sid))
     status = "warn" if (S.budget_hit or S.c["errors"] or S.c["research_failed"] or S.c["dossier_failed"]
                         or S.c["draft_failed"]) else "ok"
-    out = {"segments": order, "target": target, "budget_exceeded": S.budget_hit, **S.c}
+    out = {"strategies": order, "target": sum(targets.values()), "budget_exceeded": S.budget_hit, **S.c,
+           "by_strategy": S.by} | {f"{sid}_created": S.by[sid]["created"] for sid in order}
+    if rebalance_note:
+        out["rebalance"] = rebalance_note
     if not dry:
         out = beat(status, **out)
     else:
@@ -457,17 +730,18 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Epsilon OS prospector")
     ap.add_argument("--dry-run", action="store_true",
                     help="research for real, write nothing, print prospects as JSON; uses an in-memory fake DB")
-    ap.add_argument("--segment", choices=schemas.PROSPECT_SEGMENTS, help="required with --dry-run")
+    ap.add_argument("--strategy", choices=settings_mod.STRATEGY_IDS,
+                    help="one strategy only; required with --dry-run (each run is one or two real research calls)")
     ap.add_argument("--n", type=int, default=3, help="prospects wanted in a dry run")
     a = ap.parse_args(argv)
     if not a.dry_run:
-        print({k: v for k, v in run().items() if k != "rows"})  # same as the launchd job
+        print({k: v for k, v in run(strategy=a.strategy).items() if k not in ("rows", "by_strategy")})  # same as launchd
         return 0
-    if not a.segment:
-        ap.error("--dry-run needs --segment (each segment is one real research call)")
+    if not a.strategy:
+        ap.error("--dry-run needs --strategy (each strategy is its own real research call)")
     from tests.fakes import FakeDB
     db = FakeDB()  # never the live database
-    res = run(db, _DryAsk(llm_mod), now=datetime.now(timezone.utc), segment=a.segment, per_day=a.n, dry=True)
+    res = run(db, _DryAsk(llm_mod), now=datetime.now(timezone.utc), strategy=a.strategy, per_day=a.n, dry=True)
     print(json.dumps(res, indent=2, ensure_ascii=False, default=str))
     return 0
 

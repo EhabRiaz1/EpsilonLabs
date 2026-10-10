@@ -109,3 +109,30 @@ CONTACTS = {
         "notes": {"type": "string"}},
     "required": ["contacts"],
 }
+
+
+# ---------------------------------------------------------------- strategy research (S2-S5, migration 007)
+
+STRATEGY_IDS = ["s2_trigger", "s3_regulation", "s4_partner", "s5_intent", "s7_orphaned", "s8_tradeshow", "s9_crowdfund",
+                "s10_accelerator"]
+TRIGGER_TYPES = ["funding", "expansion", "grant", "end_of_life", "regulation", "partner_page", "rfq", "fulltime_post",
+                 "orphaned", "tradeshow", "crowdfunding", "cohort", "other"]
+
+
+def research_strategy(slugs: list[str], strategy: str) -> dict:
+    """Like research(), but each company names its strategy, a trigger and the facts code needs to judge it."""
+    base = research(slugs)
+    company = dict(base["properties"]["companies"]["items"])
+    props = dict(company["properties"])
+    props.update({
+        "strategy": {"type": "string", "enum": [strategy]},
+        "evidence_date": {"type": "string", "maxLength": 10},
+        "trigger": {"type": "string", "maxLength": 200},
+        "trigger_type": {"type": "string", "enum": TRIGGER_TYPES},
+        "headcount": {"type": "integer", "minimum": 0, "maximum": 1000000},
+        "post_age_days": {"type": "integer", "minimum": 0, "maximum": 3650},
+    })
+    company["properties"] = props
+    company["required"] = sorted(set(company["required"]) | set(props))
+    items = {**base["properties"]["companies"], "items": company}
+    return {**base, "properties": {**base["properties"], "companies": items}}

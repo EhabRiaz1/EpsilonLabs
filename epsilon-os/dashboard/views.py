@@ -13,6 +13,14 @@ def tag(text: str, tone: str = "") -> str:
     return f'<span class="tag {tone}">{e(text)}</span>'
 
 
+def strategy_tag(sid: str) -> str:
+    """Small strategy tag on a Pipeline row (empty for deals no prospector strategy made)."""
+    if not sid:
+        return ""
+    t = data.STRATEGY_TAG.get(sid, sid)
+    return f' <span class="tag out st" title="{e(t)} strategy: {e(sid)}">{e(t)}</span>'
+
+
 def kbd(k: str) -> str:
     return f'<span class="kbd" aria-hidden="true">{e(k)}</span>'
 
@@ -344,7 +352,7 @@ def pipeline(csrf: str, sh: dict, p: dict, channel: str | None, panel: str, demo
         trs = "".join(
             f'<tr tabindex="0" data-deal="{e(r["id"])}"><td><a href="/pipeline?deal={e(r["id"])}'
             f'{"&channel=" + e(channel) if channel else ""}">{e(r["company"])}</a>'
-            f'<span class="sub">{e(r["title"])}</span></td><td><span class="tag ch-{e(r["channel"])}">{e(r["channel"].replace("_", "-").upper())}</span></td>'
+            f'<span class="sub">{e(r["title"])}</span></td><td><span class="tag ch-{e(r["channel"])}">{e(r["channel"].replace("_", "-").upper())}</span>{strategy_tag(r["strategy"])}</td>'
             f'<td class="num">{e("$" + format(float(r["value"]), ",.0f")) if r["value"] else "—"}</td>'
             f'<td class="num"><span class="days {r["tone"]}">{r["days"]}d</span>'
             f'{" " + tag("STALLED", "red") if r["tone"] == "red" else (" " + tag("SLOW", "amber") if r["tone"] else "")}</td>'
@@ -409,14 +417,78 @@ def health(csrf: str, sh: dict, h: dict, demo: bool) -> str:
         f'<td class="mono sm">{e((a.get("target_id") or "")[:8])}</td></tr>' for a in h["actions"]) or \
         '<tr><td colspan="4" class="muted">No actions yet.</td></tr>'
     rt = h["restore_tested"] or "not recorded"
+    strategies = strategies_section(h["strategies"])
     body = (f'<p class="eyebrow mono">System</p><h1 class="pt">Health</h1><p class="muted">Backup last restore test: {e(str(rt))}</p>'
             f'<section aria-labelledby="llm"><h2 id="llm" class="mono lbl">LLM calls per day · 14d</h2>'
             f'<ul class="bars" aria-label="LLM calls per day">{bars}</ul></section>'
+            f'{strategies}'
             f'<section aria-labelledby="runs"><h2 id="runs" class="mono lbl">Agent runs · last 20 each</h2>{runs}</section>'
             f'<section aria-labelledby="acts"><h2 id="acts" class="mono lbl">Last 50 actions</h2>'
             f'<table class="grid"><thead><tr><th scope="col">When</th><th scope="col">Agent</th>'
             f'<th scope="col">Action</th><th scope="col">Target</th></tr></thead><tbody>{acts}</tbody></table></section>')
     return page("Health", body, "Health", csrf, sh, demo, cls="healthpage")
+
+
+def _pct(v) -> str:
+    return "—" if v is None else f"{v * 100:.0f}%"
+
+
+def strategies_section(b: dict) -> str:
+    trs = "".join(
+        f'<tr><td><b>{e(r["name"])}</b> <span class="mono sub-tag">{e(r["tag"])}</span></td>'
+        f'<td class="num">{e(str(r["quota"])) if r["quota"] is not None else "—"}{" " + tag("PINNED", "out") if r["pinned"] else ""}</td>'
+        f'<td class="num">{r["created"]}</td><td class="num">{r["sent"]}</td><td class="num">{r["replies"]}</td>'
+        f'<td class="num">{r["positive"]}</td><td class="num">{_pct(r["reply_rate"])}</td>'
+        f'<td class="num">{_pct(r["positive_rate"])}</td><td class="num">{e(data.money(r["won_value"])) if r["won_value"] else "—"}</td></tr>'
+        for r in b["rows"])
+    return (f'<section aria-labelledby="strat" class="strat"><h2 id="strat" class="mono lbl">Strategies · last 30 days</h2>'
+            f'<table class="grid"><thead><tr><th scope="col">Strategy</th><th scope="col" class="num">Quota / day</th>'
+            f'<th scope="col" class="num">Created</th><th scope="col" class="num">Sent</th><th scope="col" class="num">Replies</th>'
+            f'<th scope="col" class="num">Positive</th><th scope="col" class="num">Reply %</th>'
+            f'<th scope="col" class="num">Positive %</th><th scope="col" class="num">Won</th></tr></thead>'
+            f'<tbody>{trs}</tbody></table><p class="hint strat-note">{e(b["note"])}</p></section>')
+
+
+def strategies_fieldset(v: dict, errors: dict) -> str:
+    from agents import prospector
+    from core import settings as cfg
+    draft = v.get("strategy_draft")
+    on = ("1", "on", "true")
+    auto = (draft.get("auto_rebalance") in on) if draft else v["auto_rebalance"]
+    rows = ""
+    for sid in cfg.STRATEGY_IDS:
+        q = draft.get(f"quota_{sid}", "") if draft else v["quotas"].get(sid, 0)
+        pin = (draft.get(f"pin_{sid}") in on) if draft else sid in v["pinned"]
+        err = errors.get(f"quota_{sid}")
+        ref = "h-quotas" + (f" e-quota_{sid}" if err else "")
+        msg = f'<p class="fielderr" id="e-quota_{sid}" role="alert">{e(err)}</p>' if err else ""
+        rows += (f'<div class="qrow{" bad" if err else ""}"><label for="f-quota_{sid}" class="flab">{e(cfg.STRATEGY_LABEL[sid])}</label>'
+                 f'<input class="inp num" id="f-quota_{sid}" name="quota_{sid}" type="number" inputmode="numeric" min="0" max="50" step="1" '
+                 f'value="{e(str(q))}" aria-describedby="{ref}"{" aria-invalid=true" if err else ""}>'
+                 f'<label class="ck pick" for="f-pin_{sid}"><input type="checkbox" id="f-pin_{sid}" name="pin_{sid}" value="1"'
+                 f'{" checked" if pin else ""}> Pin</label>{msg}</div>')
+    total_err = errors.get("quotas")
+    try:
+        total = sum(int(str(draft.get(f"quota_{s}", 0)).strip() or 0) for s in cfg.STRATEGY_IDS) if draft else sum(v["quotas"].values())
+    except ValueError:
+        total = sum(v["quotas"].values())
+    tmsg = f'<p class="fielderr" role="alert">{e(total_err)}</p>' if total_err else ""
+    mk_err = errors.get("markets")
+    mk_val = draft.get("markets", "") if draft and "markets" in draft else ", ".join(v["markets"])
+    mk_msg = f'<p class="fielderr" id="e-markets" role="alert">{e(mk_err)}</p>' if mk_err else ""
+    markets = (f'<div class="field mkt{" bad" if mk_err else ""}"><label for="f-markets" class="flab">Markets to hunt in</label>'
+               f'<input class="inp" id="f-markets" name="markets" type="text" value="{e(mk_val)}" autocomplete="off" '
+               f'aria-describedby="h-markets{" e-markets" if mk_err else ""}"{" aria-invalid=true" if mk_err else ""}>'
+               f'<p class="hint" id="h-markets">Two-letter country codes, comma separated: where a client can pay a Pakistan firm and budgets reach $10k+. '
+               f'Pakistan and sanctioned markets (IR, KP, SY, CU, RU, BY) are always left out.</p>{mk_msg}</div>')
+    return (f'<fieldset class="setcard wide strat-set" aria-describedby="h-quotas"><legend class="mono lbl">Strategies</legend>'
+            f'<div class="quotas{" bad" if total_err else ""}">{rows}</div>'
+            f'<p class="hint" id="h-quotas">Prospects to find per day for each strategy, 0 to switch one off. Pin keeps a quota fixed when it rebalances. '
+            f'The total (now {total}) cannot be more than Prospects per day.</p>{tmsg}'
+            f'<label class="ck pick" for="f-auto_rebalance"><input type="checkbox" id="f-auto_rebalance" name="auto_rebalance" value="1"'
+            f'{" checked" if auto else ""}> Rebalance quotas automatically</label>'
+            f'<p class="hint">Mondays, once a strategy has {prospector.MIN_SENDS} sends in 30 days: up to {prospector.REBALANCE_STEP} quota a week moves '
+            f'toward the best positive-reply rate. No strategy goes below {prospector.REBALANCE_FLOOR}.</p>{markets}</fieldset>')
 
 
 # ------------------------------------------------------------------ Settings
@@ -473,7 +545,7 @@ def settings_page(csrf: str, sh: dict, v: dict, errors: dict, saved: bool, demo:
         f'<input type="hidden" name="csrf" value="{e(csrf)}"><input type="hidden" name="next" value="/settings?saved=1">'
         f'<div class="setgrid">'
         f'<section class="setcard" aria-labelledby="s-pro"><h2 id="s-pro" class="mono lbl">Prospector</h2>'
-        f'{_field("per_day", "Prospects per day", "New companies researched each morning, 0 to 50.", _num("per_day", v["per_day"], 0, 50, errors), errors)}'
+        f'{_field("per_day", "Prospects per day", "New companies researched each morning, 0 to 80.", _num("per_day", v["per_day"], 0, 80, errors), errors)}'
         f'{segments}{paused}'
         f'<p class="mono sub">{v["prospected"]} found today</p></section>'
         f'<section class="setcard" aria-labelledby="s-llm"><h2 id="s-llm" class="mono lbl">LLM budget</h2>'
@@ -482,6 +554,7 @@ def settings_page(csrf: str, sh: dict, v: dict, errors: dict, saved: bool, demo:
         f'<section class="setcard" aria-labelledby="s-out"><h2 id="s-out" class="mono lbl">Outreach</h2>'
         f'{_field("daily_cap", "Daily send cap", "Ceiling, 0 to 100. The warm-up ramp (5/day, +5 every 3 days) applies below it.", _num("daily_cap", v["daily_cap"], 0, 100, errors), errors)}'
         f'{_field("address", "Outreach address", addr_hint, addr_ctl, errors)}</section>'
+        f'{strategies_fieldset(v, errors)}'
         f'</div>'
         f'<div class="setacts"><button class="btn pri" type="submit">Save settings</button>'
         f'<a class="btn ghost" href="/settings">Reset</a></div></form>')

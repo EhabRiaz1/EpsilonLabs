@@ -423,3 +423,15 @@ table.grid{width:100%;border-collapse:separate;border-spacing:0}
   .hello h1{font-size:30px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* strategies */
+.tag.st{margin-left:4px}
+.sub-tag{color:var(--muted);font-size:11px;letter-spacing:.08em}
+.strat .grid{margin-bottom:8px}.strat-note{max-width:78ch}
+.setcard.wide{grid-column:1 / -1;min-width:0;margin:0}
+fieldset.setcard legend{padding:0}
+.quotas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 28px}
+.qrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:center}
+.qrow .fielderr{grid-column:1 / -1}
+.qrow.bad .inp,.quotas.bad .inp{border-color:var(--red)}
+@media (max-width:1023px){.quotas{grid-template-columns:1fr}}

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from core import config, settings as cfg
-from agents import outreach
+from agents import outreach, prospector
 from dashboard import actions
 
 PKT = ZoneInfo(config.TZ)
@@ -18,6 +18,8 @@ STAGES = [("lead", "Lead"), ("conversation", "Conversation"), ("scoping_call", "
           ("quote_out", "Quote out"), ("won_lost", "Won / Lost"), ("dormant", "Dormant")]
 CHANNELS = ["referral", "inbound", "outbound", "dream25", "pre_existing"]
 WEDGE_LABEL = {"fuel_retail": "W1", "industrial_monitoring": "W2", "protocol_decode": "W3", "other": "OTHER"}
+STRATEGY_TAG = {"s2_trigger": "S2", "s3_regulation": "S3", "s4_partner": "S4", "s5_intent": "S5", "s7_orphaned": "S7", "s8_tradeshow": "S8", "s9_crowdfund": "S9",
+                "s10_accelerator": "S10", "legacy": "LEGACY"}
 KIND_LABEL = {"ack": "ACK", "reply": "REPLY", "outbound": "OUTBOUND", "quote": "QUOTE", "optout_confirm": "OPT-OUT"}
 
 
@@ -251,6 +253,7 @@ def pipeline(db, now: datetime, channel: str | None) -> dict:
         t = latest.get(d["id"])
         row = {"id": d["id"], "company": (companies.get(d["company_id"]) or {}).get("name") or d["title"],
                "title": d["title"], "channel": d["source_channel"], "value": d.get("value_usd"),
+               "strategy": d.get("strategy") or "",
                "days": days, "stage": d["stage"], "next": (t or {}).get("subject") or "",
                "tone": "red" if days > 14 else ("amber" if days > 7 else "")}
         groups["won_lost" if d["stage"] in ("won", "lost") else d["stage"]].append(row)
@@ -309,8 +312,38 @@ def health(db, now: datetime) -> dict:
         a["age"] = ago(actions.parse_ts(a["at"]), now)
     backup = next((b for b in beats if b["agent"] == "backup"
                    and isinstance(b.get("detail"), dict) and b["detail"].get("restore_tested_at")), None)
-    return {"runs": runs, "llm": llm, "actions": acts,
+    return {"runs": runs, "llm": llm, "actions": acts, "strategies": strategies_block(db, now),
             "restore_tested": backup["detail"]["restore_tested_at"] if backup else None}
+
+
+def strategies_block(db, now: datetime) -> dict:
+    """Health page 'Strategies': 30-day numbers per strategy (prospector.strategy_stats), the quota, and the rebalance note."""
+    stats = prospector.strategy_stats(db, now, (30,))
+    quotas, pinned, auto = cfg.quotas(db), cfg.pinned(db), cfg.auto_rebalance(db)
+    rows = []
+    for sid in list(cfg.STRATEGY_IDS) + [prospector.LEGACY]:
+        m = stats[sid][30]
+        if sid == prospector.LEGACY and not (m["created"] or m["sent"] or m["replies"]):
+            continue
+        rows.append({"id": sid, "name": cfg.STRATEGY_LABEL.get(sid, "Legacy (segment search)"), "tag": STRATEGY_TAG[sid],
+                     "quota": quotas.get(sid), "pinned": sid in pinned, **m})
+    eligible = sum(1 for sid in cfg.STRATEGY_IDS if stats[sid][30]["sent"] >= prospector.MIN_SENDS)
+    _, last = prospector.rebalance_actions(db, now)
+    start = pkt_midnight(now)
+    checked = bool(last) and (actions.parse_ts(last[0].get("at")) or start) >= start
+    moved = db.select("actions", agent="prospector", action="quota_rebalanced", order="at.desc", limit=1)
+    if not auto:
+        note = "Auto-rebalance is off. Quotas stay as set."
+    else:
+        nxt = prospector.next_rebalance(now, checked)
+        note = (f"Next rebalance: {nxt.strftime('%a %d %b')}. It moves up to {prospector.REBALANCE_STEP} quota a week toward the best "
+                f"positive-reply rate, once at least two strategies have {prospector.MIN_SENDS} sends in 30 days "
+                f"({eligible} of {len(cfg.STRATEGY_IDS)} there now).")
+    if moved:
+        dt = moved[0].get("detail") or {}
+        note += (f" Last change {ago(actions.parse_ts(moved[0]['at']), now)} ago: {dt.get('moved')} from "
+                 f"{cfg.STRATEGY_LABEL.get(dt.get('from'), '?')} to {cfg.STRATEGY_LABEL.get(dt.get('to'), '?')}.")
+    return {"rows": rows, "note": note, "per_day": cfg.per_day(db)}
 
 
 # ------------------------------------------------------------------ Settings
@@ -321,4 +354,5 @@ def settings_view(db, now: datetime) -> dict:
         "daily_budget": cfg.daily_budget(db), "daily_cap": cfg.daily_cap(db), "address": cfg.outreach_address(db),
         "outreach": outreach.status(db, now), "calls": calls_today(db, now)[0],
         "prospected": prospected_today(db, now),
+        "markets": cfg.markets(db), "quotas": cfg.quotas(db), "auto_rebalance": cfg.auto_rebalance(db), "pinned": cfg.pinned(db),
     }
