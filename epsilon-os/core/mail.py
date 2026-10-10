@@ -1,4 +1,5 @@
 import email
+import email.utils
 import imaplib
 import smtplib
 import ssl
@@ -71,3 +72,30 @@ def send(fields: dict) -> str:
         s.login(user, pw)
         s.send_message(m)
     return m["Message-ID"]
+
+
+def new_message_id() -> str:
+    return email.utils.make_msgid(domain="epsilon-labs.co")
+
+
+def sent_has(message_id: str, folder: str = "Sent") -> bool:
+    """True if the IMAP Sent folder holds a message with this Message-ID."""
+    inner = message_id.strip().strip("<>")
+    if not inner or any(c in inner for c in '"\\\r\n'):
+        raise ValueError("unsafe message id")
+    user, pw = _creds()
+    imap = imaplib.IMAP4_SSL(config.IMAP_HOST, config.IMAP_PORT, timeout=30)
+    try:
+        imap.login(user, pw)
+        typ, _ = imap.select(folder, readonly=True)
+        if typ != "OK":
+            raise RuntimeError(f"cannot open IMAP folder {folder!r}")
+        typ, data = imap.uid("SEARCH", None, "HEADER", "Message-ID", f'"{inner}"')
+        if typ != "OK":
+            raise RuntimeError("IMAP search failed")
+        return bool((data[0] or b"").split())
+    finally:
+        try:
+            imap.logout()
+        except Exception:
+            pass

@@ -1,0 +1,11 @@
+From: Chloe Martin <chloe@meterco.example>
+To: er@epsilon-labs.co
+Subject: Firmware for our meters
+Date: Mon, 05 Oct 2026 09:00:00 +0500
+Message-ID: <E36@fixtures.example>
+
+Our smart meters stopped booting after a bad update and the original developer is gone.
+Can you look at the bootloader dump? Our status page is https://status.meterco.example/incident-77.
+
+--
+Chloe Martin | +44 20 7946 0958 | chloe.martin@meterco.example | https://meterco.example

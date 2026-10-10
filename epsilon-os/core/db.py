@@ -65,6 +65,13 @@ class DB:
                       headers={"Prefer": "return=representation"})
         return r.json()
 
+    def delete(self, table: str, **filters: Any) -> list[dict]:
+        if not filters:
+            raise DBError("delete without filters refused")
+        r = self._req("DELETE", f"/{table}", params=self._params(filters),
+                      headers={"Prefer": "return=representation"})
+        return r.json()
+
     def rpc(self, fn: str, args: dict | None = None) -> Any:
         return self._req("POST", f"/rpc/{fn}", json=args or {}).json()
 

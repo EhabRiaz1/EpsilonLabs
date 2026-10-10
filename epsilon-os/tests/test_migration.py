@@ -36,9 +36,11 @@ def test_migration(pg):
     apply("schema.sql")
     apply("migrations/002_epsilon_os_v2.sql")
     apply("migrations/002_epsilon_os_v2.sql")  # idempotent
+    apply("migrations/003_epsilon_os_v3.sql")
+    apply("migrations/003_epsilon_os_v3.sql")  # idempotent
     cols = pg("select string_agg(column_name, ',') from information_schema.columns where table_name='approval_queue'")
     for c in ("kind", "to_email", "subject", "in_reply_to_message_id", "references_hdr", "send_error",
-              "sent_message_id", "claimed_at", "run_id"):
+              "sent_message_id", "claimed_at", "run_id", "held", "held_reason", "lint", "diff"):
         assert c in cols.split(","), c
     enums = pg("select string_agg(enumlabel, ',') from pg_enum e join pg_type t on t.oid=e.enumtypid where typname='approval_status'")
     assert "sending" in enums and "failed" in enums
@@ -46,3 +48,6 @@ def test_migration(pg):
         assert pg(f"select relrowsecurity from pg_class where relname='{t}'") == "t"
         assert pg(f"select count(*) from pg_policies where tablename='{t}' and 'service_role'=any(roles)") == "1"
     assert pg("select count(*) from pg_indexes where indexname='actions_action_at_idx'") == "1"
+    assert pg("select count(*) from pg_indexes where indexname='approval_queue_status_held_idx'") == "1"
+    assert pg("select column_default from information_schema.columns where table_name='approval_queue' and column_name='held'") == "false"
+    assert pg("select is_nullable from information_schema.columns where table_name='approval_queue' and column_name='held'") == "NO"

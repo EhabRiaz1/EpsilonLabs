@@ -1,0 +1,8 @@
+From: Priya Raman <priya@lumenhealth.example>
+To: er@epsilon-labs.co
+Subject: Firmware rescue, bricked fleet
+Date: Mon, 05 Oct 2026 09:00:00 +0500
+Message-ID: <E08@fixtures.example>
+
+An OTA update bricked about 300 devices. Original firmware dev has left.
+We have the bootloader dump. Urgent: how fast can you look?

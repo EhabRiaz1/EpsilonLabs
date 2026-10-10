@@ -8,4 +8,15 @@ setup:
 test:
 	$(PY) -m pytest -q tests
 
-.PHONY: setup test
+# Real `claude -p` calls (subscription rate limits): full set is ~40 fixtures x 3 runs.
+eval:
+	$(PY) -m evals.run_eval
+
+eval-quick:
+	$(PY) -m evals.run_eval --subset 5 --runs 1
+
+# Live Zoho + Supabase smoke. Needs explicit consent:  make smoke ARGS=--i-mean-it
+smoke:
+	$(PY) -m scripts.smoke_live $(ARGS)
+
+.PHONY: setup test eval eval-quick smoke

@@ -66,3 +66,38 @@ def test_build_headers():
                     "in_reply_to": "<p@b.com>", "references": "<o@b.com>"})
     assert m["Message-ID"] == "<x@epsilon-labs.co>" and m["In-Reply-To"] == "<p@b.com>"
     assert m["References"] == "<o@b.com> <p@b.com>" and m["From"] == "er@epsilon-labs.co"
+
+
+def test_delete_requires_filter_and_sends_delete():
+    seen = []
+    assert db_with([{"id": "1"}], seen).delete("touches", message_id="<m>") == [{"id": "1"}]
+    assert seen[0].method == "DELETE" and seen[0].url.params["message_id"] == "eq.<m>"
+    with pytest.raises(Exception):
+        db_with([]).delete("touches")
+
+
+def test_sent_has_searches_sent_folder(monkeypatch):
+    calls = {}
+
+    class FakeIMAP:
+        def __init__(self, *a, **k): pass
+        def login(self, u, p): calls["login"] = True
+        def select(self, folder, readonly=False):
+            calls["folder"] = folder
+            return "OK", [b"1"]
+        def uid(self, *args):
+            calls["search"] = args
+            return "OK", [b"7" if "found" in args[-1] else b""]
+        def logout(self): pass
+    monkeypatch.setattr(mail.imaplib, "IMAP4_SSL", FakeIMAP)
+    monkeypatch.setattr(mail, "_creds", lambda: ("u", "p"))
+    assert mail.sent_has("<found@x>") is True and mail.sent_has("<other@x>") is False
+    assert calls["folder"] == "Sent" and calls["search"][1:4] == (None, "HEADER", "Message-ID")
+    assert calls["search"][-1] == '"other@x"'
+    with pytest.raises(ValueError):
+        mail.sent_has('<a"b@x>')
+
+
+def test_new_message_id_shape():
+    mid = mail.new_message_id()
+    assert mid.startswith("<") and mid.endswith("@epsilon-labs.co>")

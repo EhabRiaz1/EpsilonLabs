@@ -1,0 +1,10 @@
+From: Mail Delivery Subsystem <MAILER-DAEMON@mail.example>
+To: er@epsilon-labs.co
+Subject: Delivery Status Notification (Failure)
+Date: Mon, 05 Oct 2026 09:00:00 +0500
+Message-ID: <E18@fixtures.example>
+Content-Type: multipart/report; report-type=delivery-status
+Return-Path: <>
+
+550 5.1.1 The email account you tried to reach does not exist:
+farid@oldcompany.example

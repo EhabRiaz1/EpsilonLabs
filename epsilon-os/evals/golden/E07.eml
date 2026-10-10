@@ -1,0 +1,9 @@
+From: Erik Lindqvist <erik@nordicpump.example>
+To: er@epsilon-labs.co
+Subject: Undocumented RS-485 protocol on legacy controller
+Date: Mon, 05 Oct 2026 09:00:00 +0500
+Message-ID: <E07@fixtures.example>
+
+Our supplier went bankrupt and we have a fleet of controllers speaking an
+undocumented serial protocol. We have captures from a logic analyzer.
+Can you reverse-engineer it? USD is fine.
