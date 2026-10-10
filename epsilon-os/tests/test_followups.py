@@ -202,7 +202,7 @@ def test_lint_red_and_over_length_drafts_are_held(db):
     assert r["created"] == 3 and r["held"] == 2
     held = {x["to_email"]: x for x in steps(db, 2)}
     assert held["info@acme1.example.com"]["held"] and "price" in held["info@acme1.example.com"]["held_reason"]
-    assert held["info@acme2.example.com"]["held"] and "words (limit 70)" in held["info@acme2.example.com"]["held_reason"]
+    assert held["info@acme2.example.com"]["held"] and "words (limit 80)" in held["info@acme2.example.com"]["held_reason"]
     assert held["info@acme3.example.com"]["held"] is False
 
 

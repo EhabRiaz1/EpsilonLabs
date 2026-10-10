@@ -48,3 +48,11 @@ def test_promise():
 def test_catalogue_loads():
     from core.lint import load_bands
     assert isinstance(load_bands(), list)
+
+
+def test_protocol_names_are_not_rupee_prices():
+    from core.lint import lint
+    clean = "We decoded an RS485 bus and an RS-232 port, then an rs485 adapter."
+    assert not [h for h in lint(clean, {}) if h["type"] == "price"]
+    for priced in ("It costs Rs 5,000 per site.", "Only Rs.4500 a month.", "PKR 20,000 upfront."):
+        assert [h for h in lint(priced, {}) if h["type"] == "price"], priced

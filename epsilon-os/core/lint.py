@@ -13,7 +13,7 @@ IBAN_RE = re.compile(r"\b[A-Z]{2}\d{2}[A-Z0-9]{4}[A-Z0-9 ]{7,30}\b")
 ACCT_RE = re.compile(r"\b(?:iban|account\s*(?:no|number|#)?|a/c|swift|routing)\b[^\n]{0,20}?\d[\d -]{6,}", re.I)
 PHONE_RE = re.compile(r"(?<![\w.])(?:\+\d[\d\s().-]{7,}\d|\(?\d{3,4}\)?[\s.-]\d{3}[\s.-]\d{3,4}\d?)(?!\w)")
 MONEY_RE = re.compile(
-    r"(?:(?:USD|US\$|\$|PKR|Rs\.?|GBP|£|EUR|€)\s?(\d[\d,]*(?:\.\d+)?)\s?([kK])?)|"
+    r"(?:(?:USD|US\$|\$|PKR|(?<![A-Za-z])(?-i:Rs)\.?|GBP|£|EUR|€)\s?(\d[\d,]*(?:\.\d+)?)\s?([kK])?)|"
     r"(?:(\d[\d,]*(?:\.\d+)?)\s?([kK])?\s?(?:USD|dollars|PKR|rupees|GBP|EUR|euros))", re.I)
 PROMISE_RE = re.compile(r"\b(refunds?|guarantee[sd]?|free of charge|discounts?)\b", re.I)
 

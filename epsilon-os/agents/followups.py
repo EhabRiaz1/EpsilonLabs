@@ -26,7 +26,7 @@ AGENT = "followups"
 RUN_ACTION = "followups_run"
 PKT = ZoneInfo(config.TZ)
 GAP_DAYS = {2: 4, 3: 5}            # days after the previous step's send
-MAX_WORDS = {2: 70, 3: 50}         # whole email, greeting and last line included
+MAX_WORDS = {2: 80, 3: 60}         # whole email, greeting and last line included
 GATE = timedelta(hours=1)
 STALE_DAYS = 14                    # a step this far past its due date (long outage) is dropped, not sent late
 STOP_TYPES = "in.(human_reply,opt_out,bounce)"
