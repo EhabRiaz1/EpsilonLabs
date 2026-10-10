@@ -548,22 +548,53 @@ html.booting .boot { opacity: 1; visibility: visible; transition-delay: 0s; }
 body.menu-open .burger i:first-child { transform: translateY(2.5px) rotate(45deg); }
 body.menu-open .burger i:last-child  { transform: translateY(-2.5px) rotate(-45deg); }
 
+/* The phone menu: what we do (tap to open), then the company, then a
+   footer that is always on screen with the one action that matters. */
 .menu {
   position: fixed; inset: 0; z-index: 45;
   background: var(--void);
-  padding: calc(var(--nav-h) + var(--s-48)) var(--gutter) var(--s-48);
-  display: flex; flex-direction: column; gap: var(--s-8);
+  display: flex; flex-direction: column;
+  padding-top: var(--nav-h);
   opacity: 0; visibility: hidden;
   transition: opacity var(--base) var(--ease), visibility var(--base);
 }
 body.menu-open .menu { opacity: 1; visibility: visible; }
-.menu a {
-  font-size: var(--t-38); line-height: 1.24; letter-spacing: -0.03em;
-  font-weight: 500;
-  padding-block: var(--s-8);
-  border-bottom: 1px solid var(--rule);
+.menu__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: var(--s-24) var(--gutter) var(--s-32); }
+.menu__k {
+  font: 400 var(--t-12)/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin: var(--s-8) 0 var(--s-12);
 }
+.menu__k + .menu__area, .menu__co { border-top: 1px solid var(--rule); }
+.menu__area { border-bottom: 1px solid var(--rule); }
+.menu__area summary {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-block: var(--s-12);
+  font-size: var(--t-28); font-weight: 500; letter-spacing: -0.025em; line-height: 1.2;
+  list-style: none; cursor: pointer;
+}
+.menu__area summary::-webkit-details-marker { display: none; }
+.menu__area summary::after {
+  content: "+"; font-size: var(--t-28); font-weight: 300; color: var(--muted);
+  transition: transform var(--base) var(--ease);
+}
+.menu__area[open] summary::after { transform: rotate(45deg); color: var(--ink); }
+.menu__area.is-closing summary::after { transform: none; color: var(--muted); }
+.menu__sub { display: grid; gap: 2px; padding: 0 0 var(--s-16); overflow: hidden; }
+.menu__sub a { padding: var(--s-8) 0; font-size: var(--t-16); color: var(--muted); }
+.menu__sub a:hover, .menu__sub a:focus-visible { color: var(--ink); }
+.menu__sub .menu__all { color: var(--ink); font-size: var(--t-14); margin-top: var(--s-4); }
+.menu__area + .menu__k { margin-top: var(--s-32); }
+.menu__co { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--s-24); }
+.menu__co a { padding: var(--s-12) 0; font-size: var(--t-18); border-bottom: 1px solid var(--rule); }
 .menu a[aria-current="page"] { color: var(--copper); }
+.menu__foot {
+  display: grid; gap: var(--s-12); justify-items: center;
+  padding: var(--s-16) var(--gutter) calc(var(--s-16) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--rule); background: var(--void);
+}
+.menu__foot .btn { width: 100%; justify-content: center; padding-block: var(--s-16); }
+.menu__mail { font: 400 var(--t-14)/1 var(--mono); color: var(--muted); }
+
 body.menu-open { overflow: hidden; }
 
 /* ── buttons ────────────────────────────────────────────────────────── */
@@ -675,8 +706,11 @@ body.menu-open { overflow: hidden; }
 .work__tags { display: flex; flex-wrap: wrap; gap: var(--s-8); margin-top: var(--s-8); }
 @media (min-width: 900px) { .work__tags { margin-top: 0; justify-content: flex-end; } }
 
+/* A row with a caption hands its bottom rule to the caption, so the rule
+   sits under both instead of striking through the caption text. */
+.work__row:has(+ .work__cap) { border-bottom: 0; padding-bottom: var(--s-16); }
 .work__cap {
-  margin: calc(var(--s-8) * -1) 0 0; padding: 0 0 var(--s-24);
+  margin: 0; padding: 0 0 var(--s-24);
   border-bottom: 1px solid var(--rule);
   color: var(--muted); font-size: var(--t-14); line-height: 1.6; text-wrap: pretty;
 }
@@ -1292,31 +1326,34 @@ body.menu-open { overflow: hidden; }
   margin-inline: auto;
   text-shadow: 0 2px 30px rgba(0, 0, 0, .55);
 }
+/* Under the title: the mark, a hairline, and the one way in. */
 .lockup {
-  display: grid;
-  grid-template-columns: auto auto auto auto;
-  align-items: center; justify-content: center;
-  gap: var(--s-32);
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--s-24);
   margin-top: var(--s-48);
 }
-.lockup__words {
-  display: grid; grid-template-columns: auto auto; gap: 2px 28px; justify-content: space-between;
-  font: 700 var(--t-21)/1.1 var(--sans); font-stretch: 85%; text-transform: uppercase;
-  text-align: left;
+.lockup .mark { height: 52px; color: var(--ink); }
+.lockup__go {
+  display: inline-flex; gap: 12px; align-items: center;
+  padding-left: var(--s-24); border-left: 1px solid var(--rule-bright);
+  font: 400 var(--t-16)/52px var(--mono); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink); transition: color var(--fast) var(--ease);
 }
-.lockup__words span:nth-child(3) { justify-self: start; }
-.lockup .mark { height: 64px; color: var(--ink); }
-.lockup__est, .lockup__go {
-  font: 400 var(--t-21)/1.1 var(--mono); letter-spacing: .06em; text-transform: uppercase; text-align: left;
-}
-.lockup__go { display: inline-flex; gap: 12px; align-items: center; color: var(--ink); }
 .lockup__go:hover { color: var(--copper); }
 @media (max-width: 760px) {
-  .lockup { grid-template-columns: auto auto; gap: var(--s-16) var(--s-24); }
-  .lockup__words { font-size: var(--t-16); }
-  .lockup__est, .lockup__go { font-size: var(--t-14); }
-  .lockup .mark { height: 44px; }
+  .lockup { gap: var(--s-16); margin-top: var(--s-32); }
+  .lockup .mark { height: 40px; }
+  .lockup__go { padding-left: var(--s-16); font-size: var(--t-14); line-height: 40px; }
 }
+
+/* 404: the hero frame, with a readout of the path that missed. */
+.nf__k { font: 400 var(--t-14)/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--copper); margin-bottom: var(--s-24); }
+.nf__read { margin-top: var(--s-24); font: 400 var(--t-14)/1.5 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.nf__read span { color: var(--ink); }
+.nf__read b { font-weight: 400; color: var(--copper); }
+.nf__links { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-8) var(--s-24); margin-top: var(--s-32); font-size: var(--t-14); }
+.nf__links a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--rule-bright); text-underline-offset: 4px; }
+.nf__links a:hover { color: var(--ink); text-decoration-color: currentColor; }
 
 /* Section header: title left, link on the midline, hairline under. */
 .hrow {
@@ -1642,6 +1679,49 @@ body[data-layout="panel"] .nav { background: #000; }
 .suite__side .showcase__price { margin-top: var(--s-16); }
 .suite__side .showcase__cta { flex-direction: column; }
 .suite__side .btn { justify-content: center; }
+@media (min-width: 900px) {
+  .suite.is-live .suite__panel > .demo { height: 480px; overflow: hidden; }
+  .suite .demo[data-demo="twin"] .t__stage { height: 420px; }
+}
+/* On a phone the card under the demo is a strip: the tab already names the
+   product and its timeline, so the name, one line and the buttons stay. */
+@media (max-width: 899px) {
+  .suite__side { padding: var(--s-16); }
+  .suite__side > .mono, .suite__side .showcase__price { display: none; }
+  .suite__side h3 { margin-top: 0; font-size: var(--t-18); }
+  .suite__side .showcase__cta { flex-direction: row; margin-top: var(--s-12); }
+  .suite__side .btn { flex: 1; }
+}
+/* The home reel: the suite narrowed and centred, the demo smaller with a
+   short description beside it, and the tabs turning over on their own.
+   A hairline fills along the bottom of the active tab; when it is full the
+   next tab opens. Hover or focus holds it, and the first click, tap or key
+   inside the reel stops it for good: the visitor is driving now. */
+.reel > * { max-width: 1040px; margin-inline: auto; }
+.reel__head { display: grid; justify-items: center; gap: var(--s-12); margin-bottom: var(--s-32); text-align: center; }
+.reel__head h2 { font-size: clamp(var(--t-28), 3vw, 44px); font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; }
+.reel__head .ulink { justify-self: center; }
+.reel__cap { margin-top: var(--s-24); color: var(--muted); text-align: center; }
+.reel .suite__tabs { width: fit-content; max-width: 100%; margin: 0 auto var(--s-24); }
+@media (min-width: 900px) {
+  .reel .suite__panel { grid-template-columns: minmax(0, 1fr) 240px; align-items: center; gap: var(--s-32); }
+  .reel .suite__side { position: static; padding: 0; background: none; border: 0; backdrop-filter: none; }
+  .reel .suite__side h3 { font-size: var(--t-18); }
+}
+.reel .suite__tab { position: relative; }
+.reel .suite__tab i { display: none; }     /* the timeline is in the description */
+.reel .suite__tab::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 4px; height: 1px;
+  background: currentColor; opacity: .5; transform: scaleX(0); transform-origin: left;
+}
+.suite.is-auto .suite__tab[aria-selected="true"]::after { animation: reel-fill 7s linear forwards; }
+.suite.is-auto.is-held .suite__tab::after { animation-play-state: paused; }
+@keyframes reel-fill { to { transform: scaleX(1); } }
+.reel .suite__panel:not([hidden]) { animation: reel-in .45s var(--ease) both; }
+.reel .suite__panel[data-dir="back"]:not([hidden]) { animation-name: reel-in-back; }
+@keyframes reel-in { from { opacity: 0; transform: translateX(32px); } }
+@keyframes reel-in-back { from { opacity: 0; transform: translateX(-32px); } }
+
 /* Without JavaScript every panel shows, stacked — each demo's fallback plus
    its offer. The suite only collapses into tabs once scripting is live. */
 .suite:not(.is-live) .suite__tabs { display: none; }
@@ -1733,6 +1813,8 @@ body[data-layout="panel"] .nav { background: #000; }
 .problem[aria-expanded="true"] { color: var(--copper); }
 .problem[aria-expanded="true"]::after { content: "↓"; color: var(--copper); }
 .problem[hidden] { display: none; }
+.finder.is-trimmed .problem[data-more] { display: none; }
+.finder__more { margin-top: var(--s-24); }
 
 .fix {
   margin-top: var(--s-24); padding: var(--s-32);
@@ -1948,8 +2030,15 @@ body[data-layout="panel"] .nav { background: #000; }
   border-bottom: 1px solid var(--rule);
   color: var(--ink);
 }
+/* Narrow: name over description, arrow on the right of both. Left to
+   auto-placement the description fell into the arrow's auto column and
+   squeezed the name to nothing, so the two drew over each other. */
+.row__n, .row__what { grid-column: 1; }
+.row__go { grid-column: 2; grid-row: 1 / span 2; }
 @media (min-width: 900px) {
   .row { grid-template-columns: minmax(0, 26ch) minmax(0, 1fr) auto; padding: var(--s-32) 0; }
+  .row__what { grid-column: 2; }
+  .row__go { grid-column: 3; grid-row: 1; }
 }
 .row__n { font-size: var(--t-21); font-weight: 500; letter-spacing: -0.015em; }
 @media (min-width: 900px) { .row__n { font-size: var(--t-28); } }

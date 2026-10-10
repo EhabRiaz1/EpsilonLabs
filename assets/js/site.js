@@ -157,7 +157,7 @@
       burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       menu.setAttribute('aria-hidden', String(!open));
       if (open) {
-        var first = $('a', menu);
+        var first = $('summary, a', menu);
         if (first) first.focus({ preventScroll: true });
       }
     };
@@ -175,6 +175,35 @@
         setMenu(false);
         burger.focus({ preventScroll: true });
       }
+    });
+
+    /* The sections drop open rather than appearing: the height runs from
+       nothing to what the list needs (and back), with the items fading in
+       behind it. <details> still does the opening, so it works unanimated
+       without script and under reduced motion. */
+    $$('.menu__area', menu).forEach(function (area) {
+      var summary = $('summary', area);
+      var sub = $('.menu__sub', area);
+      var run = null;
+      summary.addEventListener('click', function (e) {
+        if (reduced || !sub.animate) return;
+        e.preventDefault();
+        if (run) run.cancel();
+        var opening = !area.open || area.classList.contains('is-closing');
+        area.classList.remove('is-closing');
+        var from = area.open ? sub.offsetHeight : 0;
+        if (opening) area.open = true;
+        var to = opening ? sub.scrollHeight : 0;
+        if (!opening) area.classList.add('is-closing');
+        run = sub.animate(
+          [{ height: from + 'px', opacity: opening ? 0 : 1 },
+           { height: to + 'px', opacity: opening ? 1 : 0 }],
+          { duration: opening ? 320 : 240, easing: 'cubic-bezier(.2,.7,.2,1)' });
+        run.onfinish = function () {
+          run = null;
+          if (!opening) { area.open = false; area.classList.remove('is-closing'); }
+        };
+      });
     });
 
     /* A menu left open across a resize into desktop layout traps scroll. */
@@ -639,6 +668,18 @@
         show(card);
       });
     });
+
+    /* "Show all" opens the rest in place; without script it is a link to
+       the catalogue, so nothing is ever out of reach. */
+    var more = $('[data-finder-more]', finder);
+    if (more) {
+      finder.classList.add('is-trimmed');
+      more.addEventListener('click', function (e) {
+        e.preventDefault();
+        finder.classList.remove('is-trimmed');
+        more.remove();
+      });
+    }
 
     $$('.finder__tab', finder).forEach(function (tab) {
       tab.addEventListener('click', function () {

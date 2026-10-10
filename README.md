@@ -194,7 +194,7 @@ unlawful under UK CMA and EU consumer rules. Keep it that way.
 
 ### The security offers have a hard boundary
 
-`device-pentest` and `authz-review` are scoped narrowly on purpose, and the
+`device-pentest`, `authz-review` and `software-pentest` are scoped narrowly on purpose, and the
 scope is a constraint rather than modesty. Epsilon Labs holds **no security
 accreditation** — no CREST, OSCP or CEH, no published CVEs, no prior paid
 security engagement. What it holds is hardware engineering, which is what a
@@ -206,10 +206,14 @@ So both pages must keep saying, in the copy and not just in a footnote:
   and we decline without it.
 - **We are not an accredited firm.** For PCI, SOC 2, FedRAMP or CE/UKCA
   sign-off the buyer needs someone who is, and we say so.
-- **No generic web-application or corporate-network testing.** That market is
+- **No corporate-network, cloud-estate or red-team testing.** That market is
   certification-gated and we have no track record in it.
+- `software-pentest` was added by founder decision on 2026-10-10. It covers
+  one web application and its API, grey-box, on staging, and its copy must
+  never claim prior paid testing work — its proof is that we build the same
+  kind of systems.
 
-Do not widen these offers to "penetration testing" in general. On a site
+Do not widen these offers further. On a site
 whose whole thesis is verifiable accuracy, an unevidenced credential claim is
 the one thing that unravels the rest — and the blind test goes straight for
 it.

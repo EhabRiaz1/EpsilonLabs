@@ -269,6 +269,42 @@
       ]
     },
     {
+      "slug": "software-pentest",
+      "name": "Software Penetration Test",
+      "category": "Security",
+      "tagline": "Your web app and its API, attacked by people who build them.",
+      "summary": "A grey-box test of one web application and the API behind it: authentication, session handling, access control, injection, business logic and secrets. Run against staging, with the source to hand, and written up so the engineer who has to fix each finding can.",
+      "pricing": "on request",
+      "pricing_contact": "er@epsilon-labs.co",
+      "price_drivers": "How many roles and distinct workflows the application has, how large the API surface is, and whether we get the source. With source we find more in less time; black-box only costs more and covers less, and we will say which you are buying before you pay.",
+      "duration": "2 weeks",
+      "url": "https://epsilon-labs.co/services/software-pentest/",
+      "markdown": "https://epsilon-labs.co/services/software-pentest/index.md",
+      "deliverables": [
+        "Written report: findings ranked by exploitability and impact, each with reproduction steps",
+        "Authentication and session review — login, reset, MFA, token lifetime and revocation",
+        "Access-control testing across every role: horizontal and vertical privilege escalation",
+        "Injection and input handling — SQL, command, template, server-side request forgery, file upload",
+        "Business-logic abuse: skipped steps, replayed requests, negative quantities, race conditions",
+        "API review against the routes the code actually exposes, not only the documented ones",
+        "Secrets and configuration — keys in the client bundle, verbose errors, exposed debug routes",
+        "A remediation list written for your engineers, and one free retest of the fixes within 60 days"
+      ],
+      "for": [
+        "A SaaS or internal web application about to be sold to a larger customer",
+        "A team that wants a second set of eyes on its access control before launch",
+        "An application built quickly, by contractors or with AI help, that nobody has attacked",
+        "Node, Python, Go or PHP back ends with a REST or GraphQL API"
+      ],
+      "not_for": [
+        "Any system you do not own or have written authorisation from the owner to test. We ask for that authorisation in writing before we start, every time, and we will decline without it.",
+        "Certified assessments for PCI DSS, SOC 2, ISO 27001 or FedRAMP. We are not an accredited firm, and a report from us will not satisfy an auditor who needs one.",
+        "Corporate network, Active Directory, cloud-estate or red-team engagements",
+        "Testing against production. Staging with representative data, always.",
+        "Native mobile binaries and thick clients — we test the API they call, not the app itself"
+      ]
+    },
+    {
       "slug": "remote-decode",
       "name": "Remote Protocol Decode",
       "category": "Desk work",

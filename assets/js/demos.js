@@ -1125,12 +1125,24 @@
     var tabs = suite.querySelectorAll('[role="tab"]');
     var panels = suite.querySelectorAll('[role="tabpanel"]');
 
+    var current = 0;
     function show(name, focus) {
+      var next = 0;
+      Array.prototype.forEach.call(tabs, function (t, i) { if (t.getAttribute('data-tab') === name) next = i; });
+      var back = next < current;
+      current = next;
+      Array.prototype.forEach.call(panels, function (p) { p.setAttribute('data-dir', back ? 'back' : 'fwd'); });
       Array.prototype.forEach.call(tabs, function (t) {
         var on = t.getAttribute('data-tab') === name;
         t.setAttribute('aria-selected', String(on));
         t.tabIndex = on ? 0 : -1;
         if (on && focus) t.focus();
+        /* Keep the open tab in view when the bar scrolls (phones), without
+           moving the page itself. */
+        if (on) {
+          var bar = t.parentNode;
+          bar.scrollTo({ left: t.offsetLeft - (bar.clientWidth - t.offsetWidth) / 2, behavior: reduced ? 'auto' : 'smooth' });
+        }
       });
       Array.prototype.forEach.call(panels, function (p) {
         var on = p.getAttribute('data-panel') === name;
@@ -1141,10 +1153,39 @@
             mount(h);
             /* The twin is a module; tell it its panel just became visible. */
             h.dispatchEvent(new CustomEvent('demo:show', { bubbles: true }));
+            fit(h);
           }
         }
       });
     }
+
+    /* On a wide screen every demo sits in one fixed-height stage, so the
+       section stops changing size from tab to tab. A tall demo shrinks until
+       all of it fits. The stage never scrolls: a scrolling box under the
+       pointer swallowed the wheel and stopped the page. Phones keep
+       natural height. */
+    var wide = matchMedia('(min-width: 900px)');
+    function fit(host) {
+      var app = host.querySelector(':scope > :not(.demo__fallback)');
+      if (!app) return;
+      app.style.zoom = '';
+      if (!wide.matches) return;
+      /* Zoom changes the width the demo lays out at, which can change its
+         height, so measure again after each step. */
+      var z = 1;
+      for (var i = 0; i < 8; i++) {
+        var over = app.offsetHeight * z / host.clientHeight;
+        if (over <= 1.002) break;
+        z = z / over * 0.995;
+        app.style.zoom = z.toFixed(3);
+      }
+    }
+    var refit = function () {
+      var open = suite.querySelector('[role="tabpanel"]:not([hidden]) [data-demo]');
+      if (open) fit(open);
+    };
+    wide.addEventListener('change', refit);
+    addEventListener('resize', refit);
 
     Array.prototype.forEach.call(tabs, function (t, i) {
       t.addEventListener('click', function () { show(t.getAttribute('data-tab')); });
@@ -1160,5 +1201,31 @@
 
     suite.classList.add('is-live');
     show(tabs[0].getAttribute('data-tab'));
+
+    /* Auto-advance, only on the home reel and never under reduced motion.
+       The tab's fill animation is the clock, so pausing the animation
+       (hover, focus, off screen, background tab) pauses the reel too. */
+    if (suite.closest('.reel') && !reduced) {
+      suite.classList.add('is-auto');
+      var held = { hover: false, focus: false, off: false };
+      var hold = function () {
+        suite.classList.toggle('is-held', held.hover || held.focus || held.off || document.hidden);
+      };
+      var stop = function () { suite.classList.remove('is-auto'); };
+      suite.addEventListener('animationend', function (e) {
+        if (e.animationName !== 'reel-fill' || !suite.classList.contains('is-auto')) return;
+        show(tabs[(current + 1) % tabs.length].getAttribute('data-tab'));
+      });
+      suite.addEventListener('mouseenter', function () { held.hover = true; hold(); });
+      suite.addEventListener('mouseleave', function () { held.hover = false; hold(); });
+      suite.addEventListener('focusin', function () { held.focus = true; hold(); });
+      suite.addEventListener('focusout', function () { held.focus = false; hold(); });
+      suite.addEventListener('pointerdown', stop);
+      suite.addEventListener('keydown', stop);
+      document.addEventListener('visibilitychange', hold);
+      new IntersectionObserver(function (es) {
+        held.off = !es[0].isIntersecting; hold();
+      }, { threshold: 0.35 }).observe(suite);
+    }
   });
 })();

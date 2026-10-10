@@ -89,15 +89,22 @@
 </header>
 
 <nav class="menu" id="menu" aria-label="Mobile" aria-hidden="true">
-  <a href="/software/"{{NAV_SOFTWARE}}>Software</a>
-  <a href="/hardware/"{{NAV_HARDWARE}}>Hardware</a>
-  <a href="/catalogue/#tier-lab">Frontier</a>
-  <a href="/catalogue/#tier-security">Security</a>
-  <a href="/catalogue/"{{NAV_CATALOGUE}}>Catalogue</a>
-  <a href="/work/"{{NAV_WORK}}>Work</a>
-  <a href="/capabilities/"{{NAV_CAPABILITIES}}>Capabilities</a>
-  <a href="/about/"{{NAV_ABOUT}}>About</a>
-  <a href="/start/">Start a project</a>
+  <div class="menu__body">
+    <p class="menu__k">What we do</p>
+{{MENU}}
+    <p class="menu__k">Company</p>
+    <div class="menu__co">
+      <a href="/work/"{{NAV_WORK}}>Work</a>
+      <a href="/catalogue/"{{NAV_CATALOGUE}}>Catalogue</a>
+      <a href="/capabilities/"{{NAV_CAPABILITIES}}>Capabilities</a>
+      <a href="/about/"{{NAV_ABOUT}}>About</a>
+      <a href="/contact/"{{NAV_CONTACT}}>Contact</a>
+    </div>
+  </div>
+  <div class="menu__foot">
+    <a class="btn" href="/start/">Start a project <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a class="menu__mail" href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>
+  </div>
 </nav>
 
 <main class="page" id="main">
@@ -141,7 +148,7 @@
   <div class="foot__bottom">
     <div class="foot__legal">
       <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
-      <span>Lahore, Pakistan · Hardware and software, built to tolerance.</span>
+      <span>Hardware and software, built to tolerance.</span>
     </div>
     <div class="foot__contact">
       <h4>Contact</h4>

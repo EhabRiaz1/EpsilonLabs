@@ -697,6 +697,107 @@ OFFERS = [
         ],
     },
 
+    # Founder decision, 2026-10-10: a software test is offered, held to the
+    # same boundary as the two above — authorisation in writing, staging only,
+    # no accreditation claimed, no compliance sign-off. See README.
+    {
+        'slug': 'software-pentest',
+        'tier': 'security',
+        'name': 'Software Penetration Test',
+        'tagline': 'Your web app and its API, attacked by people who build them.',
+        'summary': (
+            'A grey-box test of one web application and the API behind it: '
+            'authentication, session handling, access control, injection, business '
+            'logic and secrets. Run against staging, with the source to hand, and '
+            'written up so the engineer who has to fix each finding can.'
+        ),
+        'price_from': 6000,
+        'currency': 'USD',
+        'price_note': 'per application, fixed fee',
+        'price_drivers': (
+            'How many roles and distinct workflows the application has, how large '
+            'the API surface is, and whether we get the source. With source we find '
+            'more in less time; black-box only costs more and covers less, and we '
+            'will say which you are buying before you pay.'
+        ),
+        'duration': '2 weeks',
+        'scene': 'lattice',
+
+        'problem': [
+            'Most applications are tested by the people who wrote them, against the '
+            'paths they meant users to take. The breaks are on the other paths: an ID '
+            'in a URL that can be changed, a role check done in the browser and not on '
+            'the server, a password-reset token that never expires, an admin endpoint '
+            'nobody linked to and nobody protected.',
+            'An automated scanner finds the generic half of that list. The half that '
+            'costs you a customer is about what your data means and who should see '
+            'it, and that needs a person who has read the code.',
+        ],
+        'deliverables': [
+            'Written report: findings ranked by exploitability and impact, each with reproduction steps',
+            'Authentication and session review — login, reset, MFA, token lifetime and revocation',
+            'Access-control testing across every role: horizontal and vertical privilege escalation',
+            'Injection and input handling — SQL, command, template, server-side request forgery, file upload',
+            'Business-logic abuse: skipped steps, replayed requests, negative quantities, race conditions',
+            'API review against the routes the code actually exposes, not only the documented ones',
+            'Secrets and configuration — keys in the client bundle, verbose errors, exposed debug routes',
+            'A remediation list written for your engineers, and one free retest of the fixes within 60 days',
+        ],
+        'process': [
+            ('Before we start', 'Scope agreed and written authorisation signed by whoever '
+                                'owns the system. Nothing begins without it. A staging '
+                                'instance with representative data — never production.'),
+            ('Week 1', 'Code and architecture read-through, then authentication, session '
+                       'and access-control testing role by role.'),
+            ('Week 2', 'Injection, business logic, API and configuration. Report written, '
+                       'findings call with your engineers.'),
+            ('After', 'You fix; we retest the fixes once, inside 60 days, at no charge.'),
+        ],
+        'for': [
+            'A SaaS or internal web application about to be sold to a larger customer',
+            'A team that wants a second set of eyes on its access control before launch',
+            'An application built quickly, by contractors or with AI help, that nobody has attacked',
+            'Node, Python, Go or PHP back ends with a REST or GraphQL API',
+        ],
+        'not_for': [
+            'Any system you do not own or have written authorisation from the owner to '
+            'test. We ask for that authorisation in writing before we start, every '
+            'time, and we will decline without it.',
+            'Certified assessments for PCI DSS, SOC 2, ISO 27001 or FedRAMP. We are not an '
+            'accredited firm, and a report from us will not satisfy an auditor who needs one.',
+            'Corporate network, Active Directory, cloud-estate or red-team engagements',
+            'Testing against production. Staging with representative data, always.',
+            'Native mobile binaries and thick clients — we test the API they call, not the app itself',
+        ],
+        'proof': {
+            'text': 'We build the same kind of systems we test: Fabricport runs four '
+                    'role-scoped portals over row-level-secured Postgres, and The Courts '
+                    'takes bookings and payments in real time. Knowing where we would '
+                    'cut a corner under deadline is most of knowing where to look.',
+            'href': '/work/',
+            'label': 'What we build',
+        },
+        'faq': [
+            ('Are you CREST or OSCP certified?',
+             'No. If your customer or auditor requires a certified tester, hire one — we will '
+             'say so on the first call rather than after you have paid. What we bring is '
+             'that we design and ship this kind of software ourselves, and we test it the '
+             'way we review our own code: by reading it, then trying to break it.'),
+            ('Why do you want the source code?',
+             'Because a test without it spends most of its time guessing. With the code we '
+             'can see every route, every permission check and every query, and spend the two '
+             'weeks on the parts that are actually weak. Black-box is available; it covers less.'),
+            ('Is this just a scanner run?',
+             'No. We run scanners for the generic issues, then spend most of the engagement by '
+             'hand on access control and business logic, which no scanner understands.'),
+            ('What happens to our data and code?',
+             'NDA signed before you send anything. Everything you give us — code, captures, '
+             'credentials — is held encrypted, never shared outside the engagement, and deleted '
+             '30 days after the report unless you ask us to keep it for the retest. Credentials '
+             'are staging-only and we ask you to rotate them when we finish.'),
+        ],
+    },
+
     # ══ Desk work — flat fee, remote, no site visit ═════════════════════
     {
         'slug': 'remote-decode',
@@ -1718,6 +1819,7 @@ PROBLEMS = [
     ('frontier', 'Our sensors drift and nobody trusts the readings', 'sensing'),
     ('security', 'A customer asked whether our device is secure', 'device-pentest'),
     ('security', 'An enterprise asked if tenants can see each other\'s data', 'authz-review'),
+    ('security', 'Nobody has tried to break our web app yet', 'software-pentest'),
 ]
 
 

@@ -56,7 +56,7 @@ BOOT_UI = """<div class="boot" aria-hidden="true">
   <div class="boot__in">
     <p class="boot__mark">EPSILON LABS</p>
     <p class="boot__line"><i></i></p>
-    <p class="boot__cap">Lahore &middot; hardware and software</p>
+    <p class="boot__cap">Hardware and software</p>
   </div>
 </div>"""
 
@@ -337,7 +337,13 @@ def home_offers(slugs):
 
 # ── the problem finder ──────────────────────────────────────────────────
 
-def finder(area=None, tabs=True):
+# The six the home page leads with: the decode first, then the commonest
+# software asks, one forecourt, one security. The rest wait behind "show all".
+FINDER_FEATURED = ['protocol-decode', 'dashboards', 'quote-engine', 'bookings',
+                   'efuelpro', 'device-pentest']
+
+
+def finder(area=None, tabs=True, featured=None):
     """Problems in the buyer's words, each opening onto the offer that fixes
     it. Without JavaScript every problem is simply a link to its offer page;
     with it, the fix opens underneath without leaving the page.
@@ -348,6 +354,9 @@ def finder(area=None, tabs=True):
     from offers import BY_SLUG, problems_for, TIERS
 
     probs = problems_for(area)
+    if featured:
+        rank = {slug: i for i, slug in enumerate(featured)}
+        probs = sorted(probs, key=lambda p: rank.get(p[2], len(rank)))
     used = []
     for _, _, slug in probs:
         if slug not in used:
@@ -380,8 +389,13 @@ def finder(area=None, tabs=True):
 
     cards = '\n'.join(
         f'        <a class="problem" href="{url_for(BY_SLUG[slug])}" data-area="{a}" '
-        f'data-slug="{slug}" aria-expanded="false">{e(text)}</a>'
-        for a, text, slug in probs)
+        f'data-slug="{slug}" aria-expanded="false"'
+        f'{" data-more" if featured and i >= len(featured) else ""}>{e(text)}</a>'
+        for i, (a, text, slug) in enumerate(probs))
+    more = ''
+    if featured and len(probs) > len(featured):
+        more = (f'      <a class="ulink finder__more" href="/catalogue/" data-finder-more>'
+                f'Show all {len(probs)} problems</a>\n')
 
     blob = json.dumps(data, ensure_ascii=False).replace('</', '<\\/')
 
@@ -389,7 +403,7 @@ def finder(area=None, tabs=True):
 {tab_html}      <div class="finder__grid">
 {cards}
       </div>
-      <div class="fix" hidden aria-live="polite"></div>
+{more}      <div class="fix" hidden aria-live="polite"></div>
       <script type="application/json" data-finder-offers>{blob}</script>
     </div>'''
 
@@ -574,3 +588,25 @@ def mega():
             f'<a class="ulink" href="{href}">View all {UP}</a></div>'
             f'<div class="mega__cols">{"".join(cols)}</div></div></div>')
     return '\n'.join(panels)
+
+
+def mobile_menu():
+    """The phone menu's top level: one tap-to-open section per mega-menu
+    area, listing the same things the desktop panels do — solution groups
+    for Software and Hardware, offers for the rest. <details> needs no
+    script and is announced as expandable by screen readers."""
+    import render_cats
+    from offers import BY_SLUG, TIERS as _T
+    out = []
+    for key, title, href, groups in MEGA:
+        if groups == 'CATEGORIES':
+            items = [(label, f'{render_cats.AREAS[key]["path"]}#{g}')
+                     for g, label, _ in render_cats.GROUPS[key]]
+        else:
+            items = [(o['name'], url_for(o)) for _, keys in groups for k in keys
+                     for o in (by_tier(k) if k in _T else [BY_SLUG[k]])]
+        links = ''.join(f'<a href="{h}">{e(n)}</a>' for n, h in items)
+        out.append(f'    <details class="menu__area"><summary>{e(title)}</summary>'
+                   f'<div class="menu__sub">{links}<a class="menu__all" href="{href}">All {e(title.lower())} →</a></div></details>')
+    return '\n'.join(out)
+

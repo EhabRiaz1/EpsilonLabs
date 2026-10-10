@@ -16,7 +16,7 @@
 
 import * as THREE from '../vendor/three.module.min.js';
 import { loadGlyph, epsilonState, markState } from './states/epsilon.js';
-import { tracesState } from './states/traces.js';
+import { tracesState, constellationState } from './states/traces.js';
 import { latticeState } from './states/lattice.js';
 
 const canvas = document.getElementById('scene');
@@ -246,6 +246,10 @@ function defineStates(glyph) {
   STATES.traces = {
     pos: tracesState(COUNT),
     color: PALETTE.copper, cam: [0, -0.8, 38], arc: 2.0, alpha: 0.95,
+  };
+  STATES.constellation = {
+    pos: constellationState(COUNT, { narrow: innerWidth < 700 }),
+    color: PALETTE.copper, cam: innerWidth < 700 ? [0, -0.5, 60] : [0, -0.5, 52], arc: 2.0, alpha: 0.95,
   };
   STATES.lattice = {
     pos: latticeState(COUNT),

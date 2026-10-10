@@ -11,7 +11,8 @@
    the 3-pin dispenser terminal on the right.
 
    Everything is specified in millimetres and converted once, so if the
-   board revs you edit the millimetres and nothing else.
+   board revs you edit the millimetres and nothing else. Since 2026-10 it
+   sits at the centre of a small constellation of other boards; see below.
    ═══════════════════════════════════════════════════════════════════════ */
 
 import { rng } from '../lib/rng.js';
@@ -185,13 +186,12 @@ function sampleSegments(segments, count, rand, jitter, out, offset) {
 }
 
 /**
- * TRACES — the board, as n points.
+ * The Epsilon1 board on its own, as n points in board-local world units.
  * Budget: outline and holes read as the object's silhouette, so they get a
  * disproportionate share; the ground pour is deliberately sparse because a
  * dense fill would swallow the routing.
  */
-export function tracesState(n, opts = {}) {
-  const { tilt = -0.16 } = opts;
+function epsilon1Points(n) {
   const { outline, modules, traces, pads } = buildBoard();
   const out = new Float32Array(n * 3);
   const rand = rng(0xB0A2D);
@@ -223,13 +223,228 @@ export function tracesState(n, opts = {}) {
     out[i * 3 + 2] = -0.35 + (rand() - 0.5) * 0.1;
   }
 
-  // The board is laid back a little so it reads as an object on a bench
-  // rather than a flat plan view.
-  const c = Math.cos(tilt), s = Math.sin(tilt);
-  for (let k = 0; k < n; k++) {
-    const y = out[k * 3 + 1], z = out[k * 3 + 2];
-    out[k * 3 + 1] = y * c - z * s;
-    out[k * 3 + 2] = y * s + z * c;
+  return out;
+}
+
+/* ── the boards around it ─────────────────────────────────────────────
+   Epsilon1 is the nucleus; around it, on two faint orbits, sit four
+   denser boards of the kinds we lay out: a compute module, an RF front
+   end, a power stage and an FPGA carrier. They are drawn from typical
+   footprints rather than from any client's layout. Same millimetres,
+   same sampler, so they read as one family with the board in the middle. */
+
+function dots(list, cx, cy, cols, rows, pitch, r = 0.35) {
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      circle(list, cx + (i - (cols - 1) / 2) * pitch, cy + (j - (rows - 1) / 2) * pitch, r, 6);
+    }
+  }
+}
+
+/** A trace that zig-zags to add length, the way DDR lines are matched. */
+function serpentine(list, ax, ay, bx, amp, turns) {
+  const step = (bx - ax) / (turns * 2);
+  let x = ax;
+  for (let k = 0; k < turns * 2; k++) {
+    const up = k % 2 ? -amp : amp;
+    seg(list, x, ay, x, ay + up);
+    seg(list, x, ay + up, x + step, ay + up);
+    seg(list, x + step, ay + up, x + step, ay);
+    x += step;
+  }
+}
+
+/** Pins on all four sides of a square package, and a fan-out from each. */
+function qfp(parts, pads, traces, cx, cy, size, perSide, reach) {
+  rect(parts, cx, cy, size, size);
+  const h = size / 2, pitch = size / (perSide + 1);
+  for (let i = 1; i <= perSide; i++) {
+    const o = -h + i * pitch;
+    seg(pads, cx + o, cy + h, cx + o, cy + h + 1.8);
+    seg(pads, cx + o, cy - h, cx + o, cy - h - 1.8);
+    seg(pads, cx + h, cy + o, cx + h + 1.8, cy + o);
+    seg(pads, cx - h, cy + o, cx - h - 1.8, cy + o);
+    if (i % 2) {
+      const spread = 1 + (o / h) * 0.45;
+      seg(traces, cx + o, cy + h + 1.8, cx + o * spread, cy + h + reach);
+      seg(traces, cx + o, cy - h - 1.8, cx + o * spread, cy - h - reach);
+      seg(traces, cx + h + 1.8, cy + o, cx + h + reach, cy + o * spread);
+      seg(traces, cx - h - 1.8, cy + o, cx - h - reach, cy + o * spread);
+    }
+  }
+}
+
+function computeModule() {                       // 80 x 55 mm
+  const outline = [], parts = [], traces = [], pads = [];
+  rect(outline, 0, 0, 80, 55);
+  [[-36, -23.5], [36, -23.5], [-36, 23.5], [36, 23.5]].forEach(([x, y]) => circle(outline, x, y, 1.6, 16));
+  rect(parts, -14, 2, 22, 22);                   // the SoC, a BGA
+  dots(parts, -14, 2, 9, 9, 2.2, 0.4);
+  rect(parts, 16, 13, 16, 10);                   // two DDR packages
+  rect(parts, 16, -9, 16, 10);
+  for (let i = 0; i < 6; i++) {                  // length-matched data lanes
+    serpentine(traces, -3, 9 + i * 1.6, 8, 0.8, 3);
+    serpentine(traces, -3, -5 - i * 1.6, 8, 0.8, 3);
+  }
+  rect(parts, -30, -16, 8, 8);                   // PMIC
+  route(traces, -26, -16, -20, -9, 0.5);
+  for (let i = 0; i < 34; i++) seg(pads, -34 + i * 2, -27.5, -34 + i * 2, -23.5);   // edge fingers
+  for (let i = 0; i < 14; i++) rect(parts, 31, 18 - i * 2.6, 2, 1.1);            // decoupling
+  return { outline, parts, traces, pads };
+}
+
+function rfBoard() {                             // 60 x 40 mm
+  const outline = [], parts = [], traces = [], pads = [];
+  rect(outline, 0, 0, 60, 40);
+  rect(parts, -10, 0, 24, 20);                   // shield can, with its via fence
+  for (let i = 0; i <= 12; i++) {
+    circle(pads, -22 + i * 2, 12, 0.35, 6);
+    circle(pads, -22 + i * 2, -12, 0.35, 6);
+  }
+  for (let i = 0; i <= 10; i++) {
+    circle(pads, -24, -10 + i * 2, 0.35, 6);
+    circle(pads, 4, -10 + i * 2, 0.35, 6);
+  }
+  rect(parts, -10, 0, 8, 8);                     // transceiver inside the can
+  seg(traces, 2, 0, 18, 0);                      // 50-ohm feed out of the can
+  for (let i = 0; i < 8; i++) {                  // stitching beside the feed
+    circle(pads, 5 + i * 2, 2, 0.3, 6);
+    circle(pads, 5 + i * 2, -2, 0.3, 6);
+  }
+  circle(parts, 20, 0, 2.2, 18);                 // u.FL
+  let y = 16;                                    // meandered PCB antenna
+  for (let k = 0; k < 6; k++) {
+    seg(traces, 22, y, 28, y);
+    seg(traces, k % 2 ? 22 : 28, y, k % 2 ? 22 : 28, y - 5);
+    y -= 5;
+  }
+  route(traces, 20, 2.2, 22, 16, 0.5);
+  rect(parts, -24, -16, 10, 5);                  // connector
+  for (let i = 0; i < 6; i++) route(traces, -28 + i * 1.6, -13.5, -18 + i * 0.6, -10, 0.5);
+  return { outline, parts, traces, pads };
+}
+
+function powerStage() {                          // 70 x 50 mm
+  const outline = [], parts = [], traces = [], pads = [];
+  rect(outline, 0, 0, 70, 50);
+  [[-31, -21], [31, -21], [-31, 21], [31, 21]].forEach(([x, y]) => circle(outline, x, y, 1.8, 16));
+  [[-16, 10], [0, 10], [16, 10]].forEach(([x, y]) => {        // inductors
+    circle(parts, x, y, 6, 30); circle(parts, x, y, 3.2, 20);
+  });
+  for (let i = 0; i < 6; i++) rect(parts, -20 + i * 8, -6, 6, 5);   // MOSFETs
+  [[-24, -18], [-12, -18]].forEach(([x, y]) => circle(parts, x, y, 4, 24));   // bulk caps
+  rect(parts, 22, -16, 14, 10);                  // terminal block
+  rect(parts, 26, 6, 8, 8);                      // controller
+  for (let i = 0; i < 6; i++) route(traces, -20 + i * 8, -3.5, -16 + Math.floor(i / 2) * 16, 4, 0.5);
+  for (let i = 0; i < 3; i++) {                  // wide copper: drawn as paired edges
+    route(traces, -16 + i * 16, 16, 30, 20 - i, 0.7);
+    route(traces, -16 + i * 16, 17.5, 30, 21.5 - i, 0.7);
+  }
+  for (let i = 0; i < 6; i++) route(traces, 22, 6 - 2 + i * 0.8, -20 + i * 8, -8.5, 0.6);
+  route(traces, 22, -16, -12, -14, 0.5);
+  return { outline, parts, traces, pads };
+}
+
+function fpgaBoard() {                           // 70 x 70 mm
+  const outline = [], parts = [], traces = [], pads = [];
+  rect(outline, 0, 0, 70, 70);
+  [[-31, -31], [31, -31], [-31, 31], [31, 31]].forEach(([x, y]) => circle(outline, x, y, 1.8, 16));
+  qfp(parts, pads, traces, 0, 0, 22, 18, 9);     // QFP-144 and its fan-out
+  for (let i = 0; i < 20; i++) {                 // two rows of header holes
+    circle(parts, -28 + i * 2.9, 30, 0.7, 8);
+    circle(parts, -28 + i * 2.9, -30, 0.7, 8);
+  }
+  rect(parts, 24, 18, 6, 4);                     // oscillator
+  rect(parts, -24, 18, 10, 6);                   // config flash
+  for (let i = 0; i < 16; i++) {                 // decoupling ring
+    const a = (i / 16) * Math.PI * 2;
+    rect(parts, Math.cos(a) * 19, Math.sin(a) * 19, 1.6, 1);
+  }
+  return { outline, parts, traces, pads };
+}
+
+/** Sample one satellite board into out[offset .. offset+n). */
+function boardPoints(board, n, rand, out, offset) {
+  const { outline, parts, traces, pads } = board;
+  const nOutline = Math.round(n * 0.2);
+  const nParts = Math.round(n * 0.36);
+  const nPads = Math.round(n * 0.12);
+  const nTraces = n - nOutline - nParts - nPads;
+  let i = offset;
+  i = sampleSegments(outline, nOutline, rand, 0.35, out, i);
+  i = sampleSegments(parts, nParts, rand, 0.3, out, i);
+  i = sampleSegments(traces, nTraces, rand, 0.3, out, i);
+  i = sampleSegments(pads, nPads, rand, 0.25, out, i);
+  return i;
+}
+
+/** Scale, turn in plane, lean back, then move — in place, over a slice. */
+function place(out, from, to, { x = 0, y = 0, z = 0, scale = 1, turn = 0, lean = 0 }) {
+  const ct = Math.cos(turn), st = Math.sin(turn);
+  const cl = Math.cos(lean), sl = Math.sin(lean);
+  for (let k = from; k < to; k++) {
+    let px = out[k * 3] * scale, py = out[k * 3 + 1] * scale, pz = out[k * 3 + 2] * scale;
+    const rx = px * ct - py * st, ry = px * st + py * ct;
+    out[k * 3]     = rx + x;
+    out[k * 3 + 1] = ry * cl - pz * sl + y;
+    out[k * 3 + 2] = ry * sl + pz * cl + z;
+  }
+}
+
+const SATELLITES = [
+  { build: computeModule, wide: { x: -20.5, y:  5.5, z: -3, scale: 0.85, turn:  0.10 }, tall: { x: -5.4, y:  12.5, z: -3, scale: 0.5, turn:  0.08 } },
+  { build: rfBoard,       wide: { x: -19.5, y: -7.0, z: -1, scale: 0.95, turn: -0.08 }, tall: { x: -5.4, y: -12.5, z: -1, scale: 0.55, turn: -0.06 } },
+  { build: powerStage,    wide: { x:  20.5, y:  6.0, z: -4, scale: 0.85, turn: -0.09 }, tall: { x:  5.6, y:  12.5, z: -4, scale: 0.5, turn: -0.07 } },
+  { build: fpgaBoard,     wide: { x:  20.0, y: -6.5, z: -2, scale: 0.75, turn:  0.08 }, tall: { x:  5.4, y: -12.5, z: -2, scale: 0.45, turn:  0.06 } },
+];
+
+/**
+ * TRACES — the Epsilon1 board on its own, laid back a little so it reads
+ * as an object on a bench rather than a flat plan view.
+ */
+export function tracesState(n, opts = {}) {
+  const { tilt = -0.16 } = opts;
+  const out = epsilon1Points(n);
+  place(out, 0, n, { lean: tilt });
+  return out;
+}
+
+/**
+ * CONSTELLATION — Epsilon1 in the middle, four boards in orbit around it.
+ * Budget: the nucleus keeps half the points so it stays the subject; each
+ * satellite gets a tenth, and the two orbit rings share what is left.
+ * On a narrow screen the satellites stack above and below instead of
+ * beside, so nothing falls off the side of a phone.
+ */
+export function constellationState(n, opts = {}) {
+  const { tilt = -0.16, narrow = false } = opts;
+  const out = new Float32Array(n * 3);
+  const rand = rng(0x5A7E1);
+
+  const nCore = Math.round(n * 0.5);
+  const nSat = Math.round(n * 0.105);
+  const nRing = n - nCore - nSat * SATELLITES.length;
+
+  out.set(epsilon1Points(nCore));
+  place(out, 0, nCore, { scale: narrow ? 0.55 : 0.8, lean: tilt });
+
+  let i = nCore;
+  SATELLITES.forEach((sat) => {
+    const start = i;
+    i = boardPoints(sat.build(), nSat, rand, out, i);
+    place(out, start, i, { ...(narrow ? sat.tall : sat.wide), lean: tilt * 1.6 });
+  });
+
+  // two faint orbits, crossing behind the nucleus like an atom's shells
+  const rx = narrow ? 8.5 : 23, ry = narrow ? 15 : 9;
+  for (let k = 0; i < n; i++, k++) {
+    const t = rand() * Math.PI * 2;
+    const shell = k % 2 ? 1 : -1;
+    const ex = Math.cos(t) * rx, ey = Math.sin(t) * ry;
+    const a = shell * 0.18;
+    out[i * 3]     = ex * Math.cos(a) - ey * Math.sin(a) + (rand() - 0.5) * 0.15;
+    out[i * 3 + 1] = ex * Math.sin(a) + ey * Math.cos(a) + (rand() - 0.5) * 0.15;
+    out[i * 3 + 2] = -5 + Math.sin(t) * 3 * shell;
   }
 
   return out;

@@ -1,16 +1,36 @@
-  <section class="sec sec--flush sec--open" data-scene="epsilon" style="min-height:80svh;display:grid;align-items:center;padding-block:calc(var(--nav-h) + var(--s-96)) var(--s-96)">
-    <div class="shell">
-      <p class="mono reveal" style="margin-bottom:var(--s-24)">Error 404</p>
-      <h1 class="h1 reveal" style="max-width:16ch">Outside tolerance.</h1>
-      <p class="lede reveal" style="margin-top:var(--s-32);max-width:42ch">
-        That page does not exist. The rest of the site does.
-      </p>
-      <div class="reveal" style="display:flex;flex-wrap:wrap;gap:var(--s-12);margin-top:var(--s-48)">
-        <a class="btn" href="/">
-          Back to the start
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <a class="btn btn--ghost" href="/work/">See the work</a>
+  <!-- ═══ 404: the hero's framed field, coming apart ═══════════════════ -->
+  <section class="win-sec hero-a sec--open nf" data-scene="epsilon">
+    <div class="win">
+      <div class="hero-a__in">
+        <p class="nf__k reveal">Error 404</p>
+        <h1 class="hero-a__title reveal">Outside tolerance.</h1>
+        <p class="nf__read reveal">GET <span data-nf-path>this page</span> <b>→ nothing here</b></p>
+        <div class="lockup reveal">
+          <i class="mark" aria-hidden="true"></i>
+          <a class="lockup__go" href="/">→ Back to the start</a>
+        </div>
+        <p class="nf__links reveal"><a href="/work/">The work</a><a href="/catalogue/">Catalogue</a><a href="/start/">Start a project</a></p>
       </div>
     </div>
   </section>
+
+  <script>
+    /* Echo the path that missed, as text — never as markup. */
+    document.querySelector('[data-nf-path]').textContent = location.pathname;
+  </script>
+  <script type="module">
+    /* The mark falls out of tolerance and pulls itself back, on a loop:
+       holds as an epsilon, scatters, holds scattered, reassembles. Nothing
+       loops under reduced motion, and a page without WebGL simply keeps
+       its static text. */
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      import('/assets/js/scene.js').then(({ setState }) => {
+        const cycle = () => {
+          if (document.hidden) return;
+          setState('scatter', { duration: 1600 });
+          setTimeout(() => setState('epsilon', { duration: 2000 }), 2600);
+        };
+        setInterval(cycle, 8000);   // before the field is ready, setState is a no-op
+      }).catch(() => {});
+    }
+  </script>

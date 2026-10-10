@@ -17,6 +17,7 @@ Every offer below has a written scope, a typical duration, an explicit statement
 
 - [Device Penetration Test](https://epsilon-labs.co/services/device-pentest/index.md): We take your device apart the way an attacker would. Typically 2–3 weeks. Priced per project.
 - [Authorisation Model Review](https://epsilon-labs.co/services/authz-review/index.md): Can tenant A read tenant B's row? We find out properly. Typically 1 week. Priced per project.
+- [Software Penetration Test](https://epsilon-labs.co/services/software-pentest/index.md): Your web app and its API, attacked by people who build them. Typically 2 weeks. Priced per project.
 
 ## Desk work
 

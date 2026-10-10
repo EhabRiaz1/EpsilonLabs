@@ -147,7 +147,9 @@ def expand_markers(body):
     rendered from tools/offers.py. Keeps hand-written pages free of prices."""
     def finder(m):
         area = m.group(1) or None
-        return render.finder(area, tabs=area is None)
+        if area is None:                   # the home page: six, then "show all"
+            return render.finder(None, tabs=False, featured=render.FINDER_FEATURED)
+        return render.finder(area, tabs=False)
 
     def show(m):
         parts = m.group(1).split(':')
@@ -221,8 +223,10 @@ def main():
         out = out.replace('{{ALT}}', alt)
         out = out.replace('{{JSONLD}}', jsonld.for_page(path, offer, url, SITE))
         out = out.replace('{{MEGA}}', render.mega())
+        out = out.replace('{{MENU}}', render.mobile_menu())
         out = out.replace('{{SCENE}}', scene)
-        out = out.replace('{{LAYOUT}}', ' data-layout="panel"' if path == 'index.html' else '')
+        # The 404 borrows the home hero's framed field, so it frames the same way.
+        out = out.replace('{{LAYOUT}}', ' data-layout="panel"' if path in ('index.html', '404.html') else '')
         # The boot curtain plays on the home page only: it is an arrival, and
         # you only arrive once.
         home = path == 'index.html'

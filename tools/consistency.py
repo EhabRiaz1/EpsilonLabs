@@ -19,7 +19,7 @@ from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SCENES = {'epsilon', 'traces', 'lattice', 'mark'}
+SCENES = {'epsilon', 'traces', 'constellation', 'lattice', 'mark'}
 
 REQUIRED_HEAD = [
     ('charset',      r'<meta charset="utf-8">'),
