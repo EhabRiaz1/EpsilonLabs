@@ -56,3 +56,9 @@ def test_protocol_names_are_not_rupee_prices():
     assert not [h for h in lint(clean, {}) if h["type"] == "price"]
     for priced in ("It costs Rs 5,000 per site.", "Only Rs.4500 a month.", "PKR 20,000 upfront."):
         assert [h for h in lint(priced, {}) if h["type"] == "price"], priced
+
+
+def test_link_followed_by_a_full_stop_is_still_our_domain():
+    from core.lint import lint
+    assert not [h for h in lint("See what we've built at https://epsilon-labs.co.", {}) if h["type"] == "url"]
+    assert [h for h in lint("See https://evil.example.com.", {}) if h["type"] == "url"]

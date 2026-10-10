@@ -64,6 +64,10 @@ NOT_A_COMPANY = {"linkedin.com", "indeed.com", "glassdoor.com", "reddit.com", "f
 CONTACT_BATCH = 8
 HIRING_INBOXES = {"careers", "career", "jobs", "job", "hr", "recruiting", "recruitment", "recruiter", "talent", "hiring",
                   "apply", "applications", "people"}
+# Inboxes that exist for something other than a business conversation; writing a pitch there looks careless.
+NON_SALES_INBOXES = {"legal", "security", "privacy", "abuse", "dpo", "gdpr", "compliance", "noreply", "no-reply",
+                     "donotreply", "postmaster", "webmaster", "press", "media", "pr", "billing", "invoices",
+                     "accounts", "accounting", "finance", "unsubscribe", "vulnerability", "psirt", "disclosure"}
 DOMAIN_RE = re.compile(r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$")
 EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})$")
 
@@ -119,6 +123,8 @@ def check_contact(c, domain: str) -> tuple[dict | None, str]:
         return None, "contact email not on the company domain"
     if m.group(0).split("@")[0].lower() in HIRING_INBOXES:
         return None, "hiring inbox, not a buyer contact"
+    if m.group(0).split("@")[0].lower() in NON_SALES_INBOXES:
+        return None, "legal/security/admin inbox, not a buyer contact"
     if not valid_url(str(c.get("source_url") or "")):
         return None, "contact without a source url"
     return {"email": str(c["email"]).strip().lower(), "name": _one_line(c.get("name"), 120),

@@ -429,3 +429,10 @@ def test_fill_contacts_only_accepts_valid_published_addresses():
     assert P.fill_contacts(S, ps) == 1
     assert ps[0]["contact"]["email"] == "info@acme.com"
     assert ps[1]["contact"] is None and "hiring inbox" in ps[1]["contact_note"]
+
+
+def test_legal_and_security_inboxes_are_not_buyer_contacts():
+    from agents.prospector import check_contact
+    for local in ("legal", "security", "privacy", "noreply", "psirt"):
+        c, note = check_contact({"email": f"{local}@acme.com", "source_url": "https://acme.com/x"}, "acme.com")
+        assert c is None and "inbox" in note

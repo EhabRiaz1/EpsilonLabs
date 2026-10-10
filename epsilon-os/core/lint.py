@@ -43,9 +43,10 @@ def lint(draft_text: str, context: dict | None = None) -> list[dict]:
     hits: list[dict] = []
 
     for m in URL_RE.finditer(draft_text):
-        host = re.sub(r"^(?:https?://)?([^/:?#]+).*$", r"\1", m.group(0), flags=re.I).lower()
+        url = m.group(0).rstrip(".,;:!?")          # sentence punctuation after a link is not part of it
+        host = re.sub(r"^(?:https?://)?([^/:?#]+).*$", r"\1", url, flags=re.I).lower()
         if host not in ALLOWED_DOMAINS:
-            hits.append({"type": "url", "text": m.group(0)})
+            hits.append({"type": "url", "text": url})
     for m in EMAIL_RE.finditer(draft_text):
         if m.group(0).lower() not in allowed_emails:
             hits.append({"type": "email", "text": m.group(0)})
