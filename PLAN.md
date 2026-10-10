@@ -255,6 +255,23 @@ The day-90 *checkpoint* stays (it measures buyers, not us); everything we
 control moves to S0–S1. E2 LOI decision stays month 3; second-miss kill
 criterion stays month 6.
 
+## 10a. Revised Q4 target: $100-150k signed from NEW clients (founder decision 2026-10-10, later)
+
+Supersedes the $350k figure in §10 below, which stays as the record of the maths. The founder works
+existing clients directly; Epsilon OS hunts new, international clients.
+
+- **Target:** $100k signed by 2026-12-31 (base), $150k stretch, from clients found by the engine.
+- **Maths:** deals need ~6 weeks to close, so outreach that counts for 2026 runs until ~2026-11-15.
+  One warming mailbox sends ~1,125 emails by then (~375 people x 3-touch sequence). At $25k average
+  deals and ~4% interested replies (signal-based targeting), that is ~15 conversations, ~9 proposals,
+  ~3 closes = ~$75-100k; $150k needs better-than-plan reply or close rates or larger deals.
+- **Levers:** three packages added to offers.py (Plant Visibility Pilot from $18k, Hardware Rescue
+  from $20k, Ops Software Build from $22k); 3-touch follow-up sequence; prospects only in high-budget
+  markets (US, CA, UK, IE, EU/EEA, CH, Gulf, AU, NZ, SG, JP, KR, IL); no prices in cold email (quote
+  after the call); founder clears the Deck daily and replies to interested leads within hours.
+- **Gates:** 2026-10-31: 3 conversations; 2026-11-15: 8 conversations, 4 proposals; 2026-11-30:
+  $40k signed; 2026-12-31: $100k signed. Miss at 11-30 -> keep sending, re-target to Q1 2027 closes.
+
 ## 10. Q4 2026 sprint: $350k signed by 31 December (founder decision 2026-10-10)
 
 **Target:** $350k signed contract value by 2026-12-31, with deposits collected on signature

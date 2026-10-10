@@ -1778,6 +1778,194 @@ OFFERS = [
              'in replacing the sensor.'),
         ],
     },
+    # ══ Packages — fixed-scope bundles of the offers above ═══════════════
+    {
+        'slug': 'plant-visibility-pilot',
+        'tier': 'service',
+        'name': 'Plant Visibility Pilot',
+        'tagline': 'See every machine that matters, live, in six weeks, without replacing any of them.',
+        'summary': (
+            'A fixed-scope pilot on one line or one site: we read the machines you already '
+            'have, decoding their protocols where nobody documented them, fit monitoring '
+            'nodes where there is nothing to read, and put running state, output and alarms '
+            'on one live dashboard your managers open from anywhere.'
+        ),
+        'price_from': 18000,
+        'currency': 'USD',
+        'price_note': 'per site, 5–10 monitored machines, 40/40/20',
+        'duration': '6 weeks',
+        'price_drivers': (
+            'How many machines, how many of them speak an undocumented protocol, and whether '
+            'the site has network coverage. Ten machines on one shed with Wi-Fi sits near the '
+            'floor; mixed vendors across two buildings needing cellular sits well above it.'
+        ),
+        'scene': 'traces',
+        'problem': [
+            'Breakdowns are found when production stops. Output is counted at the end of the '
+            'shift. The controllers hold the data, but in a protocol nobody on site can read, '
+            'and the vendor who could is long gone.',
+            'Replacing the machines to get visibility costs more than the problem. Reading '
+            'them does not.',
+        ],
+        'deliverables': [
+            'Site survey and a written machine-by-machine plan before any hardware is fitted',
+            'Protocol decode for the undocumented controllers in scope',
+            'Epsilon1 monitoring nodes on 5–10 machines, installed and commissioned',
+            'A live dashboard: running state, output, downtime and alarms, per machine',
+            'Alerts to the people you name, by WhatsApp or email',
+            'Handover document and a quote for the rest of the site, priced per machine',
+        ],
+        'process': [
+            ('Week 1', 'Survey, machine list, and the written plan. You approve it before any hardware is ordered.'),
+            ('Weeks 2–4', 'Decode, fit nodes, commission. Each machine appears on the dashboard as it is done.'),
+            ('Weeks 5–6', 'Alerts, tuning, training, handover, and the site-wide rollout quote.'),
+        ],
+        'for': [
+            'Mills, plants, packaging and process lines with equipment from several vendors',
+            'Operators who learn about downtime from the shift report',
+            'Sites with controllers nobody can read any more',
+        ],
+        'not_for': [
+            'Safety-instrumented systems or anything that must not be touched while running',
+            'Sites that want a full SCADA replacement. This is visibility first.',
+            'Greenfield plants still choosing their automation vendor',
+        ],
+        'proof': {
+            'text': 'eFuelPro reads fuel dispensers whose RS485 protocol was decoded frame by '
+                    'frame with no documentation, and shows every pump on a live ledger the '
+                    'owner reads from anywhere. The pilot applies the same method to machines.',
+            'href': '/work/efuelpro/',
+            'label': 'The eFuelPro case study',
+        },
+        'faq': [
+            ('What happens after the pilot?',
+             'You get a per-machine quote for the rest of the site. Nothing is assumed; you '
+             'decide on the evidence of the pilot.'),
+        ],
+        'demo': None,
+    },
+    {
+        'slug': 'hardware-rescue',
+        'tier': 'service',
+        'name': 'Hardware Rescue',
+        'tagline': 'Your product half-works. We get it to a board and firmware you can ship.',
+        'summary': (
+            'For a hardware product stuck between prototype and production: we take over the '
+            'firmware nobody can maintain, fix the faults that show up in the field, review '
+            'and respin the board, and hand back a build you can manufacture and update.'
+        ),
+        'price_from': 20000,
+        'currency': 'USD',
+        'price_note': 'firmware rescue plus one board respin to fab, 40/40/20',
+        'duration': '8 weeks',
+        'price_drivers': (
+            'How much of the original firmware build survives, how reproducible the field '
+            'failures are, and the layer and part count of the board. A two-layer sensor '
+            'board with a buildable codebase sits near the floor.'
+        ),
+        'scene': 'lattice',
+        'problem': [
+            'Units lock up in the field, the developer who wrote the firmware has left, and '
+            'the next production run is waiting on a board revision nobody has finished.',
+            'Fixing firmware on a board with a design fault, or respinning a board for '
+            'firmware that is still broken, wastes both.',
+        ],
+        'deliverables': [
+            'Paid assessment: the failure reproduced and its cause chain written down',
+            'A reproducible firmware build that runs on more than one machine',
+            'Fault detection, watchdogs and automatic recovery for the failures you see',
+            'Pre-fab design review of the board with a ranked findings list',
+            'One board respin taken to fabrication-ready files',
+            'An update path, so the next fix does not need a site visit',
+        ],
+        'process': [
+            ('Weeks 1–2', 'Assessment and board review. You get both documents whether or not you continue.'),
+            ('Weeks 3–6', 'Firmware fixes and the respin, in parallel, tested together.'),
+            ('Weeks 7–8', 'Fabrication files, update path, handover.'),
+        ],
+        'for': [
+            'Hardware startups between prototype and first production run',
+            'OEMs with a deployed product that costs them support visits',
+            'Teams hiring a firmware engineer who need the fix before the hire starts',
+        ],
+        'not_for': [
+            'Linux or Android embedded systems. This is bare metal and RTOS.',
+            'Certification work (UL, CE) beyond design-for-compliance advice',
+            'Products with no hardware yet. That is Board-to-Fab.',
+        ],
+        'proof': {
+            'text': 'The eFuelPro framing layer resynchronises byte by byte through corruption '
+                    'on a shared legacy bus, on a 120 mm board designed and brought up in-house.',
+            'href': '/work/efuelpro/',
+            'label': 'The eFuelPro case study',
+        },
+        'faq': [
+            ('Can we do firmware only?',
+             'Yes. That is Firmware Rescue, from $8,000. This package is for when the board '
+             'needs to change too.'),
+        ],
+        'demo': None,
+    },
+    {
+        'slug': 'ops-software-build',
+        'tier': 'service',
+        'name': 'Ops Software Build',
+        'tagline': 'Replace the spreadsheets with one system your team actually uses.',
+        'summary': (
+            'One system for how your business runs: inventory, customers and cases, and the '
+            'dashboards that show where you stand, built around your process rather than a '
+            'template. Owned by you, with the code and the data.'
+        ),
+        'price_from': 22000,
+        'currency': 'USD',
+        'price_note': 'inventory + CRM + dashboards as one system, 40/40/20',
+        'duration': '8 weeks',
+        'price_drivers': (
+            'How many roles and locations use it, how much data has to be migrated from '
+            'spreadsheets or an old system, and how many outside systems it must talk to '
+            '(accounting, WhatsApp, a storefront).'
+        ),
+        'scene': 'lattice',
+        'problem': [
+            'Stock lives in one spreadsheet, customers in another, and the numbers the owner '
+            'needs are rebuilt by hand every week. Off-the-shelf tools fit half the process '
+            'and the team works around the other half.',
+        ],
+        'deliverables': [
+            'A written process map signed off before anything is built',
+            'Inventory and orders, with the stock rules your business actually uses',
+            'Customer and case records with a full history',
+            'Dashboards for the owner and each role',
+            'Migration of your existing spreadsheets',
+            'Hosting set up in your name, the code handed over, and training for your team',
+        ],
+        'process': [
+            ('Weeks 1–2', 'Process map and screens. You approve them before we build.'),
+            ('Weeks 3–7', 'Build in weekly releases your team tests on real data.'),
+            ('Week 8', 'Migration, go-live, training, handover.'),
+        ],
+        'for': [
+            'Distributors, retailers, clinics, schools and service businesses of 5–200 people',
+            'Owners running the business on spreadsheets and WhatsApp',
+            'Teams that outgrew an off-the-shelf tool',
+        ],
+        'not_for': [
+            'A full ERP replacement for a large enterprise',
+            'Businesses that need a regulated system of record (banking, medical records) certified by us',
+        ],
+        'proof': {
+            'text': 'FabricPort runs four role-scoped portals over one database for a B2B '
+                    'marketplace; The Courts runs booking and point-of-sale with real-time '
+                    'stock for a padel and pickleball facility.',
+            'href': '/work/',
+            'label': 'Our work',
+        },
+        'faq': [
+            ('Can we start smaller?',
+             'Yes. Inventory, CRM and Dashboards are each available on their own, from $5,000 to $7,000.'),
+        ],
+        'demo': None,
+    },
 ]
 
 # Offers that have a working demo on the site. The offer page shows it, and

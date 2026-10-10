@@ -7,6 +7,8 @@ Valid values for suggested_offer_slug: {{slugs}}
 What to look for in this segment:
 {{segment_brief}}
 
+Markets: only companies headquartered or mainly operating in high-budget markets, where an $18k-$25k fixed-scope engagement is an ordinary purchase: the US, Canada, the UK, Ireland, the EU and EEA, Switzerland, the Gulf (UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman), Australia, New Zealand, Singapore, Japan, South Korea and Israel. Skip Pakistan entirely and skip other markets; the founder covers them directly.
+
 What counts as a prospect. All of these must hold:
 - There is a specific public page that shows the need right now, and you opened it with WebFetch and read it. The page is live, was posted or updated in roughly the last 120 days (check its date against today's date above), and the need is not marked filled, awarded or closed. If you cannot open it, or it has expired, skip it and look for another; do not stop at the first expired post.
 - The need looks unmet. Skip it only if the page or the company's site says a named integrator or big vendor already owns it, for example where the company announces Siemens, Rockwell, ABB, Schneider, Honeywell, Emerson, Yokogawa, Accenture, Deloitte, Capgemini, TCS, Infosys or a similar large vendor or integrator for this exact work.

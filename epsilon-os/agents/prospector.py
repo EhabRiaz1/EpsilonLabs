@@ -47,6 +47,11 @@ EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})$")
 
 # ---------------------------------------------------------------- pure helpers
 
+# High-budget markets for cold outreach (founder 2026-10-10). Pakistan is worked through the founder's own network.
+TARGET_MARKETS = frozenset("""US CA GB IE DE NL BE LU FR DK SE NO FI IS CH AT IT ES PT PL CZ EE LT LV SI
+    AE SA QA KW BH OM AU NZ SG JP KR IL""".split())
+
+
 def region_for(country: str) -> tuple[str, str]:
     """(region, legal_basis). UK/EU/EEA get legitimate_interest_b2b, everywhere else business_contact."""
     c = (country or "").upper()
@@ -99,6 +104,8 @@ def validate(raw: dict, segment: str, slugs: set[str]) -> tuple[dict | None, str
     name = _one_line(raw.get("name"), 160)
     if not (quote and obs and name and re.fullmatch(r"[A-Z]{2}", country)):
         return None, "missing field"
+    if country not in TARGET_MARKETS:
+        return None, "outside target markets"
     contact, contact_note = None, ""
     c = raw.get("contact")
     if isinstance(c, dict) and c.get("email"):

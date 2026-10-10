@@ -16,7 +16,7 @@ LONG = " ".join(["word"] * 130)
 
 
 def co(i, segment="industrial", with_contact=True, **over):
-    d = {"name": f"Acme {i}", "domain": f"acme{i}.example.com", "country": "PK", "sector": "food packaging",
+    d = {"name": f"Acme {i}", "domain": f"acme{i}.example.com", "country": "US", "sector": "food packaging",
          "segment": segment, "evidence_url": f"https://jobs.example.org/acme{i}/plc-engineer",
          "evidence_quote": "We are hiring a PLC and SCADA engineer for our new packing line.",
          "observation": "Hiring a PLC/SCADA engineer for a new packing line.", "suggested_offer_slug": OFFER,
@@ -65,9 +65,9 @@ def test_happy_path_creates_everything_and_logs():
     r = go(db, fake)
     assert r["created"] == 2 and r["drafts"] == 1 and r["no_contact"] == 1 and r["errors"] == 0
     c1 = db.rows("companies", domain="acme1.example.com")[0]
-    assert c1["wedge"] == "industrial_monitoring" and c1["country"] == "PK" and c1["is_dream25"] is False
+    assert c1["wedge"] == "industrial_monitoring" and c1["country"] == "US" and c1["is_dream25"] is False
     ct = db.rows("contacts", email="info@acme1.example.com")[0]
-    assert ct["region"] == "PK" and ct["legal_basis"] == "business_contact" and ct["company_id"] == c1["id"]
+    assert ct["region"] == "US" and ct["legal_basis"] == "business_contact" and ct["company_id"] == c1["id"]
     deal = db.rows("deals", company_id=c1["id"])[0]
     assert deal["source_channel"] == "outbound" and deal["stage"] == "lead" and deal["primary_contact_id"] == ct["id"]
     assert deal["title"].startswith("Outbound: Hiring a PLC/SCADA")
@@ -352,3 +352,8 @@ def test_dry_run_cli_prints_json_and_never_opens_the_live_db(monkeypatch, capsys
 def test_dry_run_requires_a_segment(capsys):
     with pytest.raises(SystemExit):
         prospector.main(["--dry-run"])
+
+
+def test_prospect_outside_target_markets_is_dropped():
+    from agents.prospector import TARGET_MARKETS
+    assert "PK" not in TARGET_MARKETS and {"US", "GB", "AE", "DE", "AU", "SG"} <= TARGET_MARKETS
