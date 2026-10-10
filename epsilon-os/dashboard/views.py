@@ -56,11 +56,14 @@ def page(title: str, body: str, active: str, csrf: str, sh: dict | None, demo: b
             f'<title>{e(title)} · Epsilon OS</title>'
             f'<link href="{FONTS}" rel="stylesheet"><link rel="stylesheet" href="/static/dashboard.css"></head>'
             f'<body><a class="skip" href="#main">Skip to content</a>'
-            f'<header class="top"><div class="brand"><i aria-hidden="true">ε</i>Epsilon OS</div>'
-            f'<nav class="tabs" aria-label="Primary">{tabs}</nav>{demo_b}<div class="status">{status}</div></header>'
+            f'<header class="top"><a class="brand" href="/"><i aria-hidden="true">ε</i><span>Epsilon OS</span></a>'
+            f'<nav class="tabs" aria-label="Primary">{tabs}</nav>{demo_b}'
+            f'<button type="button" class="cmdk" data-cmdk aria-haspopup="dialog">'
+            f'<span>Jump to…</span>{kbd("⌘K")}</button>'
+            f'<div class="status">{status}</div></header>'
             f'{main}'
             f'<div id="toasts" class="toasts" role="status" aria-live="polite"></div>'
-            f'{shortcuts_sheet()}'
+            f'{shortcuts_sheet()}{palette()}'
             f'<script src="/static/dashboard.js" defer></script></body></html>')
 
 
@@ -72,6 +75,16 @@ def shortcuts_sheet() -> str:
     li = "".join(f"<tr><th scope=row>{kbd(k)}</th><td>{e(v)}</td></tr>" for k, v in rows)
     return (f'<dialog id="sheet" aria-labelledby="sheet-t"><h2 id="sheet-t">Keyboard shortcuts</h2>'
             f'<table>{li}</table><form method="dialog"><button class="btn">Close</button></form></dialog>')
+
+
+def palette() -> str:
+    items = [("/", "Today", "G T"), ("/deck", "Start the deck", "↵"), ("/pipeline", "Pipeline", "G P"),
+             ("/health", "Health", "G H"), ("/#held", "Held tray", ""), ("?", "Keyboard shortcuts", "?")]
+    li = "".join(f'<li role="option" data-href="{e(h)}" tabindex="-1"><span>{e(t)}</span>{kbd(k) if k else ""}</li>'
+                 for h, t, k in items)
+    return (f'<dialog id="palette" class="palette" aria-label="Jump to"><input id="pal-q" type="text" '
+            f'placeholder="Jump to a screen…" autocomplete="off" aria-label="Search screens">'
+            f'<ul role="listbox" id="pal-list">{li}</ul></dialog>')
 
 
 def error_state(csrf: str, msg: str = "Can't reach the database.", sh=None, demo=False, active="Today") -> str:
@@ -126,18 +139,24 @@ def today(csrf: str, now: datetime, sh: dict, k: dict, deck: list, held: list, t
         empty_extra = f'<p class="muted">{e(ls)}<a href="/pipeline">Open pipeline</a></p>'
     pct = "—" if k["interested_pct"] is None else f"{k['interested_pct']:.1f}%"
     pct_sub = f"of {k['sent']} sent" if k["sent"] else "no sends in 30d"
+    meter = min(100, round(float(k["collected"] or 0) / 3500 * 100))
     kp = (
-        f'<div class="kpi"><span class="mono">Conversations · 30d</span><b>{k["conversations"]}</b>'
+        f'<div class="kpi"><span class="mono">Conversations · 30d</span><b data-count>{k["conversations"]}</b>'
         f'<small>+{k["conv_week"]} this week</small></div>'
-        f'<div class="kpi"><span class="mono">Quotes out</span><b>{k["quotes"]}</b>'
+        f'<div class="kpi"><span class="mono">Quotes out</span><b data-count>{k["quotes"]}</b>'
         f'<small>{e(data.money(k["quotes_value"]))} value</small></div>'
-        f'<div class="kpi"><span class="mono">Collected · 30d</span><b>{e(data.money(k["collected"]))}</b>'
-        f'<small>target $3–4k</small></div>'
-        f'<div class="kpi"><span class="mono">Interested replies</span><b>{pct}</b><small>{pct_sub}</small></div>')
+        f'<div class="kpi"><span class="mono">Collected · 30d</span><b data-count>{e(data.money(k["collected"]))}</b>'
+        f'<small>target $3–4k</small><span class="kmeter" role="meter" aria-label="Collected vs $3.5k target" '
+        f'aria-valuemin="0" aria-valuemax="100" aria-valuenow="{meter}"><i style="width:{meter}%"></i></span></div>'
+        f'<div class="kpi"><span class="mono">Interested replies</span><b data-count>{pct}</b><small>{pct_sub}</small></div>')
     items = "".join(
-        f'<li><a class="item" href="/deck?id={e(c["id"])}"><span class="t">{e(c["age"])}</span>'
-        f'<span><b>{e(c["who"])}{" · " + e(c["company"]) if c["company"] else ""}</b> {card_tags(c)}'
-        f'<span class="sub">{e(c["subject"])}</span></span><span class="go" aria-hidden="true">›</span></a></li>'
+        f'<li><a class="item" href="/deck?id={e(c["id"])}">'
+        f'<span class="avs k-{e(c["kind"])}" aria-hidden="true">{e(data.initials(c["who"]))}</span>'
+        f'<span class="it-main"><span class="it-who"><b>{e(c["who"])}</b>'
+        f'{"<span class=co>" + e(c["company"]) + "</span>" if c["company"] else ""}</span>'
+        f'<span class="sub">{e(c["subject"])}</span></span>'
+        f'<span class="it-tags">{card_tags(c)}</span><span class="t">{e(c["age"])}</span>'
+        f'<span class="go" aria-hidden="true">→</span></a></li>'
         for c in deck)
     needs = (f'<section aria-labelledby="needs"><h2 id="needs" class="mono lbl">Needs you</h2>'
              f'<ul class="list">{items}</ul></section>') if deck else ""
@@ -175,7 +194,8 @@ def today(csrf: str, now: datetime, sh: dict, k: dict, deck: list, held: list, t
                      f'<div class="acts">{acts}</div></li>')
         trouble_html = (f'<section class="held amberedge" aria-labelledby="fv-h"><h2 id="fv-h" class="mono lbl amber">'
                         f'Failed / Verify · {len(trouble)}</h2><ul class="list">{rows}</ul></section>')
-    body = (f'<section class="hello" aria-labelledby="hi"><h1 id="hi">{e(data.greeting(now))}</h1>'
+    body = (f'<section class="hello" aria-labelledby="hi"><p class="mono dateline">{e(now.astimezone(data.PKT).strftime("%A %d %B · %H:%M"))} PKT</p>'
+            f'<h1 id="hi">{e(data.greeting(now))}</h1>'
             f'<p class="state-line">{e(state)}</p>{empty_extra}{start}</section>'
             f'<section class="kpis" aria-label="Last 30 days">{kp}</section>'
             f'{needs}{held_html}{trouble_html}')
@@ -255,6 +275,12 @@ def pipeline(csrf: str, sh: dict, p: dict, channel: str | None, panel: str, demo
         body = (f'<h1 class="pt">Pipeline</h1><div class="chips" role="group" aria-label="Filter by channel">'
                 f'{"".join(chips)}</div><section class="state"><p>{e(msg)}</p></section>')
         return page("Pipeline", body, "Pipeline", csrf, sh, demo)
+    live = [(key, label, len(p["groups"][key])) for key, label in data.STAGES if key != "dormant"]
+    funnel = "".join(
+        f'<div class="seg s-{e(key)}" style="flex-grow:{max(n, 0.35)}" title="{e(label)}: {n}">'
+        f'<span class="mono">{e(label)}</span><b>{n}</b></div>' for key, label, n in live)
+    funnel_html = (f'<div class="funnel" role="img" aria-label="Deals by stage: '
+                   f'{e(", ".join(f"{l} {n}" for _, l, n in live))}">{funnel}</div>')
     secs = ""
     for key, label in data.STAGES:
         rows = p["groups"][key]
@@ -263,7 +289,7 @@ def pipeline(csrf: str, sh: dict, p: dict, channel: str | None, panel: str, demo
         trs = "".join(
             f'<tr tabindex="0" data-deal="{e(r["id"])}"><td><a href="/pipeline?deal={e(r["id"])}'
             f'{"&channel=" + e(channel) if channel else ""}">{e(r["company"])}</a>'
-            f'<span class="sub">{e(r["title"])}</span></td><td>{tag(r["channel"].replace("_", "-").upper())}</td>'
+            f'<span class="sub">{e(r["title"])}</span></td><td><span class="tag ch-{e(r["channel"])}">{e(r["channel"].replace("_", "-").upper())}</span></td>'
             f'<td class="num">{e("$" + format(float(r["value"]), ",.0f")) if r["value"] else "—"}</td>'
             f'<td class="num"><span class="days {r["tone"]}">{r["days"]}d</span>'
             f'{" " + tag("STALLED", "red") if r["tone"] == "red" else (" " + tag("SLOW", "amber") if r["tone"] else "")}</td>'
@@ -277,7 +303,8 @@ def pipeline(csrf: str, sh: dict, p: dict, channel: str | None, panel: str, demo
             secs += f'<details class="stage-g"><summary>{head}</summary>{table}</details>'
         else:
             secs += f'<section class="stage-g" aria-label="{e(label)}">{head}{table}</section>'
-    body = (f'<h1 class="pt">Pipeline</h1><div class="chips" role="group" aria-label="Filter by channel">'
+    body = (f'<div class="pt-row"><h1 class="pt">Pipeline</h1><span class="mono">{p["total"]} deals</span></div>'
+            f'{funnel_html}<div class="chips" role="group" aria-label="Filter by channel">'
             f'{"".join(chips)}</div>{secs}')
     panel_html = f'<aside id="panel" class="panel" aria-label="Deal details"{"" if panel else " hidden"}>{panel}</aside>'
     return page("Pipeline", f'<div class="pipe">{body}</div>{panel_html}', "Pipeline", csrf, sh, demo, cls="pipepage")
@@ -307,9 +334,11 @@ def deal_panel(pnl: dict) -> str:
 
 def health(csrf: str, sh: dict, h: dict, demo: bool) -> str:
     mx = max([n for _, n in h["llm"]] + [1])
+    last = len(h["llm"]) - 1
     bars = "".join(
-        f'<li><span class="v mono">{n}</span><i class="b" style="height:{max(round(n / mx * 100), 2 if n else 0)}%"></i>'
-        f'<span class="d mono">{d.strftime("%d")}</span></li>' for d, n in h["llm"])
+        f'<li{" class=today" if i == last else ""} title="{e(d.strftime("%a %d %b"))}: {n} calls">'
+        f'<span class="v mono">{n}</span><i class="b" style="height:{max(round(n / mx * 100), 2 if n else 0)}%"></i>'
+        f'<span class="d mono">{d.strftime("%d")}</span></li>' for i, (d, n) in enumerate(h["llm"]))
     runs = ""
     for agent, rows in h["runs"].items():
         trs = "".join(
