@@ -255,6 +255,55 @@ The day-90 *checkpoint* stays (it measures buyers, not us); everything we
 control moves to S0–S1. E2 LOI decision stays month 3; second-miss kill
 criterion stays month 6.
 
+## 10. Q4 2026 sprint: $350k signed by 31 December (founder decision 2026-10-10)
+
+**Target:** $350k signed contract value by 2026-12-31, with deposits collected on signature
+(40/40/20 terms => ~$140k cash by year end). Supersedes the day-90 $3-4k/mo target as the
+operating goal; the day-90 checkpoint and kill criteria are replaced by the gates below.
+
+**Why the old engine alone cannot do it (the maths, 2026-10-10):** 83 days left. The outbound
+engine can send ~750 first-touch emails by year end (domain warm-up + contacts with usable
+addresses); at 0.6-1.5% interested replies that is 4-11 conversations and 1-2 closes at ~$5k.
+Solo delivery capacity is ~356 hours, which would need ~$980/hour to deliver $350k personally.
+So the target requires **large contracts sold founder-led to people who already trust us, and
+subcontracted delivery.** Cold outbound becomes the third track, not the first.
+
+**Revenue mix (signed value):**
+| Track | Target | Shape | Owner |
+|---|---|---|---|
+| A. Expansion / whale deals | ~$210k | 3 deals x ~$70k: multi-site rollouts and platform builds for existing clients and network (first: Total Parco eFuelPro network rollout as pilot-then-fleet; then Master Paints, YS Group, Areeb Areel / Al Maymanah multi-site) | Founder, in person |
+| B. Dream-25 account-based | ~$90k | 2 deals x ~$45k, PK industrial first (Gulf cycles too long for this window) | Founder + prospector dossiers |
+| C. Outbound + referrals + inbound | ~$50k | 6-8 deals x $6-8k (decode sprints, firmware rescue, software builds), worldwide | Epsilon OS + founder approvals |
+
+**Deal construction:** quote rollouts as per-site hardware + install + prepaid annual licence;
+offer multi-year prepaid licences and phased SOWs signed as one contract, so signed value and
+deposits land now while delivery runs into Q1-Q2 2027. Quotes still come only from offers.py
+bands; the founder adds new rollout bands to offers.py first.
+
+**Capacity:** a bench of 2-3 vetted subcontract engineers (firmware/embedded, full-stack) paid
+50-60% of billed delivery; founder sells and architects. Nothing is signed whose delivery the
+bench cannot cover. Replaces the Act-2 hiring trigger for this window.
+
+**This week (blocking):** Wise/Payoneer + PSEB started and a services contract (MSA + SOW
+template, 40/40/20, IP on final payment); meetings requested with decision-makers at Total
+Parco, Master Paints, YS Group, Areeb Areel; warm-contacts list to Epsilon OS for referral
+asks; one-page rollout proposals for eFuelPro (fuel) and plant monitoring (industrial).
+
+**Gates (cumulative):**
+| Date | Proposals out | Signed |
+|---|---|---|
+| 2026-10-24 | 4 (track A meetings held) | - |
+| 2026-11-07 | 10 | $70k |
+| 2026-11-21 | 18 | $170k |
+| 2026-12-05 | 24 | $260k |
+| 2026-12-31 | - | $350k |
+Miss protocol: if 2026-11-21 shows < $100k signed and < 12 proposals, switch the year-end goal
+to a $350k 2027 run-rate (recurring licences + retainers) instead of forcing discounts.
+
+**Founder hours (weekly):** selling + proposals ~25h, architecture/oversight of the bench ~10h,
+Epsilon OS approvals ~5h. Epsilon OS: prospector feeds Dream-25 dossiers and track C; the CEO
+brief tracks signed $ vs this table.
+
 ## Implementation Tasks
 Synthesized from this review's findings. Each task derives from a specific
 finding above. Run with Claude Code; checkbox as you ship.
