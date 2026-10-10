@@ -9,12 +9,15 @@ import json
 import secrets
 import sys
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from agents import outreach
-from dashboard import actions, data, views
+from dashboard import actions, data, schedule, views
 
 HOST = "127.0.0.1"
 PORT = 8787
@@ -24,6 +27,51 @@ CSP = ("default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' 
        "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; "
        "frame-ancestors 'none'; base-uri 'none'")
 MAX_BODY = 200_000
+POOL = ThreadPoolExecutor(max_workers=32, thread_name_prefix="dash")  # nested gathers (shell inside a page) need headroom
+
+
+class PageCache:
+    """Short-lived page data cache. Fresh (< ttl) is served as is; up to `stale` old is served while a
+    background refresh runs; older loads synchronously. Every action clears it, so the founder never sees
+    data from before their own click."""
+
+    def __init__(self, ttl: float = 15.0, stale: float = 120.0):
+        self.ttl, self.stale = ttl, stale
+        self._d: dict = {}
+        self._busy: set = set()
+        self._lock = threading.Lock()
+
+    def get(self, key, loader):
+        now = time.monotonic()
+        with self._lock:
+            hit = self._d.get(key)
+        if hit and now - hit[0] < self.ttl:
+            return hit[1]
+        if hit and now - hit[0] < self.stale:
+            with self._lock:
+                if key not in self._busy:
+                    self._busy.add(key)
+                    POOL.submit(self._refresh, key, loader)
+            return hit[1]
+        val = loader()
+        with self._lock:
+            self._d[key] = (time.monotonic(), val)
+        return val
+
+    def _refresh(self, key, loader):
+        try:
+            val = loader()
+            with self._lock:
+                self._d[key] = (time.monotonic(), val)
+        except Exception:
+            pass
+        finally:
+            with self._lock:
+                self._busy.discard(key)
+
+    def clear(self):
+        with self._lock:
+            self._d.clear()
 
 
 class App:
@@ -34,6 +82,19 @@ class App:
         self.csrf = secrets.token_urlsafe(32)
         self.port = port
         self._lock = threading.Lock()
+        self.cache = PageCache()
+
+    @property
+    def live(self) -> bool:
+        """True against the real PostgREST client: parallel queries and the page cache only make sense there."""
+        return type(self._db).__name__ == "DB"
+
+    def gather(self, **fns):
+        """Run independent page queries in parallel against the live DB, in order against test fakes."""
+        if not self.live:
+            return {k: f() for k, f in fns.items()}
+        futs = {k: POOL.submit(f) for k, f in fns.items()}
+        return {k: f.result() for k, f in futs.items()}
 
     @property
     def allowed_hosts(self) -> set[str]:
@@ -44,6 +105,18 @@ class App:
             if self._db is None:
                 self._db = self._factory()
             return self._db
+
+
+def _last_runs(db) -> dict:
+    """Latest heartbeat time per agent, for the schedule (one query)."""
+    out: dict = {}
+    for h in db.select("agent_heartbeats", select="agent,last_run", order="last_run.desc", limit=300):
+        if h.get("agent") and h["agent"] not in out and h.get("last_run"):
+            try:
+                out[h["agent"]] = datetime.fromisoformat(str(h["last_run"]).replace("Z", "+00:00"))
+            except ValueError:
+                pass
+    return out
 
 
 def _api(app: App, name: str, p: dict) -> dict:
@@ -68,13 +141,18 @@ def _api(app: App, name: str, p: dict) -> dict:
         return actions.mark_sent_verified(db, qid)
     if name == "settings":
         return actions.save_settings_all(db, p)
+    if name == "run_job":
+        job = str(p.get("job") or "")
+        if job not in schedule.RUNNABLE:
+            return actions.fail("unknown_job", "That job can't be started from here.")
+        return {"ok": True} if schedule.run_now(job) else actions.fail("launch_failed", "launchd refused to start it.")
     if name.startswith("opp_"):
         return actions.opp_decide(db, qid, name[4:], str(p.get("reason") or "") or None)
     return actions.fail("unknown_action", "Unknown action.")
 
 
 ACTION_NAMES = {"approve", "undo", "reject", "later", "release", "suppress", "retry", "mark_sent", "settings",
-                "opp_bid", "opp_pass", "opp_submitted", "opp_won", "opp_lost"}
+                "opp_bid", "opp_pass", "opp_submitted", "opp_won", "opp_lost", "run_job"}
 MULTI_FIELDS = {"segments", "tenders_sources"}  # form fields that legitimately repeat (checkbox groups)
 
 
@@ -137,15 +215,27 @@ def make_handler(app: App):
             now = data.now_utc()
             db = app.db()
             csrf, demo = app.csrf, app.demo
+            G = app.gather
+
+            def _shell():
+                sh, last = G(sh=lambda: data.shell(db, now), last=lambda: _last_runs(db)).values()
+                sh["schedule"] = schedule.view(last, now)
+                sh["csrf"] = csrf
+                return sh
+
+            def shell_plus():
+                return app.cache.get(("shell",), _shell)
+
             if path == "/":
-                sh = data.shell(db, now)
-                html = views.today(csrf, now, sh, data.kpis(db, now), data.pending_cards(db, now, False),
-                                   data.pending_cards(db, now, True), data.trouble_cards(db, now),
-                                   data.last_sent(db, now), demo)
+                d = app.cache.get(("today",), lambda: G(
+                    sh=shell_plus, k=lambda: data.kpis(db, now), deck=lambda: data.pending_cards(db, now, False),
+                    held=lambda: data.pending_cards(db, now, True), trouble=lambda: data.trouble_cards(db, now),
+                    last=lambda: data.last_sent(db, now)))
+                html = views.today(csrf, now, d["sh"], d["k"], d["deck"], d["held"], d["trouble"], d["last"], demo)
             elif path == "/deck":
-                ready = outreach.status(db, now)["configured"]
-                html = views.deck(csrf, data.shell(db, now), data.pending_cards(db, now, False),
-                                  data.decided_today(db, now), demo, ready)
+                d = G(ready=lambda: outreach.status(db, now)["configured"], sh=shell_plus,
+                      cards=lambda: data.pending_cards(db, now, False), counts=lambda: data.decided_today(db, now))
+                html = views.deck(csrf, d["sh"], d["cards"], d["counts"], demo, d["ready"])
             elif path == "/pipeline":
                 ch = q.get("channel")
                 pnl_data = data.deal_panel(db, q["deal"], now) if q.get("deal") else None
@@ -154,19 +244,22 @@ def make_handler(app: App):
                     if not panel:
                         return self._text(404, "No such deal")
                     return self._send(200, panel.encode())
-                html = views.pipeline(csrf, data.shell(db, now), data.pipeline(db, now, ch), ch, panel, demo)
+                d = app.cache.get(("pipeline", ch), lambda: G(sh=shell_plus, p=lambda: data.pipeline(db, now, ch)))
+                html = views.pipeline(csrf, d["sh"], d["p"], ch, panel, demo)
             elif path == "/health":
-                html = views.health(csrf, data.shell(db, now), data.health(db, now), demo)
+                d = app.cache.get(("health",), lambda: G(sh=shell_plus, h=lambda: data.health(db, now)))
+                html = views.health(csrf, d["sh"], d["h"], demo)
             elif path == "/opportunities":
                 panel = ""
                 if q.get("id"):
                     opp = data.opportunity(db, q["id"], now)
                     panel = views.opportunity_panel(csrf, opp, "/opportunities?id=" + q["id"]) if opp else ""
-                html = views.opportunities_page(csrf, data.shell(db, now), data.opportunities(db, now), panel, demo)
+                d = app.cache.get(("opps",), lambda: G(sh=shell_plus, o=lambda: data.opportunities(db, now)))
+                html = views.opportunities_page(csrf, d["sh"], d["o"], panel, demo)
             elif path == "/settings":
-                v = data.settings_view(db, now)
-                v["tenders"] = data.tenders_settings(db)
-                html = views.settings_page(csrf, data.shell(db, now), v, {}, q.get("saved") == "1", demo)
+                d = G(v=lambda: data.settings_view(db, now), t=lambda: data.tenders_settings(db), sh=shell_plus)
+                d["v"]["tenders"] = d["t"]
+                html = views.settings_page(csrf, d["sh"], d["v"], {}, q.get("saved") == "1", demo)
             else:
                 return self._send(404, views.message_page(csrf, "Not found", "No such page.", demo=demo).encode())
             self._send(200, html.encode())
@@ -204,6 +297,7 @@ def make_handler(app: App):
                 return self._text(403, "Bad CSRF token")
             try:
                 res = _api(app, name, p)
+                app.cache.clear()
             except Exception as ex:
                 sys.stderr.write(f"action error {name}: {type(ex).__name__}\n")
                 res = actions.fail("db_error", "Can't reach the database. Nothing was changed.")
@@ -243,11 +337,27 @@ def make_handler(app: App):
     return Handler
 
 
+def _prewarm(port: int, every: float = 12.0) -> None:
+    """Keep the page cache warm so a first click is instant: fetch the cached pages over loopback."""
+    import urllib.request
+    time.sleep(2)
+    while True:
+        for path in ("/", "/pipeline", "/health", "/opportunities"):
+            try:
+                req = urllib.request.Request(f"http://127.0.0.1:{port}{path}", headers={"Host": f"127.0.0.1:{port}"})
+                urllib.request.urlopen(req, timeout=30).read()
+            except Exception:
+                pass
+        time.sleep(every)
+
+
 def make_server(db=None, db_factory=None, port: int = PORT, demo: bool = False) -> ThreadingHTTPServer:
     app = App(db=db, db_factory=db_factory, port=port, demo=demo)
     srv = ThreadingHTTPServer((HOST, port), make_handler(app))  # loopback only (D3), no --host flag on purpose
     srv.daemon_threads = True
     app.port = srv.server_address[1]
+    if db is None and not demo:
+        threading.Thread(target=_prewarm, args=(app.port,), daemon=True).start()
     srv.app = app
     return srv
 

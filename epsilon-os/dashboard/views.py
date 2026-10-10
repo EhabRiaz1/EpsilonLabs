@@ -33,6 +33,25 @@ def tenders_rail(sh: dict) -> str:
             f'{t["new"]} new, {t["worth"]} worth a look</a></p></div>')
 
 
+def schedule_html(sh: dict) -> str:
+    rows = sh.get("schedule") or []
+    if not rows:
+        return ""
+    csrf = sh.get("csrf", "")
+    out = ""
+    for r in rows:
+        btn = ""
+        if r["runnable"] and not r["running"] and csrf:
+            btn = (f'<form method="post" action="/act/run_job" class="runf"><input type="hidden" name="csrf" value="{e(csrf)}">'
+                   f'<input type="hidden" name="job" value="{e(r["job"])}"><input type="hidden" name="next" value="/">'
+                   f'<button class="runbtn" title="Run {e(r["label"])} now">Run now</button></form>')
+        out += (f'<div class="sch{" on" if r["running"] else ""}"><div class="sch-t"><span class="agn">{e(r["label"])}</span>'
+                f'<span class="st">{e(r["cadence"])}</span></div>'
+                f'<div class="sch-n"><span class="mono">{e(r["next"]) if not r["running"] else ""}</span>'
+                f'<b>{e(r["until"])}</b>{btn}</div></div>')
+    return f'<div class="schedule"><h2 class="mono lbl">Schedule · next runs (PKT)</h2>{out}</div>'
+
+
 def rail_html(sh: dict, compact: bool = False) -> str:
     ag = "".join(f'<div class="ag"><span class="agn">{e(a["name"].capitalize())}</span>'
                  f'<span class="st {a["state"]}">{e(a["text"])}</span></div>' for a in sh["agents"])
@@ -40,7 +59,8 @@ def rail_html(sh: dict, compact: bool = False) -> str:
     tone = "red" if pct >= 100 else ("amber" if pct >= 80 else "")
     cost = f' · ${sh["cost"]:.2f}' if sh["cost"] else ""
     wd = sh["watchdog"]
-    return (f'<div><h2 class="mono lbl">Agents</h2>{ag}</div>'
+    return (f'{schedule_html(sh)}'
+            f'<div><h2 class="mono lbl">Agents</h2>{ag}</div>'
             f'<div><h2 class="mono lbl">Spend today</h2><div class="bar {tone}" role="meter" aria-valuemin="0" '
             f'aria-valuemax="{sh["budget"]}" aria-valuenow="{sh["calls"]}" aria-label="LLM calls today">'
             f'<i style="width:{pct}%"></i></div>'

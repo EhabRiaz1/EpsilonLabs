@@ -136,9 +136,19 @@ def trouble_cards(db, now: datetime) -> list[dict]:
 # ------------------------------------------------------------------ rail / shell
 
 def agent_rows(db, now: datetime) -> tuple[list[dict], dict]:
-    beats = db.select("agent_heartbeats", order="last_run.desc", limit=300)
-    latest: dict = {}
-    for b in beats:
+    # The every-minute outbox fills any fixed window, so ask per agent (in parallel against the live DB).
+    from concurrent.futures import ThreadPoolExecutor
+    names = [a for a, _ in AGENTS] + ["watchdog", "tenders", "followups"]
+    def one(name):
+        rows = db.select("agent_heartbeats", agent=name, order="last_run.desc", limit=1)
+        return rows[0] if rows else None
+    if type(db).__name__ == "DB":
+        with ThreadPoolExecutor(max_workers=len(names)) as ex:
+            found = list(ex.map(one, names))
+    else:
+        found = [one(nm) for nm in names]
+    latest: dict = {b["agent"]: b for b in found if b}
+    for b in db.select("agent_heartbeats", order="last_run.desc", limit=300):
         latest.setdefault(b["agent"], b)
     rows = []
     known = {a for a, _ in AGENTS}
@@ -202,7 +212,7 @@ def shell(db, now: datetime) -> dict:
 def kpis(db, now: datetime) -> dict:
     since = (now - timedelta(days=30)).isoformat()
     touches = db.select("touches", occurred_at=f"gte.{since}", limit=5000)
-    human = [t for t in touches if t.get("type") == "human_reply"]
+    human = [t for t in touches if t.get("type") == "human_reply" and t.get("direction") == "inbound"]
     convs = len({t["deal_id"] for t in human if t.get("deal_id")})
     sent = sum(1 for t in touches if t.get("type") == "sent" and t.get("direction") == "outbound")
     interested = sum(1 for t in human if (t.get("classifier") or {}).get("label") == "inquiry")

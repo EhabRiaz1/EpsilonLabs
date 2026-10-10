@@ -316,10 +316,45 @@ def _inquiry(S, n, cls, thread, injection: bool) -> None:
     _queue_draft(S, "outbound" if S.outreach else "reply", n, d["body"], touch["id"], deal_id, contact_id, held, why)
 
 
+DECLINE_NOTE = ("Hi {name},\n\nUnderstood, and thanks for letting me know. If anything changes, I'm a reply away."
+                "\n\nEhab Riaz\nEpsilon Labs · epsilon-labs.co")
+
+
+def _decline(S, n, cls, thread, label: str) -> None:
+    """A polite no or not-now: log it as a reply, end the sequence, park the deal, and queue one courteous
+    close-the-loop note for the founder to approve (no pitch, no LLM)."""
+    contact = _find_contact(S, n["sender"])
+    deal_id = (thread or {}).get("deal_id")
+    if not deal_id and contact:
+        deals = S.db.select("deals", primary_contact_id=contact["id"], order="created_at.desc", limit=1)
+        deal_id = deals[0]["id"] if deals else None
+    t = _touch(S, n, "human_reply", classifier=cls, deal_id=deal_id, contact_id=contact["id"] if contact else None)
+    if contact:
+        _stop_sequences(S, "human_reply", contact_id=contact["id"], email=n["sender"])
+    if deal_id:
+        stage = {"stage": "lost", "lost_reason": "not interested"} if label == "not_interested" else {"stage": "dormant"}
+        S.db.update("deals", stage, id=deal_id)
+    S.c["declines"] = S.c.get("declines", 0) + 1
+    _log(S, "reply_" + label, target_table="touches", target_id=t["id"], detail={"reason": cls.get("reason", "")[:200]})
+    if not _already_closed_loop(S, n["sender"]):
+        body = DECLINE_NOTE.format(name=first_name(n["name"]) if first_name(n["name"]) != "there" else "there")
+        _queue_draft(S, "outbound" if S.outreach else "reply", n, body, t["id"], deal_id,
+                     contact["id"] if contact else None)
+
+
+def _already_closed_loop(S, addr: str) -> bool:
+    """Only one close-the-loop note per person: a second polite reply ("thanks, will do") gets none."""
+    rows = S.db.select("approval_queue", to_email=addr, status="in.(pending,approved,edited_approved,sending,sent)",
+                       draft="like.*Understood, and thanks for letting me know*", limit=1)
+    return bool(rows)
+
+
 def _handle_label(S, n, cls, thread) -> None:
     label = cls["label"]
     if label == "opt_out":
         _opt_out(S, n, cls, "model")
+    elif label in ("not_interested", "not_now"):
+        _decline(S, n, cls, thread, label)
     elif label in ("auto_reply", "bounce"):
         if label == "bounce":
             _bounce_touch(S, n, cls)

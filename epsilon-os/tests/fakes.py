@@ -47,6 +47,9 @@ def _match_one(col: str, rowval, op: str, val: str) -> bool:
         if a is None or b is None:
             a, b = rowval, val
         return {"gt": a > b, "gte": a >= b, "lt": a < b, "lte": a <= b}[op]
+    if op in ("like", "ilike"):  # PostgREST uses * as the wildcard in URLs
+        pat = "^" + ".*".join(re.escape(part) for part in val.split("*")) + "$"
+        return re.search(pat, str(rowval), re.S | (re.I if op == "ilike" else 0)) is not None
     eq = _norm(rowval) == val.lower()
     return eq if op == "eq" else (not eq if op == "neq" else False)
 

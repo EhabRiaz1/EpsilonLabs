@@ -4,6 +4,7 @@ Getters never fail because of a missing table, a missing key or a malformed valu
 DEFAULTS. `set` validates and raises SettingsError with a message fit to show next to the form field.
 The ramp is pure math so it is testable without a database.
 """
+import time
 import re
 from datetime import date, datetime, timezone
 
@@ -150,12 +151,28 @@ def _clean_date(v) -> str | None:
         return None
 
 
+_CACHE_TTL = 10.0  # seconds; one settings read serves every getter in a page render or agent step
+
+
 def _stored(db) -> dict:
+    # Only the live PostgREST client is cached (each read is a ~0.2 s round trip); test fakes always read through.
+    live = type(db).__name__ == "DB"
+    cached = getattr(db, "_settings_cache", None) if live else None
+    if cached and time.monotonic() - cached[0] < _CACHE_TTL:
+        return cached[1]
     try:
         rows = db.select("settings")
     except Exception:  # table not migrated yet, or the DB is down: run on defaults
         return {}
-    return {r["key"]: r["value"] for r in rows if isinstance(r, dict) and "key" in r and "value" in r}
+    out = {r["key"]: r["value"] for r in rows if isinstance(r, dict) and "key" in r and "value" in r}
+    if live:
+        db._settings_cache = (time.monotonic(), out)
+    return out
+
+
+def invalidate(db) -> None:
+    if hasattr(db, "_settings_cache"):
+        db._settings_cache = None
 
 
 def validate(key: str, value):
@@ -229,11 +246,13 @@ def get(db, key: str):
 
 def set(db, key: str, value):  # noqa: A001 - the spec names it set()
     clean = validate(key, value)
+    invalidate(db)
     # PostgREST turns a JSON null into SQL NULL (value is NOT NULL), so null is never written from here.
     if db.select("settings", key=key, limit=1):
         db.update("settings", {"value": clean, "updated_at": _now_iso()}, key=key)
     else:
         db.insert("settings", {"key": key, "value": clean}, returning=False)
+    invalidate(db)
     return clean
 
 

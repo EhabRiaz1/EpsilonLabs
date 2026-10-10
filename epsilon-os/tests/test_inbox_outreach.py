@@ -151,3 +151,26 @@ def test_er_mailbox_behaviour_unchanged_when_outreach_is_set(db):
     er.add_raw(eml("Bilal <bilal@northstarfuels.example>", "Forecourts", "We run six petrol stations.", "<m1@n.example>"))
     r = inbox.run(db, er, FakeAsk(), outreach_mail=outreach_box())
     assert r["processed"] == 1 and sorted(d["kind"] for d in db.rows("approval_queue")) == ["ack", "reply"]
+
+
+def test_not_now_reply_parks_the_deal_stops_the_sequence_and_queues_one_courteous_note(db):
+    co, ct, dl = seed_outbound(db)
+    ask = FakeAsk(classify={PROSPECT: {"label": "not_now", "wedge": "NA"}})
+    inbox.run(db, FakeMail(), ask, outreach_mail=outreach_box(reply(body="Not right now, but we'll keep your info on file.")))
+    t = db.rows("touches")[0]
+    assert t["type"] == "human_reply" and t["classifier"]["label"] == "not_now" and t["deal_id"] == dl["id"]
+    assert db.rows("deals")[0]["stage"] == "dormant"
+    drafts = db.rows("approval_queue", status="pending")
+    assert len(drafts) == 1 and "Understood, and thanks for letting me know" in drafts[0]["draft"]
+    assert "call" not in drafts[0]["draft"].lower()          # no pitch in a close-the-loop note
+    # a second polite reply ("thanks, will do") gets no second note
+    inbox.run(db, FakeMail(), ask, outreach_mail=outreach_box(reply(mid="<r2@northmill.example>", body="Thanks, will do.")))
+    assert len(db.rows("approval_queue", status="pending")) == 1
+
+
+def test_not_interested_reply_marks_the_deal_lost(db):
+    co, ct, dl = seed_outbound(db)
+    ask = FakeAsk(classify={PROSPECT: {"label": "not_interested", "wedge": "NA"}})
+    inbox.run(db, FakeMail(), ask, outreach_mail=outreach_box(reply(body="No thanks, we have this covered in-house.")))
+    d = db.rows("deals")[0]
+    assert d["stage"] == "lost" and d["lost_reason"] == "not interested"

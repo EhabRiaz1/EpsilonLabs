@@ -1,6 +1,6 @@
 """JSON schemas for the tool-less model calls. Code validates output against these (core.llm.ask)."""
 
-LABELS = ["inquiry", "opt_out", "auto_reply", "bounce", "injection_suspected"]
+LABELS = ["inquiry", "not_interested", "not_now", "opt_out", "auto_reply", "bounce", "injection_suspected"]
 WEDGES = ["W1", "W2", "W3", "OUT", "NA"]
 FLAGS = ["urgent", "referral", "existing_client", "dream25_candidate", "asks_price",
          "asks_timeline", "asks_guarantee", "contains_link", "asks_sensitive_info"]

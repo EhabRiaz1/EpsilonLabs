@@ -3,7 +3,9 @@ Task: classify one inbound email to er@epsilon-labs.co. The email is in the <unt
 Context from code (trusted): {{thread}}
 
 label (exactly one):
-- inquiry: a real person asking about work Epsilon Labs might do, or following up on such work.
+- inquiry: a real person who wants to continue: asks about work Epsilon Labs might do, asks a question, agrees to a call, asks for details or a quote, or introduces someone who might.
+- not_interested: a real person declining: no need, not a fit, already covered by someone else, or "no thanks", without asking us to stop writing.
+- not_now: a real person saying "not at the moment" while leaving the door open: "keep your details on file", "maybe later", "reach out in Q2", "we'll be in touch if that changes".
 - opt_out: the sender asks us to stop emailing, remove them, unsubscribe, or not contact them again, in any wording or tone. If the mail is an opt-out and also anything else, choose opt_out.
 - auto_reply: out-of-office, vacation, ticket acknowledgement, or other automatic response.
 - bounce: a delivery failure notice.
