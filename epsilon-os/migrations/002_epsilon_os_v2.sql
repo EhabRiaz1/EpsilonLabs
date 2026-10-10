@@ -54,3 +54,7 @@ end $$;
 -- actions is insert-only by convention: the service role is the only writer and agents never update/delete it.
 -- Enforce at DB level so a bug cannot rewrite history.
 revoke update, delete, truncate on actions from service_role;
+
+-- Supabase advisor 0011: pin search_path so these functions cannot be hijacked by objects in other schemas.
+alter function set_updated_at() set search_path = public, pg_temp;
+alter function is_suppressed(text) set search_path = public, pg_temp;
