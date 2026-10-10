@@ -211,6 +211,7 @@ def kpis(db, now: datetime) -> dict:
         "conversations": convs, "conv_week": conv_week,
         "quotes": len(quotes), "quotes_value": sum(float(d.get("value_usd") or 0) for d in quotes),
         "collected": sum(float(d.get("value_usd") or 0) for d in collected),
+        "won_q4": sum(float(d.get("value_usd") or 0) for d in db.select("deals", stage="won", closed_at="gte.2026-10-01", limit=1000)),
         "interested_pct": (interested / sent * 100) if sent else None, "sent": sent, "interested": interested,
     }
 

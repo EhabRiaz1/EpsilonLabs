@@ -185,14 +185,14 @@ def today(csrf: str, now: datetime, sh: dict, k: dict, deck: list, held: list, t
         empty_extra = f'<p class="muted">{e(ls)}<a href="/pipeline">Open pipeline</a></p>'
     pct = "—" if k["interested_pct"] is None else f"{k['interested_pct']:.1f}%"
     pct_sub = f"of {k['sent']} sent" if k["sent"] else "no sends in 30d"
-    meter = min(100, round(float(k["collected"] or 0) / 3500 * 100))
+    meter = min(100, round(float(k.get("won_q4") or 0) / 100000 * 100))
     kp = (
         f'<div class="kpi"><span class="mono">Conversations · 30d</span><b data-count>{k["conversations"]}</b>'
         f'<small>+{k["conv_week"]} this week</small></div>'
         f'<div class="kpi"><span class="mono">Quotes out</span><b data-count>{k["quotes"]}</b>'
         f'<small>{e(data.money(k["quotes_value"]))} value</small></div>'
-        f'<div class="kpi"><span class="mono">Collected · 30d</span><b data-count>{e(data.money(k["collected"]))}</b>'
-        f'<small>target $3–4k</small><span class="kmeter" role="meter" aria-label="Collected vs $3.5k target" '
+        f'<div class="kpi"><span class="mono">Won since 1 Oct</span><b data-count>{e(data.money(k.get("won_q4") or 0))}</b>'
+        f'<small>target $100k by 31 Dec</small><span class="kmeter" role="meter" aria-label="Won vs $100k target" '
         f'aria-valuemin="0" aria-valuemax="100" aria-valuenow="{meter}"><i style="width:{meter}%"></i></span></div>'
         f'<div class="kpi"><span class="mono">Interested replies</span><b data-count>{pct}</b><small>{pct_sub}</small></div>')
     items = "".join(
