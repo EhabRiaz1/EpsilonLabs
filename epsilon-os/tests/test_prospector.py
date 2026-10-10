@@ -346,7 +346,7 @@ def test_dry_run_cli_prints_json_and_never_opens_the_live_db(monkeypatch, capsys
     assert prospector.main(["--dry-run", "--segment", "industrial", "--n", "2"]) == 0
     out = json.loads(capsys.readouterr().out)
     assert out["created"] == 2 and out["rows"][0]["domain"] == "acme1.example.com"
-    assert out["rows"][0]["evidence_url"].startswith("https://") and len(fake.research_calls) == 1
+    assert out["rows"][0]["evidence_url"].startswith("https://") and len(fake.research_calls) == 2  # research + one batched contact search
 
 
 def test_dry_run_requires_a_segment(capsys):
@@ -357,3 +357,32 @@ def test_dry_run_requires_a_segment(capsys):
 def test_prospect_outside_target_markets_is_dropped():
     from agents.prospector import TARGET_MARKETS
     assert "PK" not in TARGET_MARKETS and {"US", "GB", "AE", "DE", "AU", "SG"} <= TARGET_MARKETS
+
+
+def test_check_contact_rules():
+    from agents.prospector import check_contact
+    ok = {"email": "hello@acme.com", "source_url": "https://acme.com/contact"}
+    assert check_contact(ok, "acme.com")[0]["email"] == "hello@acme.com"
+    assert check_contact({**ok, "email": "careers@acme.com"}, "acme.com")[0] is None
+    assert check_contact({**ok, "email": "hello@gmail.com"}, "acme.com")[0] is None
+    assert check_contact({**ok, "source_url": ""}, "acme.com")[0] is None
+    assert check_contact(None, "acme.com") == (None, "")
+
+
+def test_fill_contacts_only_accepts_valid_published_addresses():
+    from agents import prospector as P
+
+    class LLM:
+        def research(self, db, agent, run_id, system, task, schema, model="sonnet"):
+            assert "acme.com" in system and "beta.io" in system and "known.com" not in system
+            return {"contacts": [
+                {"domain": "acme.com", "email": "info@acme.com", "source_url": "https://acme.com/contact"},
+                {"domain": "beta.io", "email": "jobs@beta.io", "source_url": "https://beta.io/careers"},
+            ], "notes": ""}, {}
+
+    S = P.State(None, LLM(), "run", True)
+    S.known = {"known.com"}
+    ps = [{"domain": d, "contact": None, "contact_note": ""} for d in ("acme.com", "beta.io", "known.com")]
+    assert P.fill_contacts(S, ps) == 1
+    assert ps[0]["contact"]["email"] == "info@acme.com"
+    assert ps[1]["contact"] is None and "hiring inbox" in ps[1]["contact_note"]

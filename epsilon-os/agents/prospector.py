@@ -39,6 +39,7 @@ FREEMAIL = {"gmail.com", "googlemail.com", "yahoo.com", "hotmail.com", "outlook.
 NOT_A_COMPANY = {"linkedin.com", "indeed.com", "glassdoor.com", "reddit.com", "facebook.com", "twitter.com", "x.com",
                  "github.com", "stackoverflow.com", "stackexchange.com", "youtube.com", "medium.com", "upwork.com",
                  "fiverr.com", "freelancer.com", "wikipedia.org", "google.com", "naukri.com", "rozee.pk"}
+CONTACT_BATCH = 8
 HIRING_INBOXES = {"careers", "career", "jobs", "job", "hr", "recruiting", "recruitment", "recruiter", "talent", "hiring",
                   "apply", "applications", "people"}
 DOMAIN_RE = re.compile(r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$")
@@ -83,6 +84,57 @@ def valid_url(u: str) -> bool:
     return p.scheme in ("http", "https") and bool(p.netloc) and " " not in u
 
 
+def check_contact(c, domain: str) -> tuple[dict | None, str]:
+    """P5 contact rules: published, on the company's own domain, not a hiring inbox, with a source page."""
+    if not (isinstance(c, dict) and c.get("email")):
+        return None, ""
+    m = EMAIL_RE.match(str(c["email"]).strip())
+    host = m.group(1).lower() if m else ""
+    if not m:
+        return None, "malformed contact email"
+    if not (host == domain or host.endswith("." + domain)):
+        return None, "contact email not on the company domain"
+    if m.group(0).split("@")[0].lower() in HIRING_INBOXES:
+        return None, "hiring inbox, not a buyer contact"
+    if not valid_url(str(c.get("source_url") or "")):
+        return None, "contact without a source url"
+    return {"email": str(c["email"]).strip().lower(), "name": _one_line(c.get("name"), 120),
+            "role": _one_line(c.get("role"), 120), "source_url": c["source_url"].strip()}, ""
+
+
+def fill_contacts(S, prospects: list[dict]) -> int:
+    """One batched web call that looks for a published business address on each contact-less company's own site."""
+    need = [p for p in prospects if not p["contact"] and p["domain"] not in S.known][:CONTACT_BATCH]
+    if not need or S.budget_hit:
+        return 0
+    system = loader.compose("find_contact", {"today": S.today, "domains": "\n".join(p["domain"] for p in need)},
+                            preamble="preamble_research")
+    try:
+        data, _ = S.llm.research(S.db, AGENT, S.run_id, system, "Find the published contact addresses.",
+                                 schemas.CONTACTS, model="sonnet")
+    except llm_mod.BudgetExceeded:
+        S.budget_hit = True
+        return 0
+    except llm_mod.LLMError as e:
+        _log(S, "contact_search_failed", detail={"error": str(e)[:200]})
+        return 0
+    by_domain = {p["domain"]: p for p in need}
+    found = 0
+    for c in data.get("contacts") or []:
+        p = by_domain.get(clean_domain(str(c.get("domain") or "")) or "")
+        if not p or p["contact"]:
+            continue
+        contact, note = check_contact(c, p["domain"])
+        if contact:
+            p["contact"], p["contact_note"] = contact, "contact found on the company site"
+            found += 1
+        else:
+            p["contact_note"] = note
+    S.c["contacts_found"] = S.c.get("contacts_found", 0) + found
+    _log(S, "contact_search_done", detail={"asked": len(need), "found": found, "notes": (data.get("notes") or "")[:200]})
+    return found
+
+
 def validate(raw: dict, segment: str, slugs: set[str]) -> tuple[dict | None, str]:
     """Code-side check of one research result. Returns (prospect, "") or (None, reason)."""
     if not isinstance(raw, dict):
@@ -106,22 +158,7 @@ def validate(raw: dict, segment: str, slugs: set[str]) -> tuple[dict | None, str
         return None, "missing field"
     if country not in TARGET_MARKETS:
         return None, "outside target markets"
-    contact, contact_note = None, ""
-    c = raw.get("contact")
-    if isinstance(c, dict) and c.get("email"):
-        m = EMAIL_RE.match(str(c["email"]).strip())
-        host = m.group(1).lower() if m else ""
-        if not m:
-            contact_note = "malformed contact email"
-        elif not (host == domain or host.endswith("." + domain)):
-            contact_note = "contact email not on the company domain"
-        elif m.group(0).split("@")[0].lower() in HIRING_INBOXES:
-            contact_note = "hiring inbox, not a buyer contact"
-        elif not valid_url(str(c.get("source_url") or "")):
-            contact_note = "contact without a source url"
-        else:
-            contact = {"email": str(c["email"]).strip().lower(), "name": _one_line(c.get("name"), 120),
-                       "role": _one_line(c.get("role"), 120), "source_url": c["source_url"].strip()}
+    contact, contact_note = check_contact(raw.get("contact"), domain)
     return {"name": name, "domain": domain, "country": country, "sector": _one_line(raw.get("sector"), 80),
             "segment": segment, "evidence_url": raw["evidence_url"].strip(), "evidence_quote": quote,
             "observation": obs, "offer_slug": raw["suggested_offer_slug"], "contact": contact,
@@ -339,14 +376,18 @@ def _research_segment(S, seg: str, target: int, slugs: list[str], schema: dict) 
         _log(S, "research_done", detail={"segment": seg, "returned": len(found), "notes": (data.get("notes") or "")[:200]})
         if not found:
             return
+        valid = []
         for raw in found:
-            if S.c["created"] >= target or S.budget_hit:
-                break
             p, why = validate(raw, seg, set(slugs))
             if p is None:
                 S.c["invalid"] += 1
                 _log(S, "prospect_dropped", detail={"reason": why, "domain": str((raw or {}).get("domain"))[:80]})
                 continue
+            valid.append(p)
+        fill_contacts(S, valid)
+        for p in valid:
+            if S.c["created"] >= target or S.budget_hit:
+                break
             try:
                 _process(S, p)
             except Exception as e:  # one bad prospect never kills the run

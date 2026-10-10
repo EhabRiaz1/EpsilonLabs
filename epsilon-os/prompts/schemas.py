@@ -96,3 +96,16 @@ OUTBOUND = {
         "notes": {"type": "string", "maxLength": 400},
     },
 }
+
+
+CONTACTS = {
+    "type": "object", "additionalProperties": False,
+    "properties": {
+        "contacts": {"type": "array", "items": {
+            "type": "object", "additionalProperties": False,
+            "properties": {"domain": {"type": "string"}, "email": {"type": "string"}, "name": {"type": "string"},
+                           "role": {"type": "string"}, "source_url": {"type": "string"}},
+            "required": ["domain", "email", "source_url"]}},
+        "notes": {"type": "string"}},
+    "required": ["contacts"],
+}
