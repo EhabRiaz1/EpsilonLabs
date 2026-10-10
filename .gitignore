@@ -10,3 +10,8 @@ supabaseSecrets.txt
 # local credential notes
 zoho.rtf
 *.rtf
+
+# Epsilon OS venv
+epsilon-os/.venv/
+__pycache__/
+.pytest_cache/
