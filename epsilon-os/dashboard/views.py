@@ -29,6 +29,7 @@ def rail_html(sh: dict, compact: bool = False) -> str:
             f'aria-valuemax="{sh["budget"]}" aria-valuenow="{sh["calls"]}" aria-label="LLM calls today">'
             f'<i style="width:{pct}%"></i></div>'
             f'<p class="mono sub">{sh["calls"]} of {sh["budget"]} calls{e(cost)}</p></div>'
+            f'<div><h2 class="mono lbl">Prospector</h2><p class="mono sub">{sh.get("prospected", 0)} found today</p></div>'
             f'<div><h2 class="mono lbl">Watchdog</h2><div class="ag"><span class="agn">Last ping</span>'
             f'<span class="st {wd["state"]}">{e(wd["text"])}</span></div></div>')
 
@@ -39,6 +40,7 @@ ICON = {
     "held": '<path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M12 8v5M12 16v.5"/>',
     "pipeline": '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     "health": '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+    "sliders": '<path d="M4 6h8.6M17.4 6H20M4 12h2.6M11.4 12H20M4 18h10.6M19.4 18H20"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/>',
     "site": '<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>',
     "search": '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
     "menu": '<path d="M4 7h16M4 12h16M4 17h16"/>',
@@ -53,7 +55,7 @@ def icon(name: str) -> str:
 
 SIDENAV = [(None, "/", "Today", "today"), (None, "/deck", "Deck", "deck"),
            ("Work", "/#held", "Held", "held"), ("Work", "/pipeline", "Pipeline", "pipeline"),
-           ("System", "/health", "Health", "health")]
+           ("System", "/health", "Health", "health"), ("System", "/settings", "Settings", "sliders")]
 THEME_BOOT = '<script src="/static/theme.js"></script>'
 
 
@@ -83,7 +85,7 @@ def page(title: str, body: str, active: str, csrf: str, sh: dict | None, demo: b
     content = f'<div class="page{" with-rail" if aside else ""}"><main id="main" class="main {cls}">{body}</main>{aside}</div>'
     return (f'<!doctype html><html lang="en" data-theme="studio"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1">'
-            f'<meta name="csrf" content="{e(csrf)}"><meta name="referrer" content="no-referrer">'
+            f'<meta name="csrf" content="{e(csrf)}"><meta name="referrer" content="same-origin">'
             f'<title>{e(title)} · Epsilon OS</title>{THEME_BOOT}'
             f'<link href="{FONTS}" rel="stylesheet"><link rel="stylesheet" href="/static/dashboard.css"></head>'
             f'<body><a class="skip" href="#main">Skip to content</a><div class="shell">'
@@ -121,7 +123,7 @@ def shortcuts_sheet() -> str:
 
 def palette() -> str:
     items = [("/", "Today", "G T"), ("/deck", "Start the deck", "↵"), ("/pipeline", "Pipeline", "G P"),
-             ("/health", "Health", "G H"), ("/#held", "Held tray", ""), ("?", "Keyboard shortcuts", "?")]
+             ("/health", "Health", "G H"), ("/settings", "Settings", "G S"), ("/#held", "Held tray", ""), ("?", "Keyboard shortcuts", "?")]
     li = "".join(f'<li role="option" data-href="{e(h)}" tabindex="-1"><span>{e(t)}</span>{kbd(k) if k else ""}</li>'
                  for h, t, k in items)
     return (f'<dialog id="palette" class="palette" aria-label="Jump to"><input id="pal-q" type="text" '
@@ -151,7 +153,7 @@ def _form(csrf: str, act: str, qid: str, label: str, cls: str = "", nxt: str = "
 
 
 def card_tags(c: dict, lint: bool = True) -> str:
-    out = [tag(c["kind_label"], "sig" if c["kind"] in ("reply", "quote") else "")]
+    out = [tag(c["kind_label"], {"reply": "sig", "quote": "sig", "outbound": "out"}.get(c["kind"], ""))]
     if c["wedge"]:
         out.append(tag(c["wedge"], "cu"))
     if c["channel"] == "referral":
@@ -246,7 +248,10 @@ def today(csrf: str, now: datetime, sh: dict, k: dict, deck: list, held: list, t
 
 # ------------------------------------------------------------------ Deck
 
-def deck_card(c: dict) -> str:
+OUTREACH_WAIT = "Will send once the outreach domain is live"
+
+
+def deck_card(c: dict, outreach_ready: bool = True) -> str:
     lint_html = ""
     if c["lint"]:
         li = "".join(f'<li>{e(h["type"])}: <code>{e(h["text"])}</code></li>' for h in c["lint"])
@@ -257,6 +262,7 @@ def deck_card(c: dict) -> str:
             f'consider rewording.</p>') if c["late"] else ""
     ctx = f'{e(c["subject"])} · arrived {e(c["age"])} ago' if c["subject"] else f'arrived {e(c["age"])} ago'
     wrote = e(c["they_wrote"]) if c["they_wrote"] else '<span class="muted">No inbound text on record.</span>'
+    wait = f'<span class="waitnote">{e(OUTREACH_WAIT)}</span>' if c["kind"] == "outbound" and not outreach_ready else ""
     lint_meta = f'{len(c["lint"])} warning{"s" if len(c["lint"]) != 1 else ""}' if c["lint"] else "clean"
     return (
         f'<article class="card" data-id="{e(c["id"])}" data-lint="{len(c["lint"])}" data-missing="{int(missing)}" '
@@ -265,13 +271,13 @@ def deck_card(c: dict) -> str:
         f'<h2 id="t-{e(c["id"])}" tabindex="-1">{e(c["who"])}{", " + e(c["company"]) if c["company"] else ""}</h2>'
         f'<p>{ctx}</p></div><div class="tags">{card_tags(c, lint=False)}</div></div>'
         f'{late}{lint_html}'
-        f'<div class="cols"><div><h3 class="mono lbl">They wrote · untrusted</h3>'
+        f'<div class="cols"><div><h3 class="mono lbl">{"Why them · from the web, untrusted" if c["kind"] == "outbound" else "They wrote · untrusted"}</h3>'
         f'<div class="untrusted">{wrote}</div></div>'
         f'<div><h3 class="mono lbl">You\'ll send</h3>'
         f'<div class="draft" data-draft>{e(c["draft"])}</div>'
         f'<p class="editnote" hidden></p></div></div>'
         f'<div class="why"><span>Classifier: {e(c["classifier"])}</span><span>Lint: {e(lint_meta)}</span>'
-        f'<span>To: {e(c["to"] or "—")}</span><span>Thread: {e(c["thread"] or "—")}</span></div>'
+        f'<span>To: {e(c["to"] or "—")}</span><span>Thread: {e(c["thread"] or "—")}</span>{wait}</div>'
         f'<p class="cardmsg err" role="alert" hidden></p>'
         f'<div class="reasonrow" hidden><label for="rr-{e(c["id"])}" class="mono">Reason (optional)</label>'
         f'<input id="rr-{e(c["id"])}" class="reason" maxlength="300" autocomplete="off">'
@@ -280,14 +286,14 @@ def deck_card(c: dict) -> str:
         f'</article>')
 
 
-def deck(csrf: str, sh: dict, cards: list, counts: dict, demo: bool) -> str:
+def deck(csrf: str, sh: dict, cards: list, counts: dict, demo: bool, outreach_ready: bool = True) -> str:
     pips = "".join('<span class="pip"></span>' for _ in cards)
     body = (
         f'<div class="stage" id="deck" data-sent="{counts["sent"]}" data-rejected="{counts["rejected"]}">'
         f'<div class="progress"><div class="strip" aria-hidden="true">{pips}</div>'
         f'<span class="mono cnt" id="count" aria-live="polite"></span></div>'
         f'<div class="deckwrap"><div class="stack" aria-hidden="true"></div>'
-        f'{"".join(deck_card(c) for c in cards)}'
+        f'{"".join(deck_card(c, outreach_ready) for c in cards)}'
         f'<section class="card clear" id="clear" role="region" aria-labelledby="clear-t" hidden>'
         f'<div class="check" aria-hidden="true">✓</div><h2 id="clear-t" tabindex="-1">All clear.</h2>'
         f'<p id="clear-counts" class="muted"></p>'
@@ -404,3 +410,76 @@ def health(csrf: str, sh: dict, h: dict, demo: bool) -> str:
             f'<table class="grid"><thead><tr><th scope="col">When</th><th scope="col">Agent</th>'
             f'<th scope="col">Action</th><th scope="col">Target</th></tr></thead><tbody>{acts}</tbody></table></section>')
     return page("Health", body, "Health", csrf, sh, demo, cls="healthpage")
+
+
+# ------------------------------------------------------------------ Settings
+
+def _field(name: str, label: str, hint: str, control: str, errors: dict) -> str:
+    err = errors.get(name)
+    msg = f'<p class="fielderr" id="e-{name}" role="alert">{e(err)}</p>' if err else ""
+    return (f'<div class="field{" bad" if err else ""}"><label for="f-{name}" class="flab">{e(label)}</label>'
+            f'{control}<p class="hint" id="h-{name}">{e(hint)}</p>{msg}</div>')
+
+
+def _num(name: str, val, lo: int, hi: int, errors: dict) -> str:
+    ref = f"h-{name}" + (f" e-{name}" if errors.get(name) else "")
+    return (f'<input class="inp num" id="f-{name}" name="{name}" type="number" inputmode="numeric" min="{lo}" max="{hi}" '
+            f'step="1" value="{e(str(val))}" aria-describedby="{ref}"{" aria-invalid=true" if errors.get(name) else ""}>')
+
+
+def settings_page(csrf: str, sh: dict, v: dict, errors: dict, saved: bool, demo: bool) -> str:
+    from core import settings as cfg
+    o = v["outreach"]
+    seg_err = errors.get("segments")
+    boxes = "".join(
+        f'<label class="ck pick"><input type="checkbox" name="segments" value="{e(k)}"'
+        f'{" checked" if k in v["segments"] else ""}> {e(cfg.SEGMENT_LABEL[k])}</label>' for k in cfg.SEGMENTS)
+    segments = (f'<div class="field{" bad" if seg_err else ""}"><span class="flab" id="l-seg">Segments to hunt</span>'
+                f'<div class="picks" role="group" aria-labelledby="l-seg">{boxes}</div>'
+                f'<p class="hint">Each morning leads with the next segment in turn and tops up from the rest.</p>'
+                f'{f"<p class=fielderr role=alert>{e(seg_err)}</p>" if seg_err else ""}</div>')
+    paused = (f'<div class="field"><label class="ck pick" for="f-paused"><input type="checkbox" id="f-paused" name="paused" '
+              f'value="1"{" checked" if v["paused"] else ""}> Pause the prospector</label>'
+              f'<p class="hint">Stops new research and drafts. Approved sends and replies keep working.</p></div>')
+    if v["address"]:
+        addr_ctl = (f'<input class="inp" id="f-address" name="address" type="text" value="{e(v["address"])}" readonly '
+                    f'aria-describedby="h-address">')
+        addr_hint = "Set. Outreach mail is sent from and read in this mailbox. Its password is in the keychain."
+    else:
+        addr_ctl = (f'<input class="inp" id="f-address" name="address" type="email" autocomplete="off" '
+                    f'placeholder="ehab@yourdomain.example" value="{e(v.get("address_draft", ""))}" aria-describedby="h-address">')
+        addr_hint = "Leave empty until the outreach domain and mailbox exist. Then add keychain service epsilon-os-outreach."
+    state = "Yes" if o["configured"] else "No"
+    why = "" if o["configured"] else f'<small>{e(o["reason"])}</small>'
+    kp = (f'<div class="kpi"><span class="mono">Configured</span><b>{state}</b>{why or "<small>sending live</small>"}</div>'
+          f'<div class="kpi"><span class="mono">Today\'s cap</span><b>{o["cap"]}</b>'
+          f'<small>ramp {o["ramp_cap"]} · setting {o["setting_cap"]}</small></div>'
+          f'<div class="kpi"><span class="mono">Sent today</span><b>{o["sent_today"]}</b>'
+          f'<small>{"warm-up since " + o["started_on"].isoformat() if o["started_on"] else "warm-up not started"}</small></div>')
+    note = ""
+    if saved:
+        note = '<p class="savednote" role="status">Saved. Agents pick this up on their next run.</p>'
+    elif errors:
+        note = '<p class="fielderr banner" role="alert">Nothing was saved. Fix the fields marked below.</p>'
+    form = (
+        f'<form method="post" action="/act/settings" class="setform" novalidate>'
+        f'<input type="hidden" name="csrf" value="{e(csrf)}"><input type="hidden" name="next" value="/settings?saved=1">'
+        f'<div class="setgrid">'
+        f'<section class="setcard" aria-labelledby="s-pro"><h2 id="s-pro" class="mono lbl">Prospector</h2>'
+        f'{_field("per_day", "Prospects per day", "New companies researched each morning, 0 to 50.", _num("per_day", v["per_day"], 0, 50, errors), errors)}'
+        f'{segments}{paused}'
+        f'<p class="mono sub">{v["prospected"]} found today</p></section>'
+        f'<section class="setcard" aria-labelledby="s-llm"><h2 id="s-llm" class="mono lbl">LLM budget</h2>'
+        f'{_field("daily_budget", "Daily call budget", "Calls across all agents, 50 to 1000. About two calls per prospect plus research.", _num("daily_budget", v["daily_budget"], 50, 1000, errors), errors)}'
+        f'<p class="mono sub">{v["calls"]} used today</p></section>'
+        f'<section class="setcard" aria-labelledby="s-out"><h2 id="s-out" class="mono lbl">Outreach</h2>'
+        f'{_field("daily_cap", "Daily send cap", "Ceiling, 0 to 100. The warm-up ramp (5/day, +5 every 3 days) applies below it.", _num("daily_cap", v["daily_cap"], 0, 100, errors), errors)}'
+        f'{_field("address", "Outreach address", addr_hint, addr_ctl, errors)}</section>'
+        f'</div>'
+        f'<div class="setacts"><button class="btn pri" type="submit">Save settings</button>'
+        f'<a class="btn ghost" href="/settings">Reset</a></div></form>')
+    body = (f'<p class="eyebrow mono">System</p><div class="pt-row"><h1 class="pt">Settings</h1></div>{note}'
+            f'{form}'
+            f'<section aria-labelledby="s-st"><h2 id="s-st" class="mono lbl">Outreach status</h2>'
+            f'<div class="kpis three">{kp}</div></section>')
+    return page("Settings", body, "Settings", csrf, sh, demo, cls="settingspage")

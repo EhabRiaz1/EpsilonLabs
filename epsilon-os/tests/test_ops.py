@@ -94,7 +94,7 @@ def test_brief_red_issues_in_subject_and_health():
     res = brief.run(db, m, NOW)
     assert res["issues"] >= 3 and m.sent[0]["subject"] == f"Epsilon brief · {res['issues']} issues"
     assert "ISSUES:" in m.sent[0]["body"] and "3 inbox messages unprocessed" in m.sent[0]["body"]
-    assert "LLM calls yesterday: 2 / 150" in m.sent[0]["body"]
+    assert "LLM calls yesterday: 2 / 250" in m.sent[0]["body"]
     assert db.rows("agent_heartbeats", agent="brief")[-1]["status"] == "warn"
 
 

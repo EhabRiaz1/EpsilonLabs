@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parseaddr
 from pathlib import Path
 
-from core import config, guard, ledger, lint, llm, mail
+from core import config, guard, ledger, lint, llm, mail, settings
 from core.db import DB, DBError
 from prompts import loader, schemas
 
@@ -118,7 +118,9 @@ class State:
     def __init__(self, db, mail_mod, ask, run_id: str, mode: str):
         self.db, self.mail, self.ask, self.run_id, self.mode = db, mail_mod, ask, run_id, mode
         self.budget_hit = False
-        self.c = dict.fromkeys(("fetched", "processed", "duplicates", "skipped_mode", "unprocessed", "errors",
+        self.outreach = False   # True while processing the outreach mailbox (always triage, P2/P5)
+        self.own: tuple[str, ...] = ()  # our own addresses besides er@ (the outreach address)
+        self.c = dict.fromkeys(("outreach_fetched", "outreach_fetch_failed", "fetched", "processed", "duplicates", "skipped_mode", "unprocessed", "errors",
                                 "drafts", "held", "opt_outs", "bounces", "auto_replies", "inquiries",
                                 "injections", "draft_failed", "classify_failed"), 0)
 
@@ -203,7 +205,7 @@ def _queue_draft(S, kind: str, n: dict, body: str, touch_id, deal_id, contact_id
 
 # ---------------------------------------------------------------- outcomes
 
-def _hard_bounce_recipient(n) -> str | None:
+def _hard_bounce_recipient(n, own: tuple[str, ...] = ()) -> str | None:
     msg = n["msg"]
     failed = str(msg.get("X-Failed-Recipients", "")).strip()
     cands = EMAIL_RE.findall(failed)
@@ -214,7 +216,7 @@ def _hard_bounce_recipient(n) -> str | None:
         cands = EMAIL_RE.findall(n["body"])
     for c in cands:
         c = c.lower().rstrip(".")
-        if c != config.ER.lower() and not NON_RECIPIENT_RE.match(c) and c != n["sender"]:
+        if c != config.ER.lower() and c not in own and not NON_RECIPIENT_RE.match(c) and c != n["sender"]:
             return c
     return None
 
@@ -258,7 +260,7 @@ def _crm(S, n, wedge: str, thread: dict | None) -> tuple[str | None, str]:
 
 
 def _inquiry(S, n, cls, thread, injection: bool) -> None:
-    triage = thread is not None
+    triage = thread is not None or S.outreach
     deal_id, contact_id = _crm(S, n, cls["wedge"], thread)
     classifier = {**cls, "injection_suspected": injection, "triage": triage}
     touch = _touch(S, n, "human_reply", classifier=classifier, deal_id=deal_id, contact_id=contact_id)
@@ -317,15 +319,21 @@ def _process(S: State, m: dict) -> None:
         S.c["duplicates"] += 1
         return
     thread = _sent_thread(S, n)
-    if (S.mode == "concierge" and thread) or (S.mode == "triage" and not thread):
+    if not S.outreach and ((S.mode == "concierge" and thread) or (S.mode == "triage" and not thread)):
         S.c["skipped_mode"] += 1
         return
 
     d = guard.check(
         n["msg"],
         suppressed=lambda e: bool(S.db.rpc("is_suppressed", {"addr": e})),
-        already_acked=lambda _m: thread is None and _acked_recently(S, n["sender"]),
+        already_acked=lambda _m: thread is None and not S.outreach and _acked_recently(S, n["sender"]),
+        own=S.own,
     )
+    if S.outreach and d.action == "proceed" and thread is None and not _find_contact(S, n["sender"]):
+        # Outreach mailbox: guard outcomes (bounce, opt-out, auto-reply, suppression) apply to everything, but a
+        # real message is only worked when it threads to one of our sends or comes from a contact we know.
+        S.c["skipped_mode"] += 1
+        return
     g = {"guard": d.action, "rule": d.rule, "reason": d.reason}
     if d.action == "opt_out":
         _opt_out(S, n, g, "guard")
@@ -336,7 +344,7 @@ def _process(S: State, m: dict) -> None:
         t = _touch(S, n, "bounce", classifier={**g, "hard": d.hard_bounce})
         S.c["bounces"] += 1
         if d.hard_bounce:
-            rcpt = _hard_bounce_recipient(n)
+            rcpt = _hard_bounce_recipient(n, S.own)
             if rcpt:
                 _suppress(S, rcpt, "hard_bounce", t["id"])
                 _log(S, "hard_bounce_suppressed", target_table="touches", target_id=t["id"], detail={"recipient": rcpt})
@@ -366,19 +374,18 @@ def _process(S: State, m: dict) -> None:
 
 # ---------------------------------------------------------------- run
 
-def run(db: DB | None = None, mail_mod=mail, ask=llm.ask, mode: str = "all", fetch_days: int = 3) -> dict:
-    if mode not in MODES:
-        raise ValueError(f"mode must be one of {MODES}")
-    db = db or DB()
-    run_id = ledger.new_run_id()
-    S = State(db, mail_mod, ask, run_id, mode)
-    ledger.heartbeat(db, AGENT, "ok", {"run_id": run_id, "phase": "start", "mode": mode})
+def _outreach_box(db):
+    """(mailbox, address) for the outreach mailbox, or (None, address) when it is not configured."""
+    addr = settings.outreach_address(db)
+    if not addr:
+        return None, ""
     try:
-        messages = mail_mod.fetch_new(fetch_days)
-    except Exception as e:
-        ledger.heartbeat(db, AGENT, "error", {"run_id": run_id, "error": f"fetch failed: {type(e).__name__}"})
-        return {"run_id": run_id, "error": type(e).__name__, **S.c}
-    S.c["fetched"] = len(messages)
+        return mail.outreach_mailbox(addr), addr
+    except config.SecretError:
+        return None, addr
+
+
+def _loop(S: State, messages: list[dict]) -> None:
     for m in messages:
         try:
             _process(S, m)
@@ -386,7 +393,43 @@ def run(db: DB | None = None, mail_mod=mail, ask=llm.ask, mode: str = "all", fet
             S.c["errors"] += 1
             _log(S, "message_error", detail={"message_id": str(m.get("message_id", ""))[:200],
                                               "error": f"{type(e).__name__}: {str(e)[:200]}"})
-    status = "warn" if (S.budget_hit or S.c["errors"] or S.c["draft_failed"] or S.c["classify_failed"]) else "ok"
+
+
+def run(db: DB | None = None, mail_mod=mail, ask=llm.ask, mode: str = "all", fetch_days: int = 3,
+        outreach_mail="auto") -> dict:
+    """`outreach_mail`: "auto" reads the outreach mailbox when settings + keychain have it; None disables;
+    any object with fetch_new() is used as that mailbox (tests)."""
+    if mode not in MODES:
+        raise ValueError(f"mode must be one of {MODES}")
+    db = db or DB()
+    run_id = ledger.new_run_id()
+    S = State(db, mail_mod, ask, run_id, mode)
+    ledger.heartbeat(db, AGENT, "ok", {"run_id": run_id, "phase": "start", "mode": mode})
+    if outreach_mail == "auto":
+        box, addr = _outreach_box(db)
+    else:
+        box, addr = outreach_mail, settings.outreach_address(db)
+    S.own = (addr,) if addr else ()
+    try:
+        messages = mail_mod.fetch_new(fetch_days)
+    except Exception as e:
+        ledger.heartbeat(db, AGENT, "error", {"run_id": run_id, "error": f"fetch failed: {type(e).__name__}"})
+        return {"run_id": run_id, "error": type(e).__name__, **S.c}
+    S.c["fetched"] = len(messages)
+    _loop(S, messages)
+    if box is not None:
+        try:
+            more = box.fetch_new(fetch_days)
+        except Exception as e:  # the main inbox already ran; a broken outreach mailbox only warns
+            S.c["outreach_fetch_failed"] += 1
+            _log(S, "outreach_fetch_failed", detail={"error": type(e).__name__})
+            more = []
+        S.c["outreach_fetched"] = len(more)
+        S.outreach = True
+        _loop(S, more)
+        S.outreach = False
+    status = "warn" if (S.budget_hit or S.c["errors"] or S.c["draft_failed"] or S.c["classify_failed"]
+                        or S.c["outreach_fetch_failed"]) else "ok"
     detail = {"run_id": run_id, "mode": mode, "budget_exceeded": S.budget_hit, **S.c}
     ledger.heartbeat(db, AGENT, status, detail)
     return detail

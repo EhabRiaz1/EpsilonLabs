@@ -24,7 +24,19 @@ def offers_summary(path: Path = CATALOGUE) -> str:
     return "\n".join(lines) or "- (none listed)"
 
 
-def compose(task: str, context: dict[str, str] | None = None) -> str:
+def offer_slugs(path: Path = CATALOGUE) -> list[str]:
+    """Slugs of every offer in the generated catalogue (tools/offers.py is the source of truth)."""
+    return [o["slug"] for o in json.loads(path.read_text()).get("offers", []) if o.get("slug")]
+
+
+def offer_line(slug: str, path: Path = CATALOGUE) -> str:
+    for o in json.loads(path.read_text()).get("offers", []):
+        if o.get("slug") == slug:
+            return f"{o.get('name', '').strip()}: {o.get('tagline', '').strip()}"
+    raise KeyError(slug)
+
+
+def compose(task: str, context: dict[str, str] | None = None, preamble: str = "preamble") -> str:
     ctx = dict(context or {})
     if "{{offers}}" in _read(task):
         ctx.setdefault("offers", offers_summary())
@@ -35,7 +47,7 @@ def compose(task: str, context: dict[str, str] | None = None) -> str:
         if key not in ctx:
             raise KeyError(f"prompt {task!r} needs context {key!r}")
         return str(ctx[key]).replace("{{", "(").replace("}}", ")")
-    return _read("preamble") + "\n\n" + _PLACEHOLDER.sub(sub, body) + "\n"
+    return _read(preamble) + "\n\n" + _PLACEHOLDER.sub(sub, body) + "\n"
 
 
 def prompts_hash() -> str:

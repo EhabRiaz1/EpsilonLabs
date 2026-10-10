@@ -9,7 +9,7 @@ import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
-from core import config, ledger, lint
+from core import config, ledger, lint, settings as cfg
 from core.db import DB
 
 AGENT = "dashboard"
@@ -276,3 +276,44 @@ def mark_sent_verified(db: DB, qid: str, now: datetime | None = None) -> dict:
                               "occurred_at": _iso(now)}, returning=False)
     _log(db, "mark_sent_verified", qid)
     return ok()
+
+
+# ------------------------------------------------------------------ settings (P3)
+
+SETTINGS_FIELDS = {"per_day": "prospector.per_day", "daily_budget": "llm.daily_budget",
+                   "daily_cap": "outreach.daily_cap"}
+
+
+def save_settings(db: DB, p: dict) -> dict:
+    """Validate every field first, then write. One bad field saves nothing and reports all errors inline."""
+    errors, clean = {}, {}
+    for field, key in SETTINGS_FIELDS.items():
+        try:
+            clean[key] = cfg.validate(key, str(p.get(field, "")).strip())
+        except cfg.SettingsError as ex:
+            errors[field] = str(ex)
+    segs = p.get("segments") or []
+    segs = [segs] if isinstance(segs, str) else list(segs)
+    try:
+        clean["prospector.segments"] = cfg.validate("prospector.segments", segs)
+    except cfg.SettingsError as ex:
+        errors["segments"] = str(ex)
+    paused = p.get("paused")
+    clean["prospector.paused"] = paused in (True, "1", "on", "true")
+    if not cfg.outreach_address(db):  # once set, the address is read-only here
+        try:
+            addr = cfg.validate("outreach.address", p.get("address", ""))
+            if addr:
+                clean["outreach.address"] = addr
+        except cfg.SettingsError as ex:
+            errors["address"] = str(ex)
+    if errors:
+        return fail("invalid", "Some settings need attention.", errors=errors)
+    changed = []
+    for key, value in clean.items():
+        if cfg.get(db, key) != value:
+            cfg.set(db, key, value)
+            changed.append(key)
+    if changed:
+        _log(db, "settings_changed", None, {"keys": changed})
+    return ok(changed=changed)

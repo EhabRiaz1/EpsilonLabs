@@ -13,6 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from agents import outreach
 from dashboard import actions, data, views
 
 HOST = "127.0.0.1"
@@ -65,10 +66,13 @@ def _api(app: App, name: str, p: dict) -> dict:
         return actions.retry_failed(db, qid, bool(p.get("confirm")))
     if name == "mark_sent":
         return actions.mark_sent_verified(db, qid)
+    if name == "settings":
+        return actions.save_settings(db, p)
     return actions.fail("unknown_action", "Unknown action.")
 
 
-ACTION_NAMES = {"approve", "undo", "reject", "later", "release", "suppress", "retry", "mark_sent"}
+ACTION_NAMES = {"approve", "undo", "reject", "later", "release", "suppress", "retry", "mark_sent", "settings"}
+MULTI_FIELDS = {"segments"}  # form fields that legitimately repeat (checkbox groups)
 
 
 def make_handler(app: App):
@@ -88,7 +92,7 @@ def make_handler(app: App):
             self.send_header("Content-Security-Policy", CSP)
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("X-Frame-Options", "DENY")
-            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Referrer-Policy", "same-origin")
             for k, v in (extra or {}).items():
                 self.send_header(k, v)
             self.end_headers()
@@ -136,8 +140,9 @@ def make_handler(app: App):
                                    data.pending_cards(db, now, True), data.trouble_cards(db, now),
                                    data.last_sent(db, now), demo)
             elif path == "/deck":
+                ready = outreach.status(db, now)["configured"]
                 html = views.deck(csrf, data.shell(db, now), data.pending_cards(db, now, False),
-                                  data.decided_today(db, now), demo)
+                                  data.decided_today(db, now), demo, ready)
             elif path == "/pipeline":
                 ch = q.get("channel")
                 pnl_data = data.deal_panel(db, q["deal"], now) if q.get("deal") else None
@@ -149,6 +154,9 @@ def make_handler(app: App):
                 html = views.pipeline(csrf, data.shell(db, now), data.pipeline(db, now, ch), ch, panel, demo)
             elif path == "/health":
                 html = views.health(csrf, data.shell(db, now), data.health(db, now), demo)
+            elif path == "/settings":
+                html = views.settings_page(csrf, data.shell(db, now), data.settings_view(db, now), {},
+                                           q.get("saved") == "1", demo)
             else:
                 return self._send(404, views.message_page(csrf, "Not found", "No such page.", demo=demo).encode())
             self._send(200, html.encode())
@@ -177,7 +185,8 @@ def make_handler(app: App):
                     if not isinstance(p, dict):
                         raise ValueError
                 else:
-                    p = {k: v[0] for k, v in parse_qs(raw.decode("utf-8", "replace")).items()}
+                    p = {k: (v if k in MULTI_FIELDS else v[0])
+                         for k, v in parse_qs(raw.decode("utf-8", "replace"), keep_blank_values=True).items()}
             except ValueError:
                 return self._text(400, "Bad body")
             token = self.headers.get("X-CSRF-Token") or str(p.get("csrf") or "")
@@ -192,10 +201,31 @@ def make_handler(app: App):
                 return self._send(200, json.dumps(res).encode(), "application/json")
             nxt = str(p.get("next") or "/")
             nxt = nxt if nxt.startswith("/") and not nxt.startswith("//") else "/"
+            if name == "settings":
+                nxt = "/settings?saved=1"
             if res.get("ok"):
                 return self._send(303, b"", extra={"Location": nxt})
+            if name == "settings" and res.get("error") == "invalid":
+                return self._settings_errors(p, res["errors"])
             body = views.message_page(app.csrf, "Couldn't do that", res.get("message", "Failed."), nxt, demo=app.demo)
             return self._send(409, body.encode())
+
+        def _settings_errors(self, p: dict, errors: dict):
+            """Re-render the form with the submitted values and inline errors (422), nothing saved."""
+            try:
+                now = data.now_utc()
+                db = app.db()
+                v = data.settings_view(db, now)
+                segs = p.get("segments") or []
+                v.update(per_day=p.get("per_day", ""), daily_budget=p.get("daily_budget", ""),
+                         daily_cap=p.get("daily_cap", ""), paused=p.get("paused") in ("1", "on", "true"),
+                         segments=[segs] if isinstance(segs, str) else list(segs),
+                         address_draft=str(p.get("address") or ""))
+                html = views.settings_page(app.csrf, data.shell(db, now), v, errors, False, app.demo)
+                return self._send(422, html.encode())
+            except Exception as ex:
+                sys.stderr.write(f"settings error page: {type(ex).__name__}\n")
+                return self._send(503, views.error_state(app.csrf, demo=app.demo).encode())
 
     return Handler
 

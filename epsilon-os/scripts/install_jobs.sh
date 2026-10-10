@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DOMAIN="gui/$(id -u)"
 AGENTS_DIR="$HOME/Library/LaunchAgents"
 LOG_DIR="$HOME/Library/Logs/epsilon-os"
-JOBS=(inbox outbox brief backup)   # the dashboard plist is separate and keeps its own RunAtLoad
+JOBS=(inbox outbox brief backup prospector outreach)   # the dashboard plist is separate and keeps its own RunAtLoad
 
 label() { echo "co.epsilon-labs.os.$1"; }
 loaded() { launchctl print "$DOMAIN/$(label "$1")" >/dev/null 2>&1; }

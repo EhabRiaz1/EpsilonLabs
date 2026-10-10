@@ -4,14 +4,15 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from core import config
+from core import config, settings as cfg
+from agents import outreach
 from dashboard import actions
 
 PKT = ZoneInfo(config.TZ)
 FIRST_NAME = "Ehab"
 LATE_AFTER = timedelta(hours=2)
 # expected run interval per known agent (seconds); amber when older than 2x
-AGENTS = [("inbox", 5 * 60), ("outbox", 60), ("prospector", 3 * 86400), ("brief", 26 * 3600), ("backup", 8 * 86400)]
+AGENTS = [("inbox", 5 * 60), ("outbox", 60), ("prospector", 26 * 3600), ("outreach", 5 * 60), ("brief", 26 * 3600), ("backup", 8 * 86400)]
 WATCHDOG_INTERVAL = 30 * 60
 STAGES = [("lead", "Lead"), ("conversation", "Conversation"), ("scoping_call", "Scoping"),
           ("quote_out", "Quote out"), ("won_lost", "Won / Lost"), ("dormant", "Dormant")]
@@ -91,7 +92,7 @@ def enrich(db, rows: list[dict], now: datetime) -> list[dict]:
             "to": r.get("to_email") or "", "subject": subject, "thread": r.get("subject") or "",
             "created": created, "age": ago(created, now), "late": late, "late_age": ago(created, now),
             "wedge": WEDGE_LABEL.get(wedge, ""), "channel": d.get("source_channel") or "",
-            "they_wrote": t.get("body_excerpt") or "", "draft": r.get("draft") or "",
+            "they_wrote": t.get("body_excerpt") or (co.get("notes") or "" if r.get("kind") == "outbound" else ""), "draft": r.get("draft") or "",
             "classifier": (f"{label} {int(round(conf * 100))}%" if label and isinstance(conf, (int, float))
                            else (label or "—")),
             "lint": r.get("lint") or [], "held": bool(r.get("held")), "held_reason": r.get("held_reason") or "",
@@ -163,9 +164,15 @@ def calls_today(db, now: datetime) -> tuple[int, float]:
     return len(rows), sum(float(r.get("cost_usd") or 0) for r in rows)
 
 
+def prospected_today(db, now: datetime) -> int:
+    rows = db.select("actions", action="prospect_created", at=f"gte.{pkt_midnight(now).isoformat()}", select="id", limit=1000)
+    return len(rows)
+
+
 def shell(db, now: datetime) -> dict:
     agents, watchdog = agent_rows(db, now)
     calls, cost = calls_today(db, now)
+    budget = cfg.daily_budget(db)
     states = [a["state"] for a in agents]
     if "red" in states:
         status = ("red", "Agent error")
@@ -175,11 +182,11 @@ def shell(db, now: datetime) -> dict:
         status = ("idle", "Agents not started")
     else:
         status = ("ok", "All agents OK")
-    if calls >= config.DAILY_LLM_CALL_BUDGET:
+    if calls >= budget:
         status = ("red", "LLM budget reached")
     queue = len(db.select("approval_queue", status="pending", held="eq.false", select="id", limit=1000))
     return {"agents": agents, "watchdog": watchdog, "calls": calls, "cost": cost,
-            "budget": config.DAILY_LLM_CALL_BUDGET, "status": status, "queue": queue}
+            "budget": budget, "status": status, "queue": queue, "prospected": prospected_today(db, now)}
 
 
 # ------------------------------------------------------------------ Today
@@ -264,7 +271,7 @@ def fmt_detail(detail) -> tuple[str, str]:
     if not isinstance(detail, dict):
         return "", ""
     err = str(detail.get("error") or "")
-    parts = [f"{k.replace('_', ' ')} {v}" for k, v in detail.items()
+    parts = ([str(detail["state"])] if isinstance(detail.get("state"), str) else []) + [f"{k.replace('_', ' ')} {v}" for k, v in detail.items()
              if isinstance(v, int) and not isinstance(v, bool) and v and k != "errors"]
     if detail.get("errors"):
         parts.append(f"errors {detail['errors']}")
@@ -298,3 +305,14 @@ def health(db, now: datetime) -> dict:
                    and isinstance(b.get("detail"), dict) and b["detail"].get("restore_tested_at")), None)
     return {"runs": runs, "llm": llm, "actions": acts,
             "restore_tested": backup["detail"]["restore_tested_at"] if backup else None}
+
+
+# ------------------------------------------------------------------ Settings
+
+def settings_view(db, now: datetime) -> dict:
+    return {
+        "per_day": cfg.per_day(db), "segments": cfg.segments(db), "paused": cfg.paused(db),
+        "daily_budget": cfg.daily_budget(db), "daily_cap": cfg.daily_cap(db), "address": cfg.outreach_address(db),
+        "outreach": outreach.status(db, now), "calls": calls_today(db, now)[0],
+        "prospected": prospected_today(db, now),
+    }

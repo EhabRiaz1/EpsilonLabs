@@ -343,7 +343,7 @@
     var k = ev.key.toLowerCase();
     if (k === 'g') { gArmed = Date.now(); return; }
     if (gArmed && Date.now() - gArmed < 900) {
-      var dest = { t: '/', p: '/pipeline', h: '/health' }[k];
+      var dest = { t: '/', p: '/pipeline', h: '/health', s: '/settings' }[k];
       gArmed = 0;
       if (dest) { ev.preventDefault(); ev.stopImmediatePropagation(); window.location.href = dest; }
     }

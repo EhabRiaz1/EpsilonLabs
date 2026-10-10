@@ -58,7 +58,8 @@ def _is_bounce(msg: Message, sender: str, subject: str) -> bool:
 
 
 def check(msg: Message, suppressed: Callable[[str], bool] = lambda e: False,
-          already_acked: Callable[[Message], bool] = lambda m: False) -> Decision:
+          already_acked: Callable[[Message], bool] = lambda m: False,
+          own: tuple[str, ...] = ()) -> Decision:
     sender = _sender(msg)
     subject = str(msg.get("Subject", ""))
     body = body_text(msg)
@@ -71,7 +72,7 @@ def check(msg: Message, suppressed: Callable[[str], bool] = lambda e: False,
     if _is_bounce(msg, sender, subject):
         hard = True if HARD_RE.search(body) else (False if SOFT_RE.search(body) else None)
         return Decision("bounce", 3, "bounce pattern", hard_bounce=hard)
-    if sender == config.ER.lower():
+    if sender == config.ER.lower() or sender in {o.lower() for o in own}:
         return Decision("ignore", 5, "own address")
     if suppressed(sender):
         return Decision("suppressed", 6, "sender on suppression list")

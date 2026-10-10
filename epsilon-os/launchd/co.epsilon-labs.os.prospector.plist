@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>co.epsilon-labs.os.prospector</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/ehabriaz/Desktop/epsilon-labs/epsilon-os/.venv/bin/python</string>
+		<string>-m</string>
+		<string>agents.run</string>
+		<string>prospector</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>/Users/ehabriaz/Desktop/epsilon-labs/epsilon-os</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/Users/ehabriaz/.local/bin:/usr/local/bin:/usr/bin:/bin</string>
+	</dict>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>7</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+	</dict>
+	<key>StandardOutPath</key>
+	<string>/Users/ehabriaz/Library/Logs/epsilon-os/prospector.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/ehabriaz/Library/Logs/epsilon-os/prospector.log</string>
+</dict>
+</plist>

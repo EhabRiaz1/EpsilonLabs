@@ -38,6 +38,16 @@ def test_migration(pg):
     apply("migrations/002_epsilon_os_v2.sql")  # idempotent
     apply("migrations/003_epsilon_os_v3.sql")
     apply("migrations/003_epsilon_os_v3.sql")  # idempotent
+    apply("migrations/004_epsilon_os_v4.sql")
+    pg("update settings set value='7'::jsonb where key='prospector.per_day'")
+    apply("migrations/004_epsilon_os_v4.sql")  # idempotent, and never overwrites a changed setting
+    assert pg("select value from settings where key='prospector.per_day'") == "7"
+    assert pg("select count(*) from settings") == "7"
+    assert pg("select value::text from settings where key='outreach.started_on'") == "null"
+    assert pg("select value from settings where key='prospector.segments'") == '["industrial", "oem_hardware", "smb_software"]'
+    assert pg("select relrowsecurity from pg_class where relname='settings'") == "t"
+    assert pg("select count(*) from pg_policies where tablename='settings' and 'service_role'=any(roles)") == "1"
+    assert pg("select count(*) from pg_indexes where tablename='deals' and indexdef ilike '%(source_channel)%'") == "1"
     cols = pg("select string_agg(column_name, ',') from information_schema.columns where table_name='approval_queue'")
     for c in ("kind", "to_email", "subject", "in_reply_to_message_id", "references_hdr", "send_error",
               "sent_message_id", "claimed_at", "run_id", "held", "held_reason", "lint", "diff"):

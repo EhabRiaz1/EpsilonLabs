@@ -61,8 +61,9 @@ def gather(db, now: datetime) -> dict:
         issues.append(f"{unprocessed} inbox messages unprocessed")
     for c in trouble:
         issues.append(f"send {'unverified' if c.get('verify') else 'failed'}: {c['to'] or c['who']}")
-    if yesterday >= config.DAILY_LLM_CALL_BUDGET:
-        issues.append(f"LLM budget reached yesterday ({yesterday}/{config.DAILY_LLM_CALL_BUDGET})")
+    budget = shell["budget"]
+    if yesterday >= budget:
+        issues.append(f"LLM budget reached yesterday ({yesterday}/{budget})")
     if shell["watchdog"]["state"] == "amber":
         issues.append(f"watchdog: {shell['watchdog']['text']}")
     local = now.astimezone(data.PKT)
@@ -87,7 +88,7 @@ def sections(g: dict) -> list[tuple[str, list[str]]]:
     health += [f"Unprocessed inbox: {g['unprocessed']}",
                f"Failed or unverified sends: {len(g['trouble'])}",
                f"Held for review: {g['held']}",
-               f"LLM calls yesterday: {g['llm_yesterday']} / {config.DAILY_LLM_CALL_BUDGET}",
+               f"LLM calls yesterday: {g['llm_yesterday']} / {s['budget']}",
                f"Watchdog: {s['watchdog']['text']} [{s['watchdog']['state']}]"]
     if g["issues"]:
         health = ["ISSUES: " + "; ".join(g["issues"])] + health

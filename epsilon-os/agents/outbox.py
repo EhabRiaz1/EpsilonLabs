@@ -23,9 +23,9 @@ def _iso(dt: datetime) -> str:
     return dt.isoformat()
 
 
-def _log(db, run_id, action, row_id=None, detail=None) -> None:
+def _log(db, run_id, action, row_id=None, detail=None, agent=AGENT) -> None:
     try:
-        ledger.action(db, AGENT, run_id, action, "approval_queue", row_id, detail)
+        ledger.action(db, agent, run_id, action, "approval_queue", row_id, detail)
     except Exception:
         pass
 
@@ -43,28 +43,29 @@ def _record_sent(db, row: dict, mid: str, body: str, now: datetime) -> None:
     }, returning=False)
 
 
-def _resolve_stale(db, run_id, mail_mod, now, c) -> None:
+def _resolve_stale(db, run_id, mail_mod, now, c, kind="neq.outbound", agent=AGENT) -> None:
+    """Resolve rows stuck in `sending`. Outbound rows belong to the outreach sender (its own mailbox)."""
     cutoff = _iso(now - STALE_AFTER)
-    for row in db.select("approval_queue", status="sending", claimed_at=f"lt.{cutoff}"):
+    for row in db.select("approval_queue", status="sending", claimed_at=f"lt.{cutoff}", kind=kind):
         mid = row.get("sent_message_id")
         try:
             found = bool(mid) and mail_mod.sent_has(mid)
         except Exception as e:
-            _log(db, run_id, "stale_check_failed", row["id"], {"error": _err(e)})
+            _log(db, run_id, "stale_check_failed", row["id"], {"error": _err(e)}, agent)
             c["stale_unchecked"] += 1
             continue
         if found:
             try:
                 _record_sent(db, row, mid, row.get("final_text") or row.get("draft") or "", now)
             except Exception as e:
-                _log(db, run_id, "record_sent_error", row["id"], {"error": _err(e)})
+                _log(db, run_id, "record_sent_error", row["id"], {"error": _err(e)}, agent)
             c["stale_sent"] += 1
-            _log(db, run_id, "stale_resolved_sent", row["id"], {"message_id": mid})
+            _log(db, run_id, "stale_resolved_sent", row["id"], {"message_id": mid}, agent)
         else:
             db.update("approval_queue", {"status": "failed", "send_error": UNVERIFIED},
                       id=row["id"], status="sending")
             c["stale_failed"] += 1
-            _log(db, run_id, "stale_resolved_failed", row["id"], {"message_id": mid})
+            _log(db, run_id, "stale_resolved_failed", row["id"], {"message_id": mid}, agent)
 
 
 def _send_one(db, run_id, mail_mod, row: dict, now: datetime, c) -> None:

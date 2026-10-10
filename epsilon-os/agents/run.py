@@ -12,7 +12,7 @@ from pathlib import Path
 from core import ledger, watchdog
 from core.db import DB
 
-JOBS = ("inbox", "outbox", "brief", "backup")
+JOBS = ("inbox", "outbox", "brief", "backup", "prospector", "outreach")
 LOCK_DIR = Path.home() / "Library" / "Application Support" / "EpsilonOS" / "locks"
 
 

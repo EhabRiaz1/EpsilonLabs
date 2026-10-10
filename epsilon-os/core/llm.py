@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 
 import jsonschema
 
-from . import config, ledger
+from . import config, ledger, settings
 from .db import DB
 
 FALLBACK_CLAUDE = "/Users/ehabriaz/.local/bin/claude"
@@ -53,16 +53,19 @@ def _run(args: list[str], stdin: str, timeout: int) -> dict:
     return json.loads(p.stdout)
 
 
-def ask(db: DB, agent: str, run_id: str, prompt_system: str, untrusted_text: str, schema: dict,
-        model: str = "haiku", timeout: int = 120) -> tuple[dict, dict]:
-    if model not in ("haiku", "sonnet"):
-        raise ValueError("model must be haiku or sonnet")
-    if calls_today(db) >= config.DAILY_LLM_CALL_BUDGET:
-        raise BudgetExceeded(f"daily LLM call budget {config.DAILY_LLM_CALL_BUDGET} reached")
-    args = [_claude_bin(), "-p", "--model", model, "--tools", "", "--strict-mcp-config",
-            "--setting-sources", "", "--no-session-persistence", "--output-format", "json",
-            "--json-schema", json.dumps(schema), "--system-prompt", prompt_system]
-    stdin = wrap(untrusted_text)
+def budget(db: DB) -> int:
+    """Daily call budget: settings llm.daily_budget, falling back to the config constant."""
+    try:
+        return int(settings.daily_budget(db))
+    except Exception:
+        return config.DAILY_LLM_CALL_BUDGET
+
+
+def _call(db: DB, agent: str, run_id: str, args: list[str], stdin: str, schema: dict, model: str,
+          timeout: int) -> tuple[dict, dict]:
+    limit = budget(db)
+    if calls_today(db) >= limit:
+        raise BudgetExceeded(f"daily LLM call budget {limit} reached")
     last: Exception | None = None
     out: dict | None = None
     for _ in range(2):
@@ -84,3 +87,32 @@ def ask(db: DB, agent: str, run_id: str, prompt_system: str, untrusted_text: str
     ledger.action(db, agent, run_id, "llm_call", model=model, cost_usd=meta["cost_usd"],
                   detail={"duration_ms": meta["duration"]})
     return data, meta
+
+
+def ask(db: DB, agent: str, run_id: str, prompt_system: str, untrusted_text: str, schema: dict,
+        model: str = "haiku", timeout: int = 120) -> tuple[dict, dict]:
+    if model not in ("haiku", "sonnet"):
+        raise ValueError("model must be haiku or sonnet")
+    args = [_claude_bin(), "-p", "--model", model, "--tools", "", "--strict-mcp-config",
+            "--setting-sources", "", "--no-session-persistence", "--output-format", "json",
+            "--json-schema", json.dumps(schema), "--system-prompt", prompt_system]
+    return _call(db, agent, run_id, args, wrap(untrusted_text), schema, model, timeout)
+
+
+RESEARCH_TOOLS = "WebSearch,WebFetch"
+
+
+def research(db: DB, agent: str, run_id: str, prompt_system: str, task_text: str, schema: dict,
+             model: str = "sonnet", timeout: int = 300) -> tuple[dict, dict]:
+    """Web research (P4): the only call that has tools, and only WebSearch + WebFetch.
+
+    Same hardening as `ask` (neutral temp cwd, no MCP, no settings, schema re-validated, budget-counted).
+    `task_text` is written by our code (a segment brief plus already-known domains) and carries no
+    secrets or CRM data; the pages the model reads are untrusted, which the research prompt says.
+    """
+    if model not in ("haiku", "sonnet"):
+        raise ValueError("model must be haiku or sonnet")
+    args = [_claude_bin(), "-p", "--model", model, "--tools", RESEARCH_TOOLS, "--allowedTools", RESEARCH_TOOLS,
+            "--strict-mcp-config", "--setting-sources", "", "--no-session-persistence", "--output-format", "json",
+            "--json-schema", json.dumps(schema), "--system-prompt", prompt_system]
+    return _call(db, agent, run_id, args, task_text, schema, model, timeout)

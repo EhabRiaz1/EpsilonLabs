@@ -107,6 +107,7 @@ b,strong{font-weight:600}
 .tag.red{color:var(--red);background:var(--red-soft)}
 .tag.amber{color:var(--amber);background:var(--amber-soft)}
 .tag.sig,.tag.ch-inbound{color:var(--signal);background:var(--signal-soft)}
+.tag.out{color:var(--ink);background:transparent;box-shadow:0 0 0 1px var(--edge2) inset}
 .tag.cu,.tag.ch-referral{color:var(--accent2);background:var(--accent-soft)}
 .tag.ch-dream25{color:var(--amber);background:var(--amber-soft)}
 .btn{font:500 13px var(--sans);letter-spacing:.06em;text-transform:uppercase;height:40px;padding:0 18px;border:1px solid var(--edge2);cursor:pointer;
@@ -379,6 +380,28 @@ table.grid{width:100%;border-collapse:separate;border-spacing:0}
 .mono.sm{font-size:11px}
 
 /* ── responsive + motion ─────────────────────────────────── */
+/* ── Settings ────────────────────────────────────────────── */
+.settingspage .pt-row{margin-bottom:6px}
+.setgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start;margin:24px 0 20px}
+.setcard{display:grid;gap:18px;padding:20px 22px 22px;background:var(--card);border:1px solid var(--edge);border-radius:var(--r-lg);
+  box-shadow:var(--shadow);clip-path:var(--clip)}
+.setcard .lbl{margin:0}
+.field{display:grid;gap:6px}.flab{font:500 13px var(--sans);color:var(--ink)}
+.inp{height:40px;width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--edge2);border-radius:var(--r);padding:0 12px;font:inherit}
+.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.inp[readonly]{background:var(--well);color:var(--ink2)}
+.inp.num{max-width:140px;font-family:var(--mono)}
+.field.bad .inp{border-color:var(--red)}
+.hint{color:var(--muted);font-size:12.5px;line-height:1.45}
+.fielderr{color:var(--red);font-size:13px}.fielderr.banner{margin-top:14px}
+.savednote{color:var(--green);font-size:14px;margin-top:14px}
+.picks{display:grid;gap:8px}.pick{font-size:14px;color:var(--ink)}
+.setacts{display:flex;gap:10px;margin-bottom:40px}
+.settingspage .kpis{margin:0 0 24px}.kpis.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.waitnote{color:var(--amber)}
+@media (max-width:1279px){.setgrid{grid-template-columns:1fr 1fr}}
+@media (max-width:1023px){.setgrid,.kpis.three{grid-template-columns:1fr}}
+
 @media (max-width:1279px){
   .page.with-rail{display:block}.side{display:none}
   .statuspop summary{cursor:pointer}

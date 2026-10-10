@@ -103,6 +103,21 @@ def seeded_db(now: datetime | None = None) -> FakeDB:
           ago(hours=6), status="sending", decided_at=ago(hours=5), claimed_at=ago(minutes=48),
           sent_message_id="<demo-1@epsilon-labs.co>", send_error="ambiguous: TimeoutError: timed out")
 
+    # --- prospector output: a researched first touch waiting in the deck
+    nm = company("Northmill Foods", "northmillfoods.example", "industrial_monitoring")
+    db.update("companies", {"notes": "Prospector (industrial): Hiring a PLC/SCADA engineer for a new packing line. "
+                                     "Evidence: https://jobs.example.org/northmill/plc-scada-engineer"}, id=nm)
+    ian = contact(nm, None, "engineering@northmillfoods.example", "Engineering")
+    d7 = deal(nm, ian, "Outbound: hiring a PLC/SCADA engineer for a new packing line", "lead", "outbound",
+              None, "industrial_monitoring", ago(minutes=50))
+    draft("outbound", d7, ian, None, "engineering@northmillfoods.example", "Packing line data without a SCADA hire",
+          "Hi,\n\nI saw your post for a PLC and SCADA engineer for the new packing line. If the line needs "
+          "monitoring before that hire lands, we retrofit sensing and dashboards onto existing machines, "
+          "including ones with undocumented protocols.\n\nWould a 20-minute call be useful? Suggest a time, "
+          "or tell me no.\n\nEhab\n\nReply 'stop' and I won't write again.", ago(minutes=50), agent="prospector")
+    db.insert("actions", {"at": ago(minutes=50), "agent": "prospector", "action": "prospect_created",
+                          "target_table": "companies", "target_id": nm})
+
     # --- pipeline filler + numbers
     stages = [("Lahore Textiles", "lt", "lead", "outbound", None, 1), ("Sialkot Sports", "ss", "lead", "dream25", None, 12),
               ("Multan Mills", "mu", "conversation", "referral", 1800, 5), ("Gujrat Fans", "gf", "conversation", "inbound", None, 17),
@@ -128,7 +143,8 @@ def seeded_db(now: datetime | None = None) -> FakeDB:
             ("inbox", 12, "warn", {"fetched": 1, "errors": 1, "error": "classify: schema mismatch"}),
             ("outbox", 1, "ok", {"candidates": 0}), ("outbox", 2, "warn", {"failed": 1, "candidates": 1}),
             ("brief", 6 * 60, "ok", {"sent": 1}), ("backup", 4 * 1440, "ok", {"tables": 9, "restore_tested_at": "2026-10-04"}),
-            ("watchdog", 4, "ok", {})]:
+            ("prospector", 50, "ok", {"state": "ok", "created": 1, "research_calls": 1}),
+            ("outreach", 3, "ok", {"state": "not configured"}), ("watchdog", 4, "ok", {})]:
         db.insert("agent_heartbeats", {"agent": agent, "last_run": ago(minutes=mins), "status": status, "detail": detail})
     for i in range(14):
         for j in range(3 + (i * 7) % 11):
