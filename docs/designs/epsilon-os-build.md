@@ -146,7 +146,7 @@ Every path in the review's coverage map gets a test. Highlights:
 No critical gaps: every failure has a test, handling, or a visible signal.
 
 ## Build order (CC estimates)
-0. Zoho spike: send er@→er@ with a pre-generated Message-ID, confirm it survives in Sent + inbox (~1h; blocks the outbox design)
+0. ✅ Zoho spike (2026-10-10): pre-generated Message-ID preserved in Sent and INBOX within 6s; DKIM d=epsilon-labs.co s=zmail. IMAP imappro.zoho.com:993 + SMTP smtppro.zoho.com:465 verified. Folders: INBOX, Sent, Spam, Trash, Archive, Notification, Newsletter.
 1. venv + core + migration v2 + tests (~0.5 day)
 2. inbox + outbox + draft lint + hardened golden-set eval + fake-mail E2E (~1.25 day)
 3. dashboard (~0.5 day)
