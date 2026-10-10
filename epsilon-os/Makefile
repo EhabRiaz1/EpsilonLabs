@@ -20,3 +20,9 @@ smoke:
 	$(PY) -m scripts.smoke_live $(ARGS)
 
 .PHONY: setup test eval eval-quick smoke
+
+# Founder dashboard on http://127.0.0.1:8787 (loopback only). Demo data: make dashboard ARGS="--demo --port 8790"
+dashboard:
+	$(PY) -m dashboard.server $(ARGS)
+
+.PHONY: dashboard
