@@ -300,6 +300,26 @@ buttons ≥40px tall; colour never the only signal (every badge has text).
 | P4 | Research runs as `claude -p --tools "WebSearch,WebFetch"` only (no write tools, no MCP, no keys, neutral cwd), returns schema-validated JSON with evidence URLs; drafts are written tool-less (D2a) and linted (D11). Web pages are untrusted data. |
 | P5 | Compliance: every outbound has a plain one-line opt-out ("Reply 'stop' and I won't write again"); region + legal_basis recorded per contact (UK/EU = legitimate_interest_b2b); only business role addresses or addresses published by the company; suppression checked before every draft and every send; 18-month retention. Replies to the outreach mailbox are read by the inbox agent (triage mode). |
 
+## Multi-strategy research (founder decisions 2026-10-11)
+Problem: the first prospector mostly pitched contract work at companies hiring a full-time
+employee, which is a weak buying signal. Replace one generic search with independent strategies, each
+with its own source, pitch, output, cadence and daily quota (Settings).
+
+| # | Strategy | Source | Output |
+|---|---|---|---|
+| S1 | **Tenders** | Official open feeds via code (no web search to *find*): EU TED API, UK Find a Tender + Contracts Finder (OCDS), Canada CanadaBuys open data, Australia AusTender (OCDS), UNGM, US SAM.gov (key in keychain `epsilon-os-samgov`; skipped if absent) | `opportunities` rows + **bid brief** (requirements, value, deadline, eligibility for a Pakistan-registered firm, offer fit, effort); dashboard **Opportunities** page with Bid / Pass. Never auto-bids. |
+| S2 | **Trigger events** | Funding rounds of hardware/IoT/robotics startups, plant/line expansions, energy-efficiency grant recipients, end-of-life controllers | dossier + outbound email pitched at the trigger |
+| S3 | **Regulation** | EU Cyber Resilience Act, UK PSTI: connected-device makers needing security testing + secure update paths | dossier + outbound (device-pentest, firmware update path) |
+| S4 | **Partners** | Product-design agencies, IoT consultancies, software shops, system integrators (US/UK/EU/AU) lacking embedded/decode depth | partnership (white-label) pitch, not a sales pitch |
+| S5 | **Outsourcing intent** | Explicit contract/RFQ/"looking for a firm"/SOW language; full-time job posts demoted to last resort (small company, post > 45 days old) | outbound as before |
+| S6 | **Learning loop** | Sends, replies, positive replies, meetings per strategy (and segment/country) | dashboard stats; daily quotas reallocated toward what works (bounded, founder can pin) |
+
+Eligibility rules for S1 (code + model): exclude small-business/8(a)/SDVOSB/HUBZone set-asides,
+security clearance, ITAR/EAR-controlled, on-site-only in a country we cannot staff, and value outside
+$10k-$500k; flag (not exclude) local-entity, insurance and GPA-access requirements. Bid briefs say
+plainly what we would need (registration, partner, insurance). Strategy ids are stored on companies/
+deals (`strategy` column) so S6 can attribute results.
+
 ## Implementation Tasks
 - [ ] **T1 (P1, human: ~1h / CC: ~15min)** — outbox — Zoho Message-ID spike (D13)
 - [ ] **T2 (P1, human: ~1d / CC: ~4h)** — core — venv 3.12, core modules, migration epsilon_os_v2 (D4, D5, D6)
