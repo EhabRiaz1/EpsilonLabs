@@ -6,3 +6,7 @@ node_modules/
 epsilon-os/.env
 .env
 supabaseSecrets.txt
+
+# local credential notes
+zoho.rtf
+*.rtf

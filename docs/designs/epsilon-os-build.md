@@ -18,7 +18,8 @@ ladder is unchanged: every external message is founder-approved.
 | D6 | **Migration `epsilon_os_v2`**: outbox columns + `actions` (append-only audit log) + `dossiers`. Additive only. |
 | D7 | **Golden set runnable**: fixtures + scorer (`make eval`) against the real API, thresholds enforced (100% opt-out/injection, ≥90% routing). Hardened by D12. |
 | D8 | **Mail E2E** against an in-process fake IMAP/SMTP + local Postgres with the schema; plus one live Zoho smoke (`make smoke`: er@ → er@) before go-live. |
-| D9 | **Tiered models + daily cap**: Haiku 5.5 classify/score; Sonnet 5.5 drafts, dossiers, quotes, brief. Tokens + cost per call in `actions`; daily $ cap halts agents with a red health warning. |
+| D2a | **Runtime = local Claude Code, no API key** (founder 2026-10-10). Python calls `claude -p` as a subprocess from a neutral cwd with `--tools "" --strict-mcp-config --setting-sources "" --no-session-persistence --output-format json --json-schema <schema> --system-prompt <prompt>`; untrusted text on stdin. Verified: no tools, no project MCP/CLAUDE.md, schema-validated `structured_output`. Billing/limits come from the founder's Claude subscription. D2's guarantee holds: the model has no tools and sees no credentials. Opt-out wording is honoured by the code guard even when the model labels the mail injection_suspected. |
+| D9 | **Tiered models + daily cap**: Haiku 5.5 classify/score; Sonnet 5.5 drafts, dossiers, quotes, brief. Tokens + cost per call in `actions` (from `total_cost_usd`); the daily cap is a **call/token budget protecting the founder's subscription rate limits** (default 150 calls/day) and halts agents with a red health warning. |
 | D10 | **External watchdog**: every agent run pings healthchecks.io (free); no ping for 30 min in PKT working hours alerts the founder off-Mac. Inbound acks older than 2h get a "late" badge. |
 | D11 | **Deterministic draft lint** on every AI draft: new URLs, email addresses, phone/IBAN/bank patterns, prices outside offers.py bands, refund/guarantee promises → red warning + second-click approve. Golden set gains draft-safety cases. |
 | D12 | **Eval hardened** (supersedes D7's hook): temperature 0, each fixture ×3 (all must pass), set grows to ~40 (≥6 opt-out, ≥10 injection; founder reviews additions). Pre-commit hook warns on prompt changes; autonomy promotion hard-requires a clean run. |
@@ -158,7 +159,7 @@ Guardrail: the build never blocks the cash play. Referral asks go out by hand th
 
 ## Founder prerequisites
 Zoho IMAP enabled + app password in keychain (`epsilon-os-zoho`); Anthropic API key
-in keychain (`epsilon-os-anthropic`); Supabase service key in keychain
+not needed (D2a: Claude Code); Supabase service key in keychain
 (`epsilon-os-supabase`); review the golden set (founder-only per PLAN §6).
 
 ## NOT in scope
