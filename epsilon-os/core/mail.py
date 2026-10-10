@@ -61,6 +61,8 @@ def build(fields: dict) -> EmailMessage:
         refs = " ".join(x for x in [fields.get("references"), fields["in_reply_to"]] if x)
         m["References"] = " ".join(dict.fromkeys(refs.split()))
     m.set_content(fields["body"])
+    if fields.get("html"):
+        m.add_alternative(fields["html"], subtype="html")
     return m
 
 

@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 SUPABASE_URL = "https://lueawvqogdodtjsfqdeh.supabase.co"
@@ -8,6 +9,9 @@ IMAP_HOST, IMAP_PORT = "imappro.zoho.com", 993
 SMTP_HOST, SMTP_PORT = "smtppro.zoho.com", 465
 DAILY_LLM_CALL_BUDGET = 150
 UNDO_SECONDS = 10
+FOUNDER_EMAIL_DEFAULT = "er@epsilon-labs.co"
+DASHBOARD_URL = "http://127.0.0.1:8787"
+HEALTHCHECKS_SERVICE, HEALTHCHECKS_ACCOUNT = "epsilon-os-healthchecks", "ping-url"
 
 _cache: dict[tuple[str, str], str] = {}
 
@@ -31,3 +35,7 @@ def secret(service: str, account: str) -> str:
             raise SecretError(f"keychain item missing or empty for service {service!r} account {account!r}")
         _cache[key] = value
     return _cache[key]
+
+
+def founder_email() -> str:
+    return os.environ.get("FOUNDER_EMAIL") or FOUNDER_EMAIL_DEFAULT

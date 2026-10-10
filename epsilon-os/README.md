@@ -1,41 +1,40 @@
 # Epsilon OS
 
-Epsilon Labs' internal agent layer (PLAN.md §3.4). Product-grade means: logged actions, one dashboard, restorable state, demoable. Not multi-tenant, not packaged for resale.
+Epsilon Labs' internal agent layer (PLAN.md §3.4). Product-grade means: logged actions, one dashboard, restorable state, demoable. Not multi-tenant, not packaged for resale. Design record: `docs/designs/epsilon-os-build.md`.
 
-This directory is code and docs only. It is excluded from the Vercel deployment (`.vercelignore`). No credentials live here; use `.env` (gitignored) and the macOS keychain.
+This directory is code and docs only. It is excluded from the Vercel deployment (`.vercelignore`). No secrets live here; they come from the macOS keychain via `core.config.secret`.
 
 ## How it runs
-- Local-first on the founder's Mac [D8]: scheduled Claude Code sessions (cron/launchd invoking `claude -p` with the relevant runbook in `agents/`), one session per agent run.
-- Supabase Postgres is the single store (`schema.sql`). Agents use the service-role key from the environment; RLS blocks everything else.
-- Every run writes a row to `agent_heartbeats`. The daily CEO brief opens with a health block (last run per agent, unprocessed inbox count). A missing brief by 9am is the alarm.
-- Drafts go to `approval_queue`. The founder approves; only then is anything sent.
-- Graduates to a server only once auto-replies are trusted.
+- Local-first on the founder's Mac [D8]. Python does every action; the model only classifies and drafts. Each LLM call is a tool-less local Claude Code session (`claude -p --tools ""`, D2a) with output checked against a JSON schema, counted against a daily call budget (150, D9).
+- Mail: Zoho IMAP (`imappro.zoho.com`) in, Zoho SMTP (`smtppro.zoho.com`) out, as `er@epsilon-labs.co`. Nothing is sent without founder approval in the dashboard.
+- Store: Supabase Postgres over PostgREST (`schema.sql` + `migrations/`). RLS blocks everything but the service role.
+- Agents: `inbox` (every 5 min), `outbox` (every 60 s), `brief` (08:30 daily), `backup` (Sunday 02:00). All go through `python -m agents.run <name>`: a per-job lock prevents overlap, any exception becomes a heartbeat `error` (exception type only) and a non-zero exit.
+- The `brief` (no LLM, deterministic) opens with a health block. A missing brief by 9am PKT is itself the alarm.
+- The launchd calendar jobs use the Mac's local clock, so the Mac must be set to PKT (Asia/Karachi) for 08:30 to mean 08:30 PKT.
 
-## Agents
-| Agent | Runbook | Starts at | Built when |
-|---|---|---|---|
-| Prospector + CRM | `agents/prospector.md` | stage 2 | Sprint 0 |
-| Inbound concierge | `agents/concierge.md` | stage 2 | week 3 |
-| Reply triage | `agents/triage.md` | stage 1 | replies >10/wk |
-| Quote assembler | `agents/quote.md` | stage 2 | quotes >4/mo |
+## Keychain items
+| Service | Account | Holds |
+|---|---|---|
+| `epsilon-os-supabase-secret` | Supabase project ref | service-role key |
+| `epsilon-os-zoho` | `er@epsilon-labs.co` | Zoho app password |
+| `epsilon-os-healthchecks` | `ping-url` | healthchecks.io ping URL |
 
-Autonomy ladder: 1 shadow, 2 founder-approved, 3 auto-template-ack only, 4 auto on proven segments. Promotion needs the golden set (`evals/golden-set.md`: 100% opt-out + injection, >=90% routing) plus 20 consecutive clean approved runs. Re-run the golden set on every prompt change.
+Add one with `security add-generic-password -a <account> -s <service> -w` (prompts for the value, so it stays out of shell history).
 
-## Setup
-1. Create a Supabase project (note the project URL and the service-role key from Settings > API).
-2. Apply the schema: paste `schema.sql` into the SQL editor, or `psql "$DATABASE_URL" -f schema.sql`.
-3. `cp .env.example .env` and fill in values. Keep `.env` out of git (already ignored). Prefer the keychain for the Gmail refresh token and the service-role key; the service-role key bypasses RLS, so never put it in the website or any client code.
-4. Verify RLS: with the anon key, a select on any table must return nothing.
-5. Create the Gmail OAuth credentials for er@ and the sending-tool key on the outreach domain; store in keychain/.env.
-6. Run the golden set against the concierge prompt before it touches real mail.
-7. Schedule the agents (launchd/cron) once the golden set passes at the stage they start at.
+## Commands
+`make setup` (venv, pinned deps) · `make test` · `make dashboard` (http://127.0.0.1:8787) · `make run-agent A=brief` · `make eval` / `eval-quick` (real `claude` calls) · `make smoke ARGS=--i-mean-it` (live, needs consent) · `make jobs-install` / `jobs-uninstall` / `jobs-status` · `make backup-check D=<folder>`.
 
-## Backup discipline
-- Supabase daily backups enabled (verify the plan's retention; free tier backups may not exist, in which case rely on the exports below).
-- Weekly export: `pg_dump "$DATABASE_URL" --no-owner -Fc -f backups/epsilon-os-$(date +%F).dump`, stored outside the repo (encrypted disk or private cloud folder), keep at least 8 weeks.
-- Monthly restore test into a scratch project. A backup never restored is not a backup.
-- Keep `suppression_list` in every backup; losing it risks emailing opted-out people.
-- Secret rotation: 1-page rotation runbook per PLAN.md §3.1 (kept outside this repo).
+## Go live
+1. `make setup && make test`
+2. Watchdog: create a free check at healthchecks.io with period 5 min and grace 30 min, with email/phone alerts. Then `security add-generic-password -a ping-url -s epsilon-os-healthchecks -w` and paste the ping URL. Without it pings are a logged no-op.
+3. `scripts/install_jobs.sh` validates plists, venv and `claude`, then bootstraps the four agent jobs (`--uninstall` removes them). The dashboard job (`launchd/co.epsilon-labs.os.dashboard.plist`) is installed separately and keeps its own RunAtLoad.
+4. `scripts/status_jobs.sh` shows state and last log line per job. Logs: `~/Library/Logs/epsilon-os/<job>.log`.
+
+## Autonomy ladder
+1 shadow, 2 founder-approved, 3 auto-template-ack only, 4 auto on proven segments. Promotion needs the golden set (`evals/golden-set.md`: 100% opt-out + injection, >=90% routing) plus 20 consecutive clean approved runs. Re-run the golden set on every prompt change.
+
+## Backups
+Weekly `agents.backup` pages every table through PostgREST (no `pg_dump`; there is no DB password) into `~/EpsilonOS-backups/YYYY-MM-DD/<table>.jsonl` plus `manifest.json` (row counts, sha256). The newest 8 dated folders are kept. `make backup-check D=<folder>` verifies hashes and counts. Monthly manual drill: load a folder into a scratch Supabase project and compare row counts. A backup never restored is not a backup. `suppression_list` is in every export. The folder holds PII: keep it on an encrypted disk. Secret rotation runbook lives outside this repo (PLAN.md §3.1).
 
 ## Data policy (PLAN.md §3.4 [4A])
 Suppression honored forever; 18-month retention for non-responders; UK/EU B2B legitimate interest with one-click opt-out.

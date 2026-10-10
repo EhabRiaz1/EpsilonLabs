@@ -26,3 +26,23 @@ dashboard:
 	$(PY) -m dashboard.server $(ARGS)
 
 .PHONY: dashboard
+
+# Scheduled jobs (launchd). install_jobs.sh validates, then bootstraps; run it yourself.
+jobs-install:
+	scripts/install_jobs.sh
+
+jobs-uninstall:
+	scripts/install_jobs.sh --uninstall
+
+jobs-status:
+	scripts/status_jobs.sh
+
+# One agent run by hand (same entrypoint launchd uses): make run-agent A=brief
+run-agent:
+	$(PY) -m agents.run $(A)
+
+# Verify a backup folder's manifest: make backup-check D=~/EpsilonOS-backups/2026-10-12
+backup-check:
+	$(PY) -m agents.backup --check $(D)
+
+.PHONY: jobs-install jobs-uninstall jobs-status run-agent backup-check

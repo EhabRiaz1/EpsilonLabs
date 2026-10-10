@@ -81,6 +81,9 @@ class FakeDB:
             r.setdefault("held", False)
             r.setdefault("claimed_at", None)
             r.setdefault("decided_at", None)
+        if table == "agent_heartbeats":
+            r.setdefault("last_run", _now())
+            r.setdefault("status", "ok")
         if table == "actions":
             r.setdefault("at", _now())
         if table == "contacts":
@@ -99,6 +102,8 @@ class FakeDB:
             if order:
                 col, _, direction = order.partition(".")
                 out.sort(key=lambda r: (r.get(col) is None, r.get(col)), reverse=direction == "desc")
+            if "offset" in filters:
+                out = out[int(filters["offset"]):]
             if "limit" in filters:
                 out = out[: int(filters["limit"])]
             return out
