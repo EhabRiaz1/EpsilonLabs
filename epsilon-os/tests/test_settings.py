@@ -8,7 +8,7 @@ from tests.fakes import FakeDB
 
 def test_defaults_when_table_empty_or_missing_key():
     db = FakeDB()
-    assert settings.per_day(db) == 20
+    assert settings.per_day(db) == 40
     assert settings.segments(db) == ["industrial", "oem_hardware", "smb_software"]
     assert settings.paused(db) is False
     assert settings.daily_budget(db) == 250 == config.DAILY_LLM_CALL_BUDGET
@@ -23,12 +23,12 @@ def test_getters_survive_a_broken_table_and_malformed_values():
     class Broken(FakeDB):
         def select(self, table, **f):
             raise RuntimeError("no such table")
-    assert settings.per_day(Broken()) == 20
+    assert settings.per_day(Broken()) == 40
     db = FakeDB()
     db.insert("settings", {"key": "prospector.per_day", "value": 9999})      # out of bounds
     db.insert("settings", {"key": "prospector.segments", "value": ["nope"]})  # not allowed
     db.insert("settings", {"key": "outreach.started_on", "value": None})      # the seeded JSON null
-    assert settings.per_day(db) == 20 and settings.segments(db) == list(settings.SEGMENTS)
+    assert settings.per_day(db) == 40 and settings.segments(db) == list(settings.SEGMENTS)
     assert settings.started_on(db) is None
 
 
@@ -44,7 +44,7 @@ def test_set_roundtrip_insert_then_update():
 
 
 @pytest.mark.parametrize("key,bad", [
-    ("prospector.per_day", -1), ("prospector.per_day", 51), ("prospector.per_day", "x"), ("prospector.per_day", True),
+    ("prospector.per_day", -1), ("prospector.per_day", 81), ("prospector.per_day", "x"), ("prospector.per_day", True),
     ("llm.daily_budget", 49), ("llm.daily_budget", 1001), ("outreach.daily_cap", 101), ("outreach.daily_cap", -5),
     ("prospector.segments", ["industrial", "fuel"]), ("prospector.segments", []), ("prospector.segments", "industrial"),
     ("prospector.paused", "yes"), ("outreach.address", "not-an-email"), ("outreach.started_on", None),

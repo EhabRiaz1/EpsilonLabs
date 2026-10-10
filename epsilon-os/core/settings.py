@@ -13,8 +13,24 @@ SEGMENTS = ("industrial", "oem_hardware", "smb_software")
 SEGMENT_LABEL = {"industrial": "Industrial operations", "oem_hardware": "OEMs and hardware startups",
                  "smb_software": "SMBs needing software"}
 DEFAULT_RAMP = {"start": 5, "step": 5, "every_days": 3}
+# Strategies S2-S5 (prompts/strategies.py holds the content; ids and labels live here so core never imports prompts).
+STRATEGY_IDS = ("s2_trigger", "s3_regulation", "s4_partner", "s5_intent", "s7_orphaned", "s8_tradeshow",
+                "s9_crowdfund", "s10_accelerator")
+STRATEGY_LABEL = {"s2_trigger": "Trigger events", "s3_regulation": "Regulation", "s4_partner": "Partners",
+                  "s5_intent": "Outsourcing intent", "s7_orphaned": "Orphaned devices",
+                  "s8_tradeshow": "Trade-show exhibitors", "s9_crowdfund": "Crowdfunded hardware",
+                  "s10_accelerator": "Accelerators and spinouts"}
+DEFAULT_QUOTAS = {"s2_trigger": 6, "s3_regulation": 4, "s4_partner": 6, "s5_intent": 5, "s7_orphaned": 6,
+                  "s8_tradeshow": 5, "s9_crowdfund": 4, "s10_accelerator": 4}   # total 40 = default prospector.per_day
+# Markets (ISO codes) where a client can pay a Pakistan firm (Wise, Payoneer, bank transfer) and budgets reach $10k+.
+# India is left out for now. ALWAYS_EXCLUDED wins over anything added in /settings: Pakistan is the founder's own
+# network, the rest are sanctioned.
+DEFAULT_MARKETS = tuple("""US CA MX BR CL GB IE AT BE BG HR CY CZ DK EE FI FR DE GR HU IT LV LT LU MT NL PL PT RO SK SI ES SE
+    NO IS LI CH TR IL AE SA QA KW BH OM JO EG MA ZA KE NG SG MY ID TH VN PH HK TW JP KR AU NZ""".split())
+ALWAYS_EXCLUDED = frozenset("PK IR KP SY CU RU BY".split())
 DEFAULTS = {
-    "prospector.per_day": 20,
+    "prospector.per_day": 40,
+    "prospector.markets": list(DEFAULT_MARKETS),
     "prospector.segments": list(SEGMENTS),
     "prospector.paused": False,
     "llm.daily_budget": config.DAILY_LLM_CALL_BUDGET,
@@ -22,8 +38,11 @@ DEFAULTS = {
     "outreach.ramp": DEFAULT_RAMP,
     "outreach.started_on": None,
     "outreach.address": "",
+    "strategy.quotas": DEFAULT_QUOTAS,
+    "strategy.auto_rebalance": True,
+    "strategy.pinned": [],
 }
-BOUNDS = {"prospector.per_day": (0, 50), "llm.daily_budget": (50, 1000), "outreach.daily_cap": (0, 100)}
+BOUNDS = {"prospector.per_day": (0, 80), "llm.daily_budget": (50, 1000), "outreach.daily_cap": (0, 100)}
 _ADDR = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
 
@@ -50,6 +69,78 @@ def _clean_ramp(v) -> dict | None:
     if None in (start, step, every) or not (0 <= start <= 100 and 0 <= step <= 100 and 1 <= every <= 30):
         return None
     return {"start": start, "step": step, "every_days": every}
+
+
+def _clean_markets(v) -> list[str]:
+    """A list or comma-separated string of two-letter country codes. Pakistan and sanctioned markets are dropped."""
+    items = re.split(r"[\s,;]+", v) if isinstance(v, str) else v
+    if not isinstance(items, (list, tuple)):
+        raise SettingsError("Markets must be a comma-separated list of two-letter country codes.")
+    out = []
+    for x in items:
+        code = str(x).strip().upper()
+        if not code:
+            continue
+        if not re.fullmatch(r"[A-Z]{2}", code):
+            raise SettingsError(f"{str(x).strip()[:20]!r} is not a two-letter country code.")
+        if code not in ALWAYS_EXCLUDED and code not in out:
+            out.append(code)
+    if not out:
+        raise SettingsError("Keep at least one market (Pakistan and sanctioned markets are never allowed).")
+    return out
+
+
+def _clean_quotas(v) -> dict:
+    """Whole numbers 0-50 per known strategy; a missing strategy keeps its default. The total is checked against
+    prospector.per_day by check_quota_total (validate() has no view of other settings)."""
+    if not isinstance(v, dict):
+        raise SettingsError("Quotas must be a mapping of strategy to number.")
+    unknown = [k for k in v if k not in STRATEGY_IDS]
+    if unknown:
+        raise SettingsError("Unknown strategy: " + ", ".join(str(k) for k in unknown))
+    out = {}
+    for sid in STRATEGY_IDS:
+        n = _int(v[sid]) if sid in v else DEFAULT_QUOTAS[sid]
+        if n is None or not 0 <= n <= 50:
+            raise SettingsError(f"{STRATEGY_LABEL[sid]}: enter a whole number from 0 to 50.")
+        out[sid] = n
+    return out
+
+
+def check_quota_total(quotas: dict, per_day: int) -> None:
+    total = sum(quotas.values())
+    if total > per_day:
+        raise SettingsError(f"Quotas add up to {total}, more than the {per_day} prospects per day. Lower a quota or raise the daily total.")
+
+
+def strategy_form(p: dict, per_day: int | None) -> tuple[dict, dict]:
+    """Settings-form fields -> ({setting key: clean value}, {field: message}). Fields: quota_<id>, pin_<id>, auto_rebalance.
+    Returns nothing when the form carries no quota fields at all (an older client)."""
+    if not any(f"quota_{s}" in p for s in STRATEGY_IDS):
+        return {}, {}
+    errors, quotas = {}, {}
+    for sid in STRATEGY_IDS:
+        n = _int(str(p.get(f"quota_{sid}", "")).strip())
+        if n is None or not 0 <= n <= 50:
+            errors[f"quota_{sid}"] = "Enter a whole number from 0 to 50."
+        else:
+            quotas[sid] = n
+    if not errors and per_day is not None:
+        try:
+            check_quota_total(quotas, per_day)
+        except SettingsError as ex:
+            errors["quotas"] = str(ex)
+    if errors:
+        return {}, errors
+    on = (True, "1", "on", "true")
+    extra = {}
+    if "markets" in p:
+        try:
+            extra["prospector.markets"] = _clean_markets(str(p["markets"]))
+        except SettingsError as ex:
+            return {}, {"markets": str(ex)}
+    return extra | {"strategy.quotas": quotas, "strategy.auto_rebalance": p.get("auto_rebalance") in on,
+            "strategy.pinned": [s for s in STRATEGY_IDS if p.get(f"pin_{s}") in on]}, {}
 
 
 def _clean_date(v) -> str | None:
@@ -89,6 +180,21 @@ def validate(key: str, value):
         if not isinstance(value, bool):
             raise SettingsError("Paused must be true or false.")
         return value
+    if key == "prospector.markets":
+        return _clean_markets(value)
+    if key == "strategy.quotas":
+        return _clean_quotas(value)
+    if key == "strategy.auto_rebalance":
+        if not isinstance(value, bool):
+            raise SettingsError("Auto-rebalance must be true or false.")
+        return value
+    if key == "strategy.pinned":
+        if not isinstance(value, (list, tuple)):
+            raise SettingsError("Pinned strategies must be a list.")
+        bad = [s for s in value if s not in STRATEGY_IDS]
+        if bad:
+            raise SettingsError("Unknown strategy: " + ", ".join(str(b) for b in bad))
+        return [s for s in STRATEGY_IDS if s in value]
     if key == "outreach.ramp":
         r = _clean_ramp(value)
         if r is None:
@@ -142,6 +248,10 @@ def segments(db) -> list[str]:
     return get(db, "prospector.segments")
 
 
+def markets(db) -> list[str]:
+    return list(get(db, "prospector.markets"))
+
+
 def paused(db) -> bool:
     return get(db, "prospector.paused")
 
@@ -152,6 +262,18 @@ def daily_budget(db) -> int:
 
 def daily_cap(db) -> int:
     return get(db, "outreach.daily_cap")
+
+
+def quotas(db) -> dict:
+    return dict(get(db, "strategy.quotas"))
+
+
+def auto_rebalance(db) -> bool:
+    return get(db, "strategy.auto_rebalance")
+
+
+def pinned(db) -> list[str]:
+    return list(get(db, "strategy.pinned"))
 
 
 def ramp(db) -> dict:

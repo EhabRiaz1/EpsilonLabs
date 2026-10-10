@@ -300,6 +300,10 @@ def save_settings(db: DB, p: dict) -> dict:
         errors["segments"] = str(ex)
     paused = p.get("paused")
     clean["prospector.paused"] = paused in (True, "1", "on", "true")
+    per_day = clean.get("prospector.per_day", cfg.per_day(db) if "per_day" not in errors else None)
+    strat_clean, strat_errors = cfg.strategy_form(p, per_day)  # Strategies fieldset: quotas, pins, auto-rebalance
+    clean.update(strat_clean)
+    errors.update(strat_errors)
     if not cfg.outreach_address(db):  # once set, the address is read-only here
         try:
             addr = cfg.validate("outreach.address", p.get("address", ""))

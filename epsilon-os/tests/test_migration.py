@@ -75,3 +75,32 @@ def test_migration(pg):
     assert pg("select count(*) from pg_indexes where indexname='approval_queue_status_held_idx'") == "1"
     assert pg("select column_default from information_schema.columns where table_name='approval_queue' and column_name='held'") == "false"
     assert pg("select is_nullable from information_schema.columns where table_name='approval_queue' and column_name='held'") == "NO"
+
+
+def test_migration_007_strategy_columns_and_legacy_backfill(pg):
+    for f in ("schema.sql", "migrations/002_epsilon_os_v2.sql", "migrations/003_epsilon_os_v3.sql",
+              "migrations/004_epsilon_os_v4.sql", "migrations/005_epsilon_os_v5.sql"):
+        apply(f)
+    # rows that exist before 007: a prospector company + its outbound deal, an unrelated outbound deal, a referral deal
+    pg("insert into companies (name, domain, notes) values ('Old Prospect','old.example.com','Prospector (industrial): hiring PLC. Evidence: https://x.example/y'),"
+       "('Referral Co','ref.example.com','from a friend')")
+    pc = pg("select id from companies where domain='old.example.com'")
+    rc = pg("select id from companies where domain='ref.example.com'")
+    pg(f"insert into deals (company_id, title, source_channel) values ('{pc}','Outbound: x','outbound'),('{rc}','Intro','referral'),('{rc}','Cold','outbound')")
+    apply("migrations/007_epsilon_os_v7.sql")
+    apply("migrations/007_epsilon_os_v7.sql")  # idempotent
+    assert pg("select strategy from companies where domain='old.example.com'") == "legacy"
+    assert pg("select coalesce(strategy,'null') from companies where domain='ref.example.com'") == "null"
+    assert pg("select string_agg(coalesce(strategy,'null'), ',' order by title) from deals") == "null,null,legacy"   # Cold, Intro, Outbound: x
+    # re-applying never rewrites a strategy set after the first run
+    pg("update companies set strategy='s2_trigger' where domain='old.example.com'")
+    pg(f"update deals set strategy='s2_trigger' where company_id='{pc}'")
+    apply("migrations/007_epsilon_os_v7.sql")
+    assert pg("select strategy from companies where domain='old.example.com'") == "s2_trigger"
+    assert pg(f"select strategy from deals where company_id='{pc}'") == "s2_trigger"
+    for sid in ("s3_regulation", "s4_partner", "s5_intent", "legacy"):
+        pg(f"update companies set strategy='{sid}' where domain='ref.example.com'")
+    assert sh("psql", "-d", DB, "-c", "update companies set strategy='bogus' where domain='ref.example.com'", check=False).returncode != 0
+    assert sh("psql", "-d", DB, "-c", "update deals set strategy='bogus'", check=False).returncode != 0
+    assert pg("select count(*) from pg_indexes where indexname in ('companies_strategy_idx','deals_strategy_idx')") == "2"
+    assert pg("select count(*) from settings") == "7"   # 007 seeds no settings
