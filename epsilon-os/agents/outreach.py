@@ -88,7 +88,8 @@ def _send_one(db, run_id, box, address: str, row: dict, now: datetime, c) -> Non
         _log(db, run_id, "send_failed", row["id"], {"error": "incomplete draft"})
         return
     try:
-        box.send({"to": to, "subject": claimed["subject"], "body": body, "message_id": mid})
+        box.send({"to": to, "subject": claimed["subject"], "body": body, "message_id": mid,
+                  "in_reply_to": claimed.get("in_reply_to_message_id"), "references": claimed.get("references_hdr")})
     except Exception as e:
         if isinstance(e, outbox.DEFINITE):
             db.update("approval_queue", {"status": "failed", "send_error": outbox._err(e)}, id=row["id"],

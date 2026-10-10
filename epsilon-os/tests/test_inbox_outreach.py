@@ -52,7 +52,7 @@ def test_reply_to_outreach_is_triaged_onto_the_outbound_deal_without_an_ack(db):
     assert t["type"] == "human_reply" and t["deal_id"] == dl["id"] and t["contact_id"] == ct["id"]
     assert len(db.rows("deals")) == 1                      # no new deal: it attached to the outbound one
     drafts = db.rows("approval_queue", status="pending")
-    assert [d["kind"] for d in drafts] == ["reply"]        # no first-contact ack for a reply to our send
+    assert [d["kind"] for d in drafts] == ["outbound"]  # replies on outreach threads go out from the outreach mailbox        # no first-contact ack for a reply to our send
     assert db.rows("touches")[0]["classifier"]["triage"] is True
 
 
@@ -60,7 +60,7 @@ def test_known_contact_without_threading_headers_is_still_triaged(db):
     seed_outbound(db)
     raw = eml(f"Ian <{PROSPECT}>", "Hello again", "Following up on your note, yes please.", "<r2@northmill.example>")
     r = run(db, outreach_box(raw))
-    assert r["processed"] == 1 and [d["kind"] for d in db.rows("approval_queue", status="pending")] == ["reply"]
+    assert r["processed"] == 1 and [d["kind"] for d in db.rows("approval_queue", status="pending")] == ["outbound"]  # replies on outreach threads go out from the outreach mailbox
 
 
 def test_unknown_sender_without_thread_is_skipped_not_acked(db):

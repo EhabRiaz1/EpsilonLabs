@@ -288,7 +288,7 @@ def _inquiry(S, n, cls, thread, injection: bool) -> None:
         return
     if d.get("notes"):
         _log(S, "draft_notes", target_table="touches", target_id=touch["id"], detail={"notes": d["notes"][:400]})
-    _queue_draft(S, "reply", n, d["body"], touch["id"], deal_id, contact_id, held, why)
+    _queue_draft(S, "outbound" if S.outreach else "reply", n, d["body"], touch["id"], deal_id, contact_id, held, why)
 
 
 def _handle_label(S, n, cls, thread) -> None:
