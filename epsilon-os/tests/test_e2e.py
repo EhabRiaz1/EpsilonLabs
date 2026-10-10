@@ -425,3 +425,17 @@ def test_full_flow_inbound_to_sent(db, mail_):
     assert outbox.run(db, mail_)["sent"] == 2
     assert {m["subject"] for m in mail_.sent} == {"Re: Forecourt automation"}
     assert sorted(t["type"] for t in db.rows("touches")) == ["human_reply", "sent", "sent"]
+
+
+def test_inbox_network_blip_is_a_warning_not_an_error(monkeypatch):
+    from agents import inbox
+    from core import mail as mail_mod
+    from tests.fakes import FakeDB
+
+    def boom(*a, **k):
+        raise TimeoutError("timed out")
+    monkeypatch.setattr(mail_mod, "fetch_new", boom)
+    db = FakeDB()
+    r = inbox.run(db=db, outreach_mail=None)
+    assert "error" not in r and r["transient"] == "TimeoutError"
+    assert db.rows("agent_heartbeats")[-1]["status"] == "warn"

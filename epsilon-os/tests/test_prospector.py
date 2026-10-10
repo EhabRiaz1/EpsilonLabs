@@ -1,3 +1,4 @@
+from zoneinfo import ZoneInfo
 """Prospector, offline: research and ask are scripted fakes; nothing touches the network or a real DB."""
 import json
 from datetime import datetime, timedelta, timezone
@@ -304,8 +305,8 @@ def test_budget_hit_during_research_is_clean():
 def test_research_failure_moves_on_to_next_segment():
     db = FakeDB()
     settings.set(db, "prospector.per_day", 1)
-    first_seg = prospector.segment_order(list(settings.SEGMENTS), NOW.date())[0]
-    second = prospector.segment_order(list(settings.SEGMENTS), NOW.date())[1]
+    first_seg = prospector.segment_order(list(settings.SEGMENTS), NOW.astimezone(ZoneInfo("Asia/Karachi")).date())[0]
+    second = prospector.segment_order(list(settings.SEGMENTS), NOW.astimezone(ZoneInfo("Asia/Karachi")).date())[1]
     r = go(db, FakeLLM(llm.LLMError("boom"), [co(1, segment=second)]), segment=None)
     assert r["research_failed"] == 1 and r["created"] == 1
     assert first_seg != second and db.rows("agent_heartbeats", agent="prospector")[-1]["status"] == "warn"

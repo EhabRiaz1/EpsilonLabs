@@ -4,6 +4,7 @@ Python does every action. The model only classifies and drafts (tool-less, via c
 Code-guard decisions (auto-reply, bounce, opt-out, suppression, own address) are never delegated
 to the model. Nothing here sends mail: drafts go to approval_queue for the outbox agent.
 """
+import imaplib
 import hashlib
 import re
 import sys
@@ -447,6 +448,10 @@ def run(db: DB | None = None, mail_mod=mail, ask=llm.ask, mode: str = "all", fet
     S.own = (addr,) if addr else ()
     try:
         messages = mail_mod.fetch_new(fetch_days)
+    except (TimeoutError, OSError, imaplib.IMAP4.abort) as e:
+        # Network blip (sleep/wake, Wi-Fi): the next run in 5 minutes retries, so this is a warning, not an outage.
+        ledger.heartbeat(db, AGENT, "warn", {"run_id": run_id, "transient": f"fetch failed: {type(e).__name__}"})
+        return {"run_id": run_id, "transient": type(e).__name__, **S.c}
     except Exception as e:
         ledger.heartbeat(db, AGENT, "error", {"run_id": run_id, "error": f"fetch failed: {type(e).__name__}"})
         return {"run_id": run_id, "error": type(e).__name__, **S.c}

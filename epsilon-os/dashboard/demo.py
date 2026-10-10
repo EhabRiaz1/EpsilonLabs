@@ -115,7 +115,7 @@ def seeded_db(now: datetime | None = None) -> FakeDB:
           "monitoring before that hire lands, we retrofit sensing and dashboards onto existing machines, "
           "including ones with undocumented protocols.\n\nWould a 20-minute call be useful? Suggest a time, "
           "or tell me no.\n\nEhab\n\nReply 'stop' and I won't write again.", ago(minutes=50), agent="prospector")
-    db.insert("actions", {"at": ago(minutes=50), "agent": "prospector", "action": "prospect_created",
+    db.insert("actions", {"at": ago(seconds=10), "agent": "prospector", "action": "prospect_created",
                           "target_table": "companies", "target_id": nm})
 
     # --- pipeline filler + numbers
