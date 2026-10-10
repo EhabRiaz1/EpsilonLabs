@@ -291,6 +291,15 @@ buttons ≥40px tall; colour never the only signal (every badge has text).
 | Deck | ~/.gstack/projects/epsilon-labs/designs/epsilon-os-dashboard-20261010/variant-B.png | One card, they-wrote / you'll-send, pips, A/E/R/L | Add undo toast (DD2), inline edit diff note (DD4) |
 | Source HTML | same folder, variant-*.html + base.css | Real tokens/fonts | Starting point for dashboard templates |
 
+## Prospector + outreach (founder decisions 2026-10-10, after go-live)
+| # | Decision |
+|---|---|
+| P1 | **Worldwide hunting** (supersedes PLAN.md OV-3's PK-only outbound): segments = industrial ops worldwide (legacy machines: mills, plants, cold chain, generators), OEMs / hardware startups (undocumented protocols, firmware rescue, pre-fab review), SMBs needing software (dashboards, booking, inventory, CRM, apps). Fuel retail stays an inbound/referral wedge. Prospects need a **visible current need** (evidence URL), never a bare list. |
+| P2 | **Separate outreach domain** bought by founder, own Zoho mailbox, SPF/DKIM/DMARC, warm-up ramp enforced by code (start 5/day, +5 every 3 days, cap from Settings, default ceiling 50/day). er@ never sends outbound (D7 unchanged). Until the outreach mailbox is in keychain, outbound drafts queue and wait. |
+| P3 | **Volume is a Setting**, editable on the dashboard (/settings): prospects/day (default 20), enabled segments, LLM daily call budget (default raised to 250 to fit 20/day), outbound daily cap, prospector pause. Stored in a `settings` table (migration 004). |
+| P4 | Research runs as `claude -p --tools "WebSearch,WebFetch"` only (no write tools, no MCP, no keys, neutral cwd), returns schema-validated JSON with evidence URLs; drafts are written tool-less (D2a) and linted (D11). Web pages are untrusted data. |
+| P5 | Compliance: every outbound has a plain one-line opt-out ("Reply 'stop' and I won't write again"); region + legal_basis recorded per contact (UK/EU = legitimate_interest_b2b); only business role addresses or addresses published by the company; suppression checked before every draft and every send; 18-month retention. Replies to the outreach mailbox are read by the inbox agent (triage mode). |
+
 ## Implementation Tasks
 - [ ] **T1 (P1, human: ~1h / CC: ~15min)** — outbox — Zoho Message-ID spike (D13)
 - [ ] **T2 (P1, human: ~1d / CC: ~4h)** — core — venv 3.12, core modules, migration epsilon_os_v2 (D4, D5, D6)
