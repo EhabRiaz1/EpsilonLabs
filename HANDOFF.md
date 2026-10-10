@@ -20,6 +20,14 @@ Founder works existing clients (Total Parco, Master Paints, YS Group, Areeb Aree
 - Prospector targets US/CA/UK/IE/EU/CH/Gulf/AU/NZ/SG/JP/KR/IL only; packages in offers.py:
   plant-visibility-pilot $18k, hardware-rescue $20k, ops-software-build $22k.
 
+## Research engine (2026-10-11)
+- 8 prospector strategies (trigger events, regulation, partners, outsourcing intent, orphaned devices,
+  trade-show exhibitors, crowdfunding trouble, accelerator cohorts) with quotas + learning loop
+  (Settings / Health). 40 prospects/day, LLM budget 450. Markets = setting (PK + sanctioned excluded).
+- Tenders job 06:00 PKT: TED, UK FTS/CF, CanadaBuys, AusTender, UNGM, World Bank, EBRD, SAM.gov (free key,
+  ~10 calls/day); Gulf portals + ADB/AfDB/IsDB/AIIB shipped disabled (login/CAPTCHA/JS). Dashboard /opportunities.
+- Migrations applied through v7 (006 opportunities, 007 strategy columns).
+
 ## Open items
 - Founder: approve drafts daily in the Deck; LinkedIn outreach to contact-less prospects
   (dossiers in Pipeline); Wise/Payoneer + PSEB + services contract template; warm-contacts
