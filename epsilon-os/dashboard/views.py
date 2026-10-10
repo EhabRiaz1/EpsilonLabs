@@ -17,6 +17,14 @@ def kbd(k: str) -> str:
     return f'<span class="kbd" aria-hidden="true">{e(k)}</span>'
 
 
+def tenders_rail(sh: dict) -> str:
+    t = sh.get("tenders")
+    if not t:
+        return ""
+    return (f'<div><h2 class="mono lbl">Tenders</h2><p class="mono sub"><a href="/opportunities">'
+            f'{t["new"]} new, {t["worth"]} worth a look</a></p></div>')
+
+
 def rail_html(sh: dict, compact: bool = False) -> str:
     ag = "".join(f'<div class="ag"><span class="agn">{e(a["name"].capitalize())}</span>'
                  f'<span class="st {a["state"]}">{e(a["text"])}</span></div>' for a in sh["agents"])
@@ -30,6 +38,7 @@ def rail_html(sh: dict, compact: bool = False) -> str:
             f'<i style="width:{pct}%"></i></div>'
             f'<p class="mono sub">{sh["calls"]} of {sh["budget"]} calls{e(cost)}</p></div>'
             f'<div><h2 class="mono lbl">Prospector</h2><p class="mono sub">{sh.get("prospected", 0)} found today</p></div>'
+            f'{tenders_rail(sh)}'
             f'<div><h2 class="mono lbl">Watchdog</h2><div class="ag"><span class="agn">Last ping</span>'
             f'<span class="st {wd["state"]}">{e(wd["text"])}</span></div></div>')
 
@@ -43,6 +52,7 @@ ICON = {
     "sliders": '<path d="M4 6h8.6M17.4 6H20M4 12h2.6M11.4 12H20M4 18h10.6M19.4 18H20"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/>',
     "site": '<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>',
     "search": '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+    "briefcase": '<path d="M3 8h18v12H3z"/><path d="M8 8V5h8v3M3 13h18M11 13v2h2v-2"/>',
     "menu": '<path d="M4 7h16M4 12h16M4 17h16"/>',
     "theme": '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
 }
@@ -54,7 +64,8 @@ def icon(name: str) -> str:
 
 
 SIDENAV = [(None, "/", "Today", "today"), (None, "/deck", "Deck", "deck"),
-           ("Work", "/#held", "Held", "held"), ("Work", "/pipeline", "Pipeline", "pipeline"),
+           ("Work", "/#held", "Held", "held"), ("Work", "/opportunities", "Opportunities", "briefcase"),
+           ("Work", "/pipeline", "Pipeline", "pipeline"),
            ("System", "/health", "Health", "health"), ("System", "/settings", "Settings", "sliders")]
 THEME_BOOT = '<script src="/static/theme.js"></script>'
 
@@ -122,7 +133,7 @@ def shortcuts_sheet() -> str:
 
 
 def palette() -> str:
-    items = [("/", "Today", "G T"), ("/deck", "Start the deck", "↵"), ("/pipeline", "Pipeline", "G P"),
+    items = [("/", "Today", "G T"), ("/deck", "Start the deck", "↵"), ("/opportunities", "Opportunities", ""), ("/pipeline", "Pipeline", "G P"),
              ("/health", "Health", "G H"), ("/settings", "Settings", "G S"), ("/#held", "Held tray", ""), ("?", "Keyboard shortcuts", "?")]
     li = "".join(f'<li role="option" data-href="{e(h)}" tabindex="-1"><span>{e(t)}</span>{kbd(k) if k else ""}</li>'
                  for h, t, k in items)
@@ -482,6 +493,7 @@ def settings_page(csrf: str, sh: dict, v: dict, errors: dict, saved: bool, demo:
         f'<section class="setcard" aria-labelledby="s-out"><h2 id="s-out" class="mono lbl">Outreach</h2>'
         f'{_field("daily_cap", "Daily send cap", "Ceiling, 0 to 100. The warm-up ramp (5/day, +5 every 3 days) applies below it.", _num("daily_cap", v["daily_cap"], 0, 100, errors), errors)}'
         f'{_field("address", "Outreach address", addr_hint, addr_ctl, errors)}</section>'
+        f'{tenders_card(v["tenders"], errors) if v.get("tenders") else ""}'
         f'</div>'
         f'<div class="setacts"><button class="btn pri" type="submit">Save settings</button>'
         f'<a class="btn ghost" href="/settings">Reset</a></div></form>')
@@ -490,3 +502,133 @@ def settings_page(csrf: str, sh: dict, v: dict, errors: dict, saved: bool, demo:
             f'<section aria-labelledby="s-st"><h2 id="s-st" class="mono lbl">Outreach status</h2>'
             f'<div class="kpis three">{kp}</div></section>')
     return page("Settings", body, "Settings", csrf, sh, demo, cls="settingspage")
+
+
+# ------------------------------------------------------------------ Opportunities (S1 tenders)
+
+def _opp_rows(cards: list, with_status: bool = False) -> str:
+    out = ""
+    for c in cards:
+        tier = "hi" if c["score"] >= data.WORTH_A_LOOK else ("mid" if c["score"] >= data.LOW_FIT else "lo")
+        note = c["elig_notes"][0] if c["elig_notes"] else "No eligibility issues found by the rules"
+        where = " · ".join(x for x in (c["buyer"], c["country"], c["source"]) if x)
+        status = f' {tag(c["status"].upper(), "cu")}' if with_status else ""
+        out += (
+            f'<tr><td class="num"><span class="fit {tier}" aria-label="Fit score {c["score"]} of 100">{c["score"]}</span></td>'
+            f'<td><a href="/opportunities?id={e(c["id"])}">{e(c["title"])}</a>{status}'
+            f'<span class="sub">{e(where)}</span></td>'
+            f'<td>{e(c["offer"]) or "—"}</td><td class="num">{e(c["value"])}</td>'
+            f'<td class="num"><span class="days {c["deadline_tone"]}">{e(c["deadline"])}</span></td>'
+            f'<td><span class="tag {c["badge_tone"]}">{e(c["badge"])}</span>'
+            f'<span class="sub oppnote">{e(note)}</span></td></tr>')
+    return out
+
+
+def _opp_table(label: str, cards: list, with_status: bool = False, fold: bool = False) -> str:
+    if not cards:
+        return ""
+    head = (f'<tr><th scope="col" class="num">Fit</th><th scope="col">Opportunity</th><th scope="col">Offer</th>'
+            f'<th scope="col" class="num">Value</th><th scope="col" class="num">Deadline</th>'
+            f'<th scope="col">Eligibility</th></tr>')
+    table = (f'<div class="oppcard"><table class="grid opps"><thead>{head}</thead>'
+             f'<tbody>{_opp_rows(cards, with_status)}</tbody></table></div>')
+    title = f'<span class="mono lbl">{e(label)} · {len(cards)}</span>'
+    if fold:
+        return f'<details class="opp-g">' f'<summary>{title}</summary>{table}</details>'
+    return f'<section class="opp-g" aria-label="{e(label)}">{title}{table}</section>'
+
+
+def opportunity_panel(csrf: str, c: dict, nxt: str = "/opportunities") -> str:
+    def items(xs: list, empty: str) -> str:
+        return ("<ul class=\"plain brief\">" + "".join(f"<li>{e(x)}</li>" for x in xs) + "</ul>") if xs else \
+            f'<p class="muted">{e(empty)}</p>'
+    link = (f'<p><a class="btn" href="{e(c["url"])}" target="_blank" rel="noopener noreferrer">Official notice ↗</a></p>'
+            if c["url"] else '<p class="muted">No notice link was published.</p>')
+    st = c["status"]
+    btns = ""
+    if st in ("new", "pass"):
+        btns += _form(csrf, "opp_bid", c["id"], "Bid", "pri", "/opportunities")
+    if st == "new":
+        btns += (f'<form method="post" action="/act/opp_pass" class="inl passf"><input type="hidden" name="csrf" value="{e(csrf)}">'
+                 f'<input type="hidden" name="id" value="{e(c["id"])}"><input type="hidden" name="next" value="/opportunities">'
+                 f'<input class="inp" name="reason" type="text" maxlength="300" placeholder="Reason (optional)" '
+                 f'aria-label="Reason for passing"><button class="btn">Pass</button></form>')
+    if st == "bid":
+        btns += _form(csrf, "opp_submitted", c["id"], "Mark submitted", "pri", "/opportunities")
+        btns += _form(csrf, "opp_pass", c["id"], "Drop (pass)", "", "/opportunities")
+    if st in ("bid", "submitted"):
+        btns += _form(csrf, "opp_won", c["id"], "Won", "", "/opportunities")
+        btns += _form(csrf, "opp_lost", c["id"], "Lost", "danger", "/opportunities")
+    state = {"new": "", "bid": "You are bidding on this.", "pass": "Passed.", "submitted": "Submitted.",
+             "won": "Won.", "lost": "Lost.", "expired": "Expired."}.get(st, "")
+    state_html = f'<p class="mono sub">{e(state)}{" " + e(c["notes"]) if c["notes"] and st == "pass" else ""}</p>' if state else ""
+    elig = items(c["elig_notes"], "No eligibility issues found by the rules.")
+    facts = (f'<p class="sub">{tag(c["badge"], c["badge_tone"])} {e(" · ".join(x for x in (c["buyer"], c["country"], c["source"]) if x))}</p>'
+             f'<p class="sub">Value: {e(c["value"])} · Deadline: <span class="days {c["deadline_tone"]}">{e(c["deadline"])}</span>'
+             f'{" (" + e(c["deadline_date"]) + ")" if c["deadline_date"] else ""}</p>')
+    offer = (f'<p class="sub">Closest offer: <b>{e(c["offer"])}</b> · fit {c["score"]}/100</p>' if c["offer"] else "")
+    summary = e(c["summary"][:2500]) + ("…" if len(c["summary"]) > 2500 else "")
+    return (f'<div class="phead"><h2>{e(c["title"][:140])}</h2>'
+            f'<a class="btn ghost" href="/opportunities" data-close aria-label="Close panel">Close</a></div>'
+            f'{facts}{offer}{state_html}'
+            f'<div class="oppacts">{btns}</div>'
+            f'<h3 class="mono lbl">Why this score</h3>{items(c["reasons"], "No reasons recorded.")}'
+            f'<h3 class="mono lbl">Eligibility</h3>{elig}'
+            f'<h3 class="mono lbl">What the buyer asks for</h3>{items(c["requirements"], "Not listed in the notice text we have.")}'
+            f'<h3 class="mono lbl">What we would need</h3>{items(c["what_we_need"], "Nothing indicated.")}'
+            f'<h3 class="mono lbl">Effort</h3><p>{e(c["effort"]) or "Not estimated."}</p>'
+            f'<h3 class="mono lbl">Summary · buyer text is untrusted</h3>'
+            f'<div class="untrusted small">{summary or "No description in the feed."}</div>'
+            f'<h3 class="mono lbl">Official notice</h3>{link}')
+
+
+def opportunities_page(csrf: str, sh: dict, d: dict, panel: str, demo: bool) -> str:
+    new = d["new"]
+    worth = [c for c in new if c["score"] >= data.WORTH_A_LOOK]
+    mid = [c for c in new if data.LOW_FIT <= c["score"] < data.WORTH_A_LOOK]
+    low = [c for c in new if c["score"] < data.LOW_FIT]
+    tally = (f'{len(new)} new · {len(worth)} worth a look · {len(d["active"])} in progress · '
+             f'{d["won"]} won · {d["lost"]} lost · {d["passed"]} passed')
+    if not new and not d["active"]:
+        body_main = ('<section class="state"><p>No opportunities yet. The tenders agent checks the official feeds '
+                     'every morning at 06:00 and lists the ones worth a look here.</p></section>')
+    else:
+        body_main = (_opp_table("Worth a look", worth) + _opp_table("Other new", mid)
+                     + _opp_table("In progress", d["active"], with_status=True)
+                     + _opp_table("Low fit", low, fold=True))
+        if not (worth or mid or low):
+            body_main = '<section class="state"><p>Nothing new right now.</p></section>' + body_main
+    body = (f'<p class="eyebrow mono">Work</p><div class="pt-row"><h1 class="pt">Opportunities</h1>'
+            f'<span class="mono">{e(tally)}</span></div>'
+            f'<p class="muted oppintro">Public tenders from official feeds, scored against what Epsilon sells. '
+            f'Nothing is ever bid for you.</p>{body_main}')
+    panel_html = f'<aside id="opp-panel" class="panel" aria-label="Opportunity brief"{"" if panel else " hidden"}>{panel}</aside>'
+    return page("Opportunities", f'<div class="opps-page">{body}</div>{panel_html}', "Opportunities", csrf, sh, demo,
+                cls="oppspage")
+
+
+def tenders_card(t: dict, errors: dict) -> str:
+    from core import settings as cfg
+    boxes = "".join(
+        f'<label class="ck pick"><input type="checkbox" name="tenders_sources" value="{e(k)}"'
+        f'{" checked" if k in t["sources"] else ""}> {e(cfg.TENDER_SOURCE_LABEL[k])}</label>' for k in cfg.TENDER_LIVE)
+    off = ", ".join(cfg.TENDER_SOURCE_LABEL[k].replace(" (disabled)", "") for k in cfg.TENDER_DISABLED)
+    src_err = errors.get("tenders_sources")
+    sources = (f'<div class="field{" bad" if src_err else ""}"><span class="flab" id="l-tsrc">Sources</span>'
+               f'<div class="picks" role="group" aria-labelledby="l-tsrc">{boxes}</div>'
+               f'<p class="hint">Shipped disabled (login, anti-bot or unreachable): {e(off)}.</p>'
+               f'{f"<p class=fielderr role=alert>{e(src_err)}</p>" if src_err else ""}</div>')
+
+    def money(name: str, label: str, hint: str, val) -> str:
+        ref = f"h-{name}" + (f" e-{name}" if errors.get(name) else "")
+        ctl = (f'<input class="inp num" id="f-{name}" name="{name}" type="number" inputmode="numeric" min="0" step="1000" '
+               f'value="{e(str(val))}" aria-describedby="{ref}"{" aria-invalid=true" if errors.get(name) else ""}>')
+        return _field(name, label, hint, ctl, errors)
+    paused = (f'<div class="field"><label class="ck pick" for="f-tenders_paused"><input type="checkbox" id="f-tenders_paused" '
+              f'name="tenders_paused" value="1"{" checked" if t["paused"] else ""}> Pause tenders</label>'
+              f'<p class="hint">Stops the daily scan. Existing opportunities stay on the page.</p></div>')
+    return (f'<section class="setcard" aria-labelledby="s-ten"><h2 id="s-ten" class="mono lbl">Tenders</h2>'
+            f'{_field("tenders_per_day", "Scored per day", "Tenders sent to the model each morning, 0 to 50.", _num("tenders_per_day", t["per_day"], 0, 50, errors), errors)}'
+            f'{money("tenders_value_min", "Minimum value (USD)", "Tenders with no stated value are always kept.", t["value_min"])}'
+            f'{money("tenders_value_max", "Maximum value (USD)", "Converted at approximate rates.", t["value_max"])}'
+            f'{sources}{paused}</section>')

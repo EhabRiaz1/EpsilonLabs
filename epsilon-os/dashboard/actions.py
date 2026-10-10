@@ -317,3 +317,81 @@ def save_settings(db: DB, p: dict) -> dict:
     if changed:
         _log(db, "settings_changed", None, {"keys": changed})
     return ok(changed=changed)
+
+
+# ------------------------------------------------------------------ Opportunities (S1 tenders)
+# Founder decisions on a tender. Nothing here bids, registers or contacts anyone; it only records the decision.
+
+OPP_MOVES = {"bid": (["new", "pass"], "bid"), "pass": (["new", "bid"], "pass"),
+             "submitted": (["bid"], "submitted"), "won": (["submitted", "bid"], "won"),
+             "lost": (["submitted", "bid"], "lost")}
+OPP_VERB = {"bid": "Marked as bid", "pass": "Passed", "submitted": "Marked as submitted", "won": "Marked as won",
+            "lost": "Marked as lost"}
+
+
+def opp_decide(db: DB, oid: str, act: str, reason: str | None = None) -> dict:
+    move = OPP_MOVES.get(act)
+    if not move:
+        return fail("unknown_action", "Unknown action.")
+    if not str(oid or "").strip():
+        return fail("not_found", "No such opportunity.")
+    rows = db.select("opportunities", id=oid)
+    if not rows:
+        return fail("not_found", "No such opportunity.")
+    note = " ".join((reason or "").split())[:300] if act == "pass" else ""
+    extra = {"decided_at": _iso(_now())}
+    if note:
+        extra["notes"] = note
+    row = db.claim("opportunities", oid, move[0], move[1], extra)
+    if row is None:
+        return fail("conflict", f"This opportunity is now {rows[0].get('status')}; reload to see it.")
+    try:
+        ledger.action(db, AGENT, ledger.new_run_id(), f"opportunity_{act}", "opportunities", oid,
+                      {"reason": note} if note else None)
+    except Exception:
+        pass
+    return ok(status=move[1], message=OPP_VERB[act])
+
+
+TENDER_FIELDS = {"tenders_per_day": "tenders.per_day", "tenders_value_min": "tenders.value_min",
+                 "tenders_value_max": "tenders.value_max"}
+
+
+def tender_fields(p: dict) -> tuple[dict, dict]:
+    """(clean settings by key, errors by form field) for the Tenders fieldset. Empty when the form lacks it."""
+    if "tenders_per_day" not in p:
+        return {}, {}
+    clean, errors = {}, {}
+    for field, key in TENDER_FIELDS.items():
+        try:
+            clean[key] = cfg.validate(key, str(p.get(field, "")).strip())
+        except cfg.SettingsError as ex:
+            errors[field] = str(ex)
+    srcs = p.get("tenders_sources") or []
+    srcs = [srcs] if isinstance(srcs, str) else list(srcs)
+    try:
+        clean["tenders.sources"] = cfg.validate("tenders.sources", srcs)
+    except cfg.SettingsError as ex:
+        errors["tenders_sources"] = str(ex)
+    clean["tenders.paused"] = p.get("tenders_paused") in (True, "1", "on", "true")
+    if not errors and clean["tenders.value_min"] > clean["tenders.value_max"]:
+        errors["tenders_value_min"] = "The minimum cannot be above the maximum."
+    return clean, errors
+
+
+def save_settings_all(db: DB, p: dict) -> dict:
+    """The /settings form: prospector/LLM/outreach fields (save_settings) plus the Tenders fieldset.
+    Tender fields are validated first; any error saves nothing."""
+    tclean, terrors = tender_fields(p)
+    if terrors:
+        return fail("invalid", "Some settings need attention.", errors=terrors)
+    res = save_settings(db, p)
+    if not res.get("ok") or not tclean:
+        return res
+    changed = list(res.get("changed", []))
+    tchanged = [k for k, v in tclean.items() if cfg.get(db, k) != v]
+    for k in tchanged:
+        cfg.set(db, k, tclean[k])
+    if tchanged:
+        _log(db, "settings_changed", None, {"keys": tchanged})
+    return ok(changed=changed + tchanged)

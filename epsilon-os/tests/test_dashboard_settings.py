@@ -43,7 +43,8 @@ def test_get_settings_renders_form_nav_and_status(live):
     assert 'action="/act/settings"' in body and 'name="csrf"' in body
     for name in ("per_day", "daily_budget", "daily_cap", "address", "paused"):
         assert f'name="{name}"' in body
-    assert body.count('name="segments"') == 3 and body.count("checked") == 3   # all three segments on by default
+    # all three segments on by default (counted per field: other fieldsets, e.g. Tenders, have their own checkboxes)
+    assert body.count('name="segments"') == 3 and len(re.findall(r'name="segments"[^>]*checked', body)) == 3
     assert re.search(r'href="/settings" class=on aria-current=page', body)        # sidebar entry, active
     assert "Outreach status" in body and "Configured" in body and "Sent today" in body and "Today's cap" in body
     assert "script-src 'self'" in h["Content-Security-Policy"]

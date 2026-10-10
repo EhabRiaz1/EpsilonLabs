@@ -1,0 +1,573 @@
+{
+ "releases": [
+  {
+   "ocid": "ocds-h6vhtk-0784ff",
+   "id": "095775-2026",
+   "date": "2026-10-09T15:37:16+01:00",
+   "tag": [
+    "tender"
+   ],
+   "description": "Economic operators may be excluded from this competition if they are in any of the situations referred to in regulation 58 of the Public Contracts (Scotland) Regulations 2015.\nWithin the SPD, Tenderers should respond “yes” where they have been the subject of any enforcement action, restriction or other sanction or intervention by the Financial Conduct Authority or any other regulator and then provide an explanation in response to questions 3D10.1 to 3D10.4\nNOTE: To register your interest in this notice and obtain any additional information please visit the Public Contracts Scotland Web Site at https://www.publiccontractsscotland.gov.uk/Search/Search_Switch.aspx?ID=840049.\nThe buyer has indicated that it will accept electronic responses to this notice via the Postbox facility. A user guide is available at https://www.publiccontractsscotland.gov.uk/sitehelp/help_guides.aspx.\nSuppliers are advised to allow adequate time for uploading documents and to dispatch the electronic response well in advance of the closing time to avoid any last minute problems.\nThe Contracting Authority does not intend to include a sub-contract clause as part of community benefits (as per Section 25 of the Procurement Reform (Scotland) Act 2014) in this contract for the following reason:\nThe Contracting Authority does not intend to include a sub-contract clause as part of community benefits (as per Section 25 of the Procurement Reform (Scotland) Act 2014) in this contract for the following reason:\nSub-Contracting is not a significant part of the overall anticipated contract spend.\nCommunity benefits are included in this requirement. For more information see: https://www.gov.scot/policies/public-sector-procurement/community-benefits-in-procurement/\nA summary of the expected community benefits has been provided as follows:\nProvision of skills and training opportunities – details of mentorship opportunities, apprenticeships, and structured learning pathways that could be offered as a result of this Contract.\n(SC Ref:840049)\nDownload the ESPD document here: https://www.publiccontractsscotland.gov.uk/ESPD/ESPD_Download.aspx?id=840049",
+   "initiationType": "tender",
+   "tender": {
+    "id": "CON-0313",
+    "legalBasis": {
+     "id": "32014L0024",
+     "scheme": "CELEX"
+    },
+    "title": "The Provision of Investment Management Services for the Scottish Universities Fund Ignition Strategy",
+    "status": "active",
+    "classification": {
+     "scheme": "CPV",
+     "id": "66100000",
+     "description": "Banking and investment services"
+    },
+    "mainProcurementCategory": "services",
+    "description": "The Bank is seeking proposals from suitably qualified and authorised investment management firms to establish and manage a 15 million GBP segregated investment mandate for the delivery of the Scottish Universities Ignition Fund Strategy (\"the Mandate\").\nThe successful bidder will be expected to establish and operate an appropriate investment vehicle through which the Mandate will be delivered, with the Bank acting as the sole investor. The Mandate forms one of two complementary investment strategies within the Scottish Universities Fund (\"SUF\"), a broader investment platform designed to support the creation, growth and long-term scaling of university-originated companies in Scotland.\nThe pur",
+    "value": {
+     "amount": 6500000.0,
+     "currency": "GBP"
+    },
+    "items": [
+     {
+      "id": "1",
+      "additionalClassifications": [
+       {
+        "scheme": "CPV",
+        "id": "66100000",
+        "description": "Banking and investment services"
+       }
+      ],
+      "deliveryAddresses": [
+       {
+        "region": "UK"
+       }
+      ],
+      "relatedLot": "1"
+     }
+    ],
+    "submissionMethod": [
+     "electronicSubmission"
+    ],
+    "submissionMethodDetails": "http://www.publiccontractsscotland.gov.uk",
+    "selectionCriteria": {
+     "criteria": [
+      {
+       "type": "suitability",
+       "description": "Suitability – Authorisation or Membership\nPlease complete “Suitability - Authorisation or Membership” question within the SPD module of PCS:\nQuestion 4A.2A - Bidders are required in country of establishment to hold an authorisation of the FCA and all required FCA permissions to perform the services.\nPass = The Tenderer has provided confirmation that it will provide evidence of holding an authorisation of the FCA and all required FCA permissions to perform the services when requested by the Purchaser.\nFail = The Tenderer has not provided confirmation .that it will provide evidence of holding an authorisation of the FCA and all required FCA permissions to perform the services when requested by the Purchaser.",
+       "appliesTo": [
+        "supplier"
+       ]
+      },
+      {
+       "type": "economic",
+       "description": "Please complete “Insurance Requirements” on the online SPD and submit on PCS.\nIt is a requirement that all Tenderers must have or commit to have the required insurance levels at commencement of the Agreement as indicated below.\nQuestion 4B.5.a  Professional Risk Indemnity - 10m GBP\nQuestion 4B.5.b  Employers Liability - 10m GBP\nQuestion 4B.5.c\t Other Insurances: Product and Public Liability – 5m GBP\nA copy of the Insurance Certificate or Brokers Letter must be provided prior to award to demonstrate that the Insurance requirements can be met.\nPlease confirm that you can meet this requirement and that this information shall be provided when requested, prior to award.\nOther Economic or Financial Requirements - Financial Accounts\nQuestion 4B.6 - The successful Tenderer will be required to provide two years of audited accounts or equivalent prior to award to the Contract. If you are unable to provide the required accounting information – e.g. a new business without the required accounts, please provide a banker’s letter demonstrating their willingness to support your organisation over the term of the Contract.\nThe Bank shall assess the financial accounts or banker’s letter submitted. It may seek further clarity if necessary and use all financial information submitted to ensure that the Tenderer has satisfactory economic and financial standing to meet the contract requirements. If analysis of a Tenderer’s financial position determines that additional measures are necessary to provide adequate assurance of the Tenderer’s financial strength to the Bank that Tenderer may be required to provide additional guarantees. If such additional measures are not suitable or cannot be provided by the Tenderer, then the Bank reserves the right to disqualify the Tenderer.",
+       "minimum": "QUESTION 4B5:\nAll Insurance requirements are minimum standards and are mandatory. A fail will result in elimination of the procurement exercise.\nPass = The Tenderer has the relevant Insurance in place with evidence of an Insurance Certificate or the Tenderer has committed to obtaining the required insurance with evidence of a brokers letter.\nFail = The Tenderer does not have the relevant insurance requirements in place and cannot commit to obtaining the relevant insurance OR the Tenderer has stated they have the relevant insurance in place or can obtain it but is unable to provide evidence to demonstrate this.\nQUESTION 4B.6 Other Economic or Financial Requirements - Financial Accounts:\nPass = The Tenderer has provided all financial accounts or banker’s letter and/or supporting information requirements as requested by the Bank and has demonstrated satisfactory economic and financial standing.\nFail = The Tenderer has not provided the required financial accounts or banker’s letter and/or supporting information as requested by the Bank or has provided the information but has not demonstrated satisfactory economic and financial standing.",
+       "appliesTo": [
+        "supplier"
+       ]
+      },
+      {
+       "type": "technical",
+       "description": "Question 4C.1.2 of SPD:\nBidders are required to provide a fully attributable performance track record for funds and strategies comparable to the services described within the specification of requirements of this ITT.\nTrack record information should be presented on both a gross and net basis and include, as a minimum, TVPI, DPI, IRR, and MOIC, in a clear, tabulated format to enable comparability across submissions.\nIn addition to quantitative track record data, bidders are required to provide two representative case studies that demonstrate their approach to sourcing, underwriting, and scaling early-stage, innovation-led companies. Case studies should be comparable in stage and nature to the Mandate and should clearly set out the bidder’s role and attribution, investment thesis, key risks, value creation approach and outcomes achieved.",
+       "minimum": "Pass = The Tenderer has provided an attributable track record with TVPI, DPI, IRR, and MOIC (gross and net) in a clear table; and two relevant case studies on early-stage, innovation-led investments comparable to the Mandate.\nFail = The Tenderer has not provided an attributable track record, or it is unclear or lacks required metrics;  and fewer than two relevant case studies have been provided, This  includes where  the submission has insufficient  evidence to assess experience against.",
+       "appliesTo": [
+        "supplier"
+       ]
+      }
+     ]
+    },
+    "procurementMethod": "open",
+    "procurementMethodDetails": "Open procedure",
+    "coveredBy": [
+     "GPA"
+    ],
+    "tenderPeriod": {
+     "endDate": "2026-11-10T12:00:00Z"
+    },
+    "submissionTerms": {
+     "languages": [
+      "en"
+     ],
+     "bidValidityPeriod": {
+      "durationInDays": 90
+     }
+    },
+    "awardPeriod": {
+     "startDate": "2026-11-10T12:00:00Z"
+    },
+    "bidOpening": {
+     "date": "2026-11-10T12:00:00Z"
+    },
+    "hasRecurrence": false
+   },
+   "parties": [
+    {
+     "name": "Scottish National Investment Bank",
+     "id": "GB-FTS-12628",
+     "identifier": {
+      "legalName": "Scottish National Investment Bank"
+     },
+     "address": {
+      "streetAddress": "1-North, Waverley Gate, 2-4 Waterloo Place",
+      "locality": "Edinburgh",
+      "region": "UKM75",
+      "postalCode": "EH1 3EG",
+      "countryName": "United Kingdom"
+     },
+     "roles": [
+      "buyer"
+     ],
+     "details": {
+      "url": "http://www.thebank.scot",
+      "buyerProfile": "https://www.publiccontractsscotland.gov.uk/search/Search_AuthProfile.aspx?ID=AA30487",
+      "classifications": [
+       {
+        "scheme": "TED_CA_TYPE",
+        "id": "BODY_PUBLIC",
+        "description": "Body governed by public law"
+       },
+       {
+        "scheme": "COFOG",
+        "id": "04",
+        "description": "Economic affairs"
+       }
+      ]
+     }
+    },
+    {
+     "name": "Edinburgh Sheriff Court",
+     "id": "GB-FTS-404",
+     "identifier": {
+      "legalName": "Edinburgh Sheriff Court"
+     },
+     "address": {
+      "streetAddress": "27 Chambers Street",
+      "locality": "Edinburgh",
+      "postalCode": "EH1 1LB",
+      "countryName": "United Kingdom"
+     },
+     "roles": [
+      "reviewBody"
+     ]
+    }
+   ],
+   "buyer": {
+    "id": "GB-FTS-12628",
+    "name": "Scottish National Investment Bank"
+   },
+   "links": [
+    {
+     "rel": "canonical",
+     "href": "https://api.publiccontractsscotland.gov.uk/v1/Notice?id=ocds-r6ebe6-0000840049"
+    }
+   ],
+   "language": "en"
+  },
+  {
+   "ocid": "ocds-h6vhtk-068653",
+   "id": "095724-2026",
+   "date": "2026-10-09T14:37:19+01:00",
+   "tag": [
+    "tender"
+   ],
+   "description": "The buyer is using PCS-Tender to conduct this ITT exercise. The Project code is 32596. For more information see: http://www.publiccontractsscotland.gov.uk/info/InfoCentre.aspx?ID=2343\nA sub-contract clause has been included in this contract. For more information see: http://www.publiccontractsscotland.gov.uk/info/InfoCentre.aspx?ID=2363\nCommunity benefits are included in this requirement. For more information see: https://www.gov.scot/policies/public-sector-procurement/community-benefits-in-procurement/\nA summary of the expected community benefits has been provided as follows:\nThe awarded provider will required to deliver projects totaling 100 Community Benefits points via the Glasgow Community Benefits Hub. The details of this are included within the tender.\n(SC Ref:845339)",
+   "initiationType": "tender",
+   "tender": {
+    "id": "26-129",
+    "legalBasis": {
+     "id": "32014L0024",
+     "scheme": "CELEX"
+    },
+    "title": "Out of Home Advertising for Bus Stations and Shelters",
+    "status": "active",
+    "classification": {
+     "scheme": "CPV",
+     "id": "79340000",
+     "description": "Advertising and marketing services"
+    },
+    "mainProcurementCategory": "services",
+    "description": "Provision of advertising agency services to market, develop and maintain the current and future developed estate within SPT Bus Stations and the SPT Bus Shelter network throughout the west of Scotland.",
+    "value": {
+     "amount": 10000000,
+     "currency": "GBP"
+    },
+    "items": [
+     {
+      "id": "1",
+      "additionalClassifications": [
+       {
+        "scheme": "CPV",
+        "id": "79341000",
+        "description": "Advertising services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "79341100",
+        "description": "Advertising consultancy services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "79341200",
+        "description": "Advertising management services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "79341400",
+        "description": "Advertising campaign services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "22460000",
+        "description": "Trade-advertising material, commercial catalogues and manuals"
+       },
+       {
+        "scheme": "CPV",
+        "id": "79340000",
+        "description": "Advertising and marketing services"
+       }
+      ],
+      "deliveryAddresses": [
+       {
+        "region": "UKM8"
+       }
+      ],
+      "relatedLot": "1"
+     }
+    ],
+    "submissionMethod": [
+     "electronicSubmission"
+    ],
+    "submissionMethodDetails": "https://www.publictendersscotland.publiccontractsscotland.gov.uk/esop/pts-host/public/pts/web/login.html",
+    "communication": {
+     "atypicalToolUrl": "https://www.publictendersscotland.publiccontractsscotland.gov.uk/esop/pts-host/public/pts/web/login.html"
+    },
+    "selectionCriteria": {
+     "criteria": [
+      {
+       "type": "suitability",
+       "description": "The bidder will be required to provide two examples, preferably within the Public Sector, where they have developed an advertising estate and increased revenue. These examples will be required to have came from projects within the last 3 years.",
+       "appliesTo": [
+        "supplier"
+       ]
+      },
+      {
+       "type": "economic",
+       "description": "Bidders must either confirm at Question 4B.4 that they have a Dun and Bradstreet failure score of 51 or above (and provide the score), or if they cannot evidence this or do not have a D&B score they must provide instead the value of the 3 financial ratios defined in the minimum standards section.",
+       "minimum": "The name of the 3 ratios to be evaluated are Profitability, Gearing and Liquidity. The acceptable values and method of calculation are detailed in the Evaluation of Tenders document provided and below\nWhere 2 out of the 3 ratios cannot be met the bidder must confirm below which other mitigating factors may apply which SPT may consider. Again these are detailed in the Evaluation of Tenders document and below\n1 Profitability – this is taken as profit after tax but before dividends and minority interests. If a company makes a profit then it is a pass for this ratio;\n2 Liquidity – this value is calculated as current assets less stock and work in progress, divided by current liabilities. If the answer is greater than or equal to one then it is a pass for this ratio;\n3 Gearing – this value is calculated as the total external secured borrowing (short term and long term) divided by shareholder funds expressed as a percentage. If the answer is less than or equal to 100% it is considered a pass for this ratio.\nWhere 2 out of the 3 ratios cannot be met the bidder must confirm below which other mitigating factors may apply which SPT may consider.",
+       "appliesTo": [
+        "supplier"
+       ]
+      }
+     ]
+    },
+    "procurementMethod": "open",
+    "procurementMethodDetails": "Open procedure",
+    "coveredBy": [
+     "GPA"
+    ],
+    "tenderPeriod": {
+     "endDate": "2026-11-13T12:00:00Z"
+    },
+    "submissionTerms": {
+     "languages": [
+      "en"
+     ],
+     "bidValidityPeriod": {
+      "durationInDays": 120
+     }
+    },
+    "awardPeriod": {
+     "startDate": "2026-11-13T12:00:00Z"
+    },
+    "bidOpening": {
+     "date": "2026-11-13T12:00:00Z"
+    },
+    "hasRecurrence": false
+   },
+   "parties": [
+    {
+     "name": "Strathclyde Partnership for Transport",
+     "id": "GB-FTS-13755",
+     "identifier": {
+      "legalName": "Strathclyde Partnership for Transport"
+     },
+     "address": {
+      "streetAddress": "131 St Vincent Street",
+      "locality": "Glasgow",
+      "region": "UKM82",
+      "postalCode": "G2 5JF",
+      "countryName": "United Kingdom"
+     },
+     "roles": [
+      "buyer"
+     ],
+     "details": {
+      "url": "http://www.spt.co.uk",
+      "buyerProfile": "https://www.publiccontractsscotland.gov.uk/search/Search_AuthProfile.aspx?ID=AA10382",
+      "classifications": [
+       {
+        "scheme": "TED_CA_TYPE",
+        "id": "BODY_PUBLIC",
+        "description": "Body governed by public law"
+       },
+       {
+        "scheme": "COFOG",
+        "description": "Transport"
+       }
+      ]
+     }
+    },
+    {
+     "name": "Glasgow Sheriff Court",
+     "id": "GB-FTS-2553",
+     "identifier": {
+      "legalName": "Glasgow Sheriff Court"
+     },
+     "address": {
+      "streetAddress": "1 Carlton Place",
+      "locality": "Glasgow",
+      "postalCode": "G5 9DA",
+      "countryName": "United Kingdom"
+     },
+     "roles": [
+      "reviewBody",
+      "mediationBody",
+      "reviewContactPoint"
+     ]
+    }
+   ],
+   "buyer": {
+    "id": "GB-FTS-13755",
+    "name": "Strathclyde Partnership for Transport"
+   },
+   "links": [
+    {
+     "rel": "canonical",
+     "href": "https://api.publiccontractsscotland.gov.uk/v1/Notice?id=ocds-r6ebe6-0000845339"
+    }
+   ],
+   "language": "en"
+  },
+  {
+   "ocid": "ocds-h6vhtk-06d768",
+   "id": "095513-2026",
+   "date": "2026-10-09T10:22:58+01:00",
+   "tag": [
+    "tender"
+   ],
+   "description": "ESPD Questions 3A.1 to 3A.8 Serious and Organised Crime – Information Sharing Protocol\nIt is a requirement of this tender that the bidder recommended for award completes and submits, when requested to by the Council, the Serious and Organised Crime – Information Sharing Protocol form for evaluation prior to any award being made.\nDeclarations and Certificates\nIn an open tendering procedure prior to any award being made the successful bidder will provide the undernoted certificates, declarations and/or completed questionnaires to evidence their compliance with the relevant questions within the Qualification Envelope.\nAll certificates, declarations and questionnaires can be found within the Attachment area of PCS-T.\nSPD Question 2D.1 \t    Prompt Payment Certificate\nSPD Question 3D.3\t    Human Rights Act Declaration\nDeclaration Section \t    *Form of Tender\nSPD Question 3D.11 \t    Non-Collusion Certificate\nSPD Question 4C.6\t    Goods Vehicle Operator’s Licence\nSPD Question 4C.6           Waste Carriers Licence\nSPD Question 4B.5.1 \t    Insurance Certificates\nESPD Questions 3A.1 to 3A.8  Serious and Organised Crime Declaration\nSPD Question 3A.6 \t     Modern Slavery Act 2015 Declaration\nDeclaration Section\t     Health and Safety Questionnaire\n*The ‘Form of Offer to Tender’ must be completed and uploaded within the relevant question in the Commercial Envelope.\nIn the case of an open tender, the other Declarations listed above will not be required to be uploaded and submitted with the bid, but will instead be requested by the Council following the conclusion of the evaluation of the Qualification, Technical and Commercial Envelopes and prior to the award of the tender.\nFailure to provide this information or in the event that the information provided does not support or evidence the statements made within the SPD will invalidate the bid. In this scenario the Council will seek to obtain the relevant information and evidence from the second highest scoring bidder and so on until a fully compliant bidder is identified.\nThe buyer is using PCS-Tender to conduct this ITT exercise. The Project code is 32595. For more information see: http://www.publiccontractsscotland.gov.uk/info/InfoCentre.aspx?ID=2343\nA sub-contract clause has been included in this contract. For more information see: http://www.publiccontractsscotland.gov.uk/info/InfoCentre.aspx?ID=2363\nCommunity benefits are included in this requirement. For more information see: https://www.gov.scot/policies/public-sector-procurement/community-benefits-in-procurement/\nA summary of the expected community benefits has been provided as follows:\nUnder this contract bidders will be required to actively participate in the achievement of Community Benefits. A summary of the expected Community Benefits has been provided within the attachment area/technical envelope and bidders will be asked to provide details of the Community Benefits they can offer as part of their bid. The Council has calculated that the minimum total of 500 community benefit points which must be delivered under this contract.\n(SC Ref:844713)",
+   "initiationType": "tender",
+   "tender": {
+    "id": "SLC/HT/26/059",
+    "legalBasis": {
+     "id": "32014L0024",
+     "scheme": "CELEX"
+    },
+    "title": "The Provision of Specialist Cleaning, Clearance and Disposal Services",
+    "status": "active",
+    "classification": {
+     "scheme": "CPV",
+     "id": "90910000",
+     "description": "Cleaning services"
+    },
+    "mainProcurementCategory": "services",
+    "description": "South Lanarkshire Council's Housing and Technical Resources, Building Services require to appoint a suitably qualified contractor to provide specialist house cleaning, clearance and disposal services within properties throughout South Lanarkshire.\nThe Contractor will be required to deliver a responsive and professional service to address a range of circumstances, including properties affected by trauma incidents, hoarding, abandonment, tenancy changes and environmental neglect. Services shall be carried out in accordance with all relevant legislation, health and safety requirements and waste disposal regulations.\nThe scope of the services include, but is not limited to:-\n- Full property clea",
+    "value": {
+     "amount": 15000000.0,
+     "currency": "GBP"
+    },
+    "items": [
+     {
+      "id": "1",
+      "additionalClassifications": [
+       {
+        "scheme": "CPV",
+        "id": "90513000",
+        "description": "Non-hazardous refuse and waste treatment and disposal services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "90524300",
+        "description": "Removal services of biological waste"
+       },
+       {
+        "scheme": "CPV",
+        "id": "90500000",
+        "description": "Refuse and waste related services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "90911100",
+        "description": "Accommodation cleaning services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "98390000",
+        "description": "Other services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "90511000",
+        "description": "Refuse collection services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "90512000",
+        "description": "Refuse transport services"
+       },
+       {
+        "scheme": "CPV",
+        "id": "90520000",
+        "description": "Radioactive-, toxic-, medical- and hazardous waste services"
+       }
+      ],
+      "deliveryAddresses": [
+       {
+        "region": "UKM95"
+       }
+      ],
+      "relatedLot": "1"
+     }
+    ],
+    "submissionMethod": [
+     "electronicSubmission"
+    ],
+    "submissionMethodDetails": "https://www.publictendersscotland.publiccontractsscotland.gov.uk",
+    "selectionCriteria": {
+     "criteria": [
+      {
+       "type": "suitability",
+       "description": "There are a number of questions/statements that have been included in the Contract Notice and within the Qualification Envelope which detail the minimum requirements that Bidders must be able to evidence for participation in this tender and ultimately will be required to evidence prior to any award being made. There are in addition further statements made that simply provide relevant information relating to the tender itself.\nThese questions and statements form an integral part of the Single Procurement Document (the SPD) which the Council has decided to implement for all tenders in excess of 50K in value.\nSPD Question 2.C.1 Reliance on the capacities of other entities\nBidders are required to complete a full SPD for each of the entities whose capacity they rely upon\nSPD Question 2.D.1 Subcontractors on whose capacity the bidder does not rely\nBidders are required to complete a shortened version of the SPD for each Subcontractor on whose capacity the bidder does not rely on.\nExclusion Criteria\nEconomic operators may be excluded from this competition if they are in any of the situations referred to in regulation 58 of the Public Contracts (Scotland) Regulations 2015.\nSPD Questions 3A – 3C have been identified as mandatory exclusion grounds and SPD Questions 3D have been identified as discretionary exclusion grounds. All the exclusion grounds will be assessed on a PASS/FAIL basis. For the mandatory exclusion grounds a bid will be excluded where the bidder fails to provide either a positive response or to provide details to the satisfaction of the Council of the self cleansing measures undertaken. .For the discretionary exclusion grounds a bid may be excluded where the bidder fails to provide either a positive response or if the Council is not satisfied as to the self cleansing measures undertaken.\nSPD Question 4A.1 Trade Registers [GS1.1]\nIt is a requirement of this tender that if the bidder is UK based they must hold a valid registration with Companies House. Where the bidder is UK based but not registered at Companies House they must be able to verify to the Councils satisfaction that they are trading from the address provided in the tender and under the company name given.\nIf the bidder is based out-with the UK they must be enrolled in the relevant professional or trade register appropriate to their country as described in Schedule 5 of the Public Contracts (Scotland) Regulations 2015.\nSPD Question 4A.2 Authorisation/Membership [GS1.1]\nWhere it is required, within a bidder’s country of establishment they must confirm which authorisation or memberships of the relevant organisation(s) are required in order to perform this service.\nBidders must confirm if they hold the particular authorisation or memberships.",
+       "appliesTo": [
+        "supplier"
+       ]
+      },
+      {
+       "type": "economic",
+       "description": "SPD Question 4B.4 Economic and Financial Standing [GS3.1]\nThe Council will use the following ratios to evaluate a bidders financial status:\nProfitability – this is taken as profit after tax but before dividends and minority interests. If a company makes a profit then it is a pass for this ratio;\nLiquidity – this is calculated as current assets less stock and work in progress, divided by current liabilities. If the answer is greater than or equal to one then it is a pass for this ratio\nGearing – this is calculated as the total external secured borrowing (short term and long term) divided by shareholder funds expressed as a percentage. If the answer is less than or equal to 100% it is considered a pass for this ratio.\nBidders must provide the name and value of each of the 3 ratios within their response to SPD question 4B.4.\nThe Council requires bidders to pass 2 out of the 3 financial ratios above.\nWhere 2 out of the 3 ratios cannot be met, the Council may take the undernoted into consideration when assessing financial viability and the risk to the Council, providing that the Bidder can supply evidence to substantiate any of the mitigating criteria when requested to do so. The following list is not exhaustive and other criteria may be considered where proposed by a bidder as mitigating factors:\nWould the bidder have passed the checks if prior year accounts had been used?\nWere any of the poor appraisal outcomes \"marginal\"?\nDoes the bidder operate in a market which, traditionally, requires lower liquidity or higher debt finance?\nDoes the bidder have sufficient reserves to sustain losses for a number of years?\nDoes the bidder have a healthy cashflow?\nIs the bidder profitable enough to finance the interest on its debt?\nIs most of the bidder's debt owed to group companies?\nIs the bidder's debt due to be repaid over a number of years, and affordable?\nHave the bidder's results been adversely affected by \"one off costs\" and / or \"one off accounting treatments\"?\nDo the bidder's auditors (where applicable) consider it to be a \"going concern\"?\nWill the bidder provide a Parent Company Guarantee?\nIs the bidder the single supplier/source of the Goods/Works/Services in the marketplace?\nThe Council will request submission of and assess the bidders financial accounts, and may use financial verification systems to validate the information provided.",
+       "minimum": "SPD Question 4B.5 Insurance [GS4.1]\nThe bidder must confirm that they have or will commit to obtain prior to the commencement of the contract, the following levels of Insurance Cover:\nEmployer’s Liability Insurance covering the death of or bodily injuries to employees of the bidder arising out of and in the course of their employment in connection with this contract to the level of 10000000 GBP in respect of each claim, without limit to the number of claims.\nPublic Liability Insurance covering the death of or bodily injury to a person (not an employee of the bidder) or loss of or damage to property resulting from an action or failure to take action by the bidder to the level of 5000000 GBP in respect of each claim, without limit to the number of claims.",
+       "appliesTo": [
+        "supplier"
+       ]
+      },
+      {
+       "type": "technical",
+       "description": "SPD Question 4C.1.2  Technical and Professional Ability\nWith reference to the nature and details of the supplies/services that are the subject matter of this tender, relevant examples are to be provided of the supplies/services undertaken by the bidder in the last 3 years.\nSPD Question 4C.6  Technical and Professional Ability (Qualifications)\nThe bidder as a company will hold the following educational or professional qualifications\n- Goods Vehicle Operators License\n- Waste Carrier Licence\nSPD Question 4C.10  Technical and Professional Ability (Sub-Contracting)\nBidders will be required to confirm whether they intend to subcontract and, if so, for what proportion of the contract.\nSPD Question 4D.1 Quality Assurance Schemes\nIt is a requirement of this tender that the bidder recommended for award holds the following Quality Assurance scheme membership:\n- ISO 9001 Quality Management System (or equivalent)\nSPD Question 4D.2 Environmental Management Standards\nIt is a requirement of this tender that the bidder recommended for award holds the following environmental standard/accreditation:\nISO14001 Environmental Management Systems (or equivalent)",
+       "appliesTo": [
+        "supplier"
+       ]
+      }
+     ]
+    },
+    "procurementMethod": "open",
+    "procurementMethodDetails": "Open procedure",
+    "coveredBy": [
+     "GPA"
+    ],
+    "tenderPeriod": {
+     "endDate": "2026-11-09T12:00:00Z"
+    },
+    "submissionTerms": {
+     "languages": [
+      "en"
+     ],
+     "bidValidityPeriod": {
+      "endDate": "2027-05-10T23:59:59+01:00"
+     }
+    },
+    "awardPeriod": {
+     "startDate": "2026-11-09T12:00:00Z"
+    },
+    "bidOpening": {
+     "date": "2026-11-09T12:00:00Z"
+    },
+    "hasRecurrence": true,
+    "recurrence": {
+     "description": "Upon expiration of the contract."
+    }
+   },
+   "parties": [
+    {
+     "name": "South Lanarkshire Council",
+     "id": "GB-FTS-129427",
+     "identifier": {
+      "legalName": "South Lanarkshire Council"
+     },
+     "address": {
+      "streetAddress": "Council Headquarters, Almada Street, Almada Street",
+      "locality": "Hamilton",
+      "region": "UKM95",
+      "postalCode": "ML3 0AA",
+      "countryName": "United Kingdom"
+     },
+     "roles": [
+      "buyer"
+     ],
+     "details": {
+      "url": "http://www.southlanarkshire.gov.uk",
+      "buyerProfile": "https://www.publiccontractsscotland.gov.uk/search/Search_AuthProfile.aspx?ID=AA00410",
+      "classifications": [
+       {
+        "scheme": "TED_CA_TYPE",
+        "id": "REGIONAL_AUTHORITY",
+        "description": "Regional or local authority"
+       },
+       {
+        "scheme": "COFOG",
+        "id": "06",
+        "description": "Housing and community amenities"
+       }
+      ]
+     }
+    },
+    {
+     "name": "Hamilton Sheriff Court",
+     "id": "GB-FTS-6287",
+     "identifier": {
+      "legalName": "Hamilton Sheriff Court"
+     },
+     "address": {
+      "streetAddress": "Sheriff Court House, 4 Beckford Street,",
+      "locality": "Hamilton",
+      "postalCode": "ML3 0BT",
+      "countryName": "United Kingdom"
+     },
+     "roles": [
+      "reviewBody"
+     ],
+     "details": {
+      "url": "http://www.scotscourts.gov.uk"
+     }
+    },
+    {
+     "name": "Court of Session",
+     "id": "GB-FTS-14838",
+     "identifier": {
+      "legalName": "Court of Session"
+     },
+     "address": {
+      "streetAddress": "Parliament House",
+      "locality": "Edinburgh",
+      "postalCode": "EH1 1RQ",
+      "countryName": "United Kingdom"
+     },
+     "roles": [
+      "reviewContactPoint"
+     ]
+    }
+   ],
+   "buyer": {
+    "id": "GB-FTS-129427",
+    "name": "South Lanarkshire Council"
+   },
+   "links": [
+    {
+     "rel": "canonical",
+     "href": "https://api.publiccontractsscotland.gov.uk/v1/Notice?id=ocds-r6ebe6-0000844713"
+    }
+   ],
+   "language": "en"
+  }
+ ]
+}

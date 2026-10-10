@@ -109,3 +109,35 @@ CONTACTS = {
         "notes": {"type": "string"}},
     "required": ["contacts"],
 }
+
+
+# ---------------------------------------------------------------- tenders (S1)
+
+ELIGIBILITY_STATUS = ["ok", "flag", "exclude"]
+
+
+def tender_fit(slugs: list[str]) -> dict:
+    """Schema for the tool-less fit call in agents/tenders.py. `slugs` are the offers in catalogue.json."""
+    short = {"type": "string", "minLength": 1, "maxLength": 240}
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["score", "offer_slug", "reasons", "requirements", "eligibility", "effort", "what_we_need"],
+        "properties": {
+            "score": {"type": "integer", "minimum": 0, "maximum": 100},
+            "offer_slug": {"type": "string", "enum": list(slugs)},
+            "reasons": {"type": "array", "minItems": 1, "maxItems": 5, "items": short},
+            "requirements": {"type": "array", "maxItems": 8, "items": short},
+            "eligibility": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["status", "notes"],
+                "properties": {
+                    "status": {"type": "string", "enum": ELIGIBILITY_STATUS},
+                    "notes": {"type": "array", "maxItems": 6, "items": short},
+                },
+            },
+            "effort": {"type": "string", "minLength": 1, "maxLength": 240},
+            "what_we_need": {"type": "array", "maxItems": 8, "items": short},
+        },
+    }
