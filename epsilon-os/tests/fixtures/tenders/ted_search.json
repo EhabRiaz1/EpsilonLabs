@@ -1,0 +1,519 @@
+{
+ "notices": [
+  {
+   "deadline-receipt-tender-date-lot": [
+    "2026-11-09Z"
+   ],
+   "description-lot": {
+    "eng": [
+     "Gjøvik municipality, Gran, Nordre Land and Søndre Land municipalities are implementing a joint procurement of welfare technological equipment, accessories and accompanying services for the health and welfare services. The framework agreement shall cover the municipalities ́ continuous need for i.a. safety alarms, electronic medicine dispensers, sensor technology and other technological welfare products. The aim of the agreement is to contribute to safe, efficient and future orientated health and care services, as well as facilitate increased mastery, independence and safety for the users. The "
+    ]
+   },
+   "notice-type": "cn-standard",
+   "publication-number": "689141-2026",
+   "classification-cpv": [
+    "33000000",
+    "85000000",
+    "33196000",
+    "72000000",
+    "33195000",
+    "72220000"
+   ],
+   "buyer-name": {
+    "eng": [
+     "GJØVIK KOMMUNE FELLESENHET ANSKAFFELSER",
+     "Eidskog",
+     "Etnedal kommune",
+     "Nord-Aurdal kommune",
+     "Sør-Aurdal kommune",
+     "Vang kommune",
+     "Vestre Slidre kommune",
+     "Øystre Slidre kommune",
+     "Gran Kommune"
+    ]
+   },
+   "publication-date": "2026-10-07+02:00",
+   "links": {
+    "xml": {
+     "MUL": "https://ted.europa.eu/en/notice/689141-2026/xml"
+    },
+    "pdf": {
+     "BUL": "https://ted.europa.eu/bg/notice/689141-2026/pdf",
+     "SPA": "https://ted.europa.eu/es/notice/689141-2026/pdf",
+     "CES": "https://ted.europa.eu/cs/notice/689141-2026/pdf",
+     "DAN": "https://ted.europa.eu/da/notice/689141-2026/pdf",
+     "DEU": "https://ted.europa.eu/de/notice/689141-2026/pdf",
+     "EST": "https://ted.europa.eu/et/notice/689141-2026/pdf",
+     "ELL": "https://ted.europa.eu/el/notice/689141-2026/pdf",
+     "ENG": "https://ted.europa.eu/en/notice/689141-2026/pdf",
+     "FRA": "https://ted.europa.eu/fr/notice/689141-2026/pdf",
+     "GLE": "https://ted.europa.eu/ga/notice/689141-2026/pdf",
+     "HRV": "https://ted.europa.eu/hr/notice/689141-2026/pdf",
+     "ITA": "https://ted.europa.eu/it/notice/689141-2026/pdf",
+     "LAV": "https://ted.europa.eu/lv/notice/689141-2026/pdf",
+     "LIT": "https://ted.europa.eu/lt/notice/689141-2026/pdf",
+     "HUN": "https://ted.europa.eu/hu/notice/689141-2026/pdf",
+     "MLT": "https://ted.europa.eu/mt/notice/689141-2026/pdf",
+     "NLD": "https://ted.europa.eu/nl/notice/689141-2026/pdf",
+     "POL": "https://ted.europa.eu/pl/notice/689141-2026/pdf",
+     "POR": "https://ted.europa.eu/pt/notice/689141-2026/pdf",
+     "RON": "https://ted.europa.eu/ro/notice/689141-2026/pdf",
+     "SLK": "https://ted.europa.eu/sk/notice/689141-2026/pdf",
+     "SLV": "https://ted.europa.eu/sl/notice/689141-2026/pdf",
+     "FIN": "https://ted.europa.eu/fi/notice/689141-2026/pdf",
+     "SWE": "https://ted.europa.eu/sv/notice/689141-2026/pdf"
+    },
+    "pdfs": {
+     "ENG": "https://ted.europa.eu/en/notice/689141-2026/pdfs"
+    },
+    "html": {
+     "BUL": "https://ted.europa.eu/bg/notice/-/detail/689141-2026",
+     "SPA": "https://ted.europa.eu/es/notice/-/detail/689141-2026",
+     "CES": "https://ted.europa.eu/cs/notice/-/detail/689141-2026",
+     "DAN": "https://ted.europa.eu/da/notice/-/detail/689141-2026",
+     "DEU": "https://ted.europa.eu/de/notice/-/detail/689141-2026",
+     "EST": "https://ted.europa.eu/et/notice/-/detail/689141-2026",
+     "ELL": "https://ted.europa.eu/el/notice/-/detail/689141-2026",
+     "ENG": "https://ted.europa.eu/en/notice/-/detail/689141-2026",
+     "FRA": "https://ted.europa.eu/fr/notice/-/detail/689141-2026",
+     "GLE": "https://ted.europa.eu/ga/notice/-/detail/689141-2026",
+     "HRV": "https://ted.europa.eu/hr/notice/-/detail/689141-2026",
+     "ITA": "https://ted.europa.eu/it/notice/-/detail/689141-2026",
+     "LAV": "https://ted.europa.eu/lv/notice/-/detail/689141-2026",
+     "LIT": "https://ted.europa.eu/lt/notice/-/detail/689141-2026",
+     "HUN": "https://ted.europa.eu/hu/notice/-/detail/689141-2026",
+     "MLT": "https://ted.europa.eu/mt/notice/-/detail/689141-2026",
+     "NLD": "https://ted.europa.eu/nl/notice/-/detail/689141-2026",
+     "POL": "https://ted.europa.eu/pl/notice/-/detail/689141-2026",
+     "POR": "https://ted.europa.eu/pt/notice/-/detail/689141-2026",
+     "RON": "https://ted.europa.eu/ro/notice/-/detail/689141-2026",
+     "SLK": "https://ted.europa.eu/sk/notice/-/detail/689141-2026",
+     "SLV": "https://ted.europa.eu/sl/notice/-/detail/689141-2026",
+     "FIN": "https://ted.europa.eu/fi/notice/-/detail/689141-2026",
+     "SWE": "https://ted.europa.eu/sv/notice/-/detail/689141-2026"
+    },
+    "htmlDirect": {
+     "BUL": "https://ted.europa.eu/bg/notice/689141-2026/html",
+     "SPA": "https://ted.europa.eu/es/notice/689141-2026/html",
+     "CES": "https://ted.europa.eu/cs/notice/689141-2026/html",
+     "DAN": "https://ted.europa.eu/da/notice/689141-2026/html",
+     "DEU": "https://ted.europa.eu/de/notice/689141-2026/html",
+     "EST": "https://ted.europa.eu/et/notice/689141-2026/html",
+     "ELL": "https://ted.europa.eu/el/notice/689141-2026/html",
+     "ENG": "https://ted.europa.eu/en/notice/689141-2026/html",
+     "FRA": "https://ted.europa.eu/fr/notice/689141-2026/html",
+     "GLE": "https://ted.europa.eu/ga/notice/689141-2026/html",
+     "HRV": "https://ted.europa.eu/hr/notice/689141-2026/html",
+     "ITA": "https://ted.europa.eu/it/notice/689141-2026/html",
+     "LAV": "https://ted.europa.eu/lv/notice/689141-2026/html",
+     "LIT": "https://ted.europa.eu/lt/notice/689141-2026/html",
+     "HUN": "https://ted.europa.eu/hu/notice/689141-2026/html",
+     "MLT": "https://ted.europa.eu/mt/notice/689141-2026/html",
+     "NLD": "https://ted.europa.eu/nl/notice/689141-2026/html",
+     "POL": "https://ted.europa.eu/pl/notice/689141-2026/html",
+     "POR": "https://ted.europa.eu/pt/notice/689141-2026/html",
+     "RON": "https://ted.europa.eu/ro/notice/689141-2026/html",
+     "SLK": "https://ted.europa.eu/sk/notice/689141-2026/html",
+     "SLV": "https://ted.europa.eu/sl/notice/689141-2026/html",
+     "FIN": "https://ted.europa.eu/fi/notice/689141-2026/html",
+     "SWE": "https://ted.europa.eu/sv/notice/689141-2026/html"
+    }
+   },
+   "notice-title": {
+    "eng": "Norway – Medical equipments, pharmaceuticals and personal care products – RA-26-003-GR-Velferdsteknologi - Gjøvik region and Hadeland"
+   },
+   "buyer-country": [
+    "NOR",
+    "NOR",
+    "NOR",
+    "NOR",
+    "NOR",
+    "NOR",
+    "NOR",
+    "NOR",
+    "NOR"
+   ]
+  },
+  {
+   "deadline-receipt-tender-date-lot": [
+    "2026-11-06Z"
+   ],
+   "description-lot": {
+    "fin": [
+     "Hankinnan kohteena on kulunvalvontajärjestelmä tarjouspyynnön ja sen liitteiden mukaisesti. Sopimuskumppaniksi valitaan yksi (1) Toimittaja. Sopimuskauden pituus: Sopimus on voimassa määräaikaisena kaksi (2) vuotta sopimuksen allekirjoituksesta, jonka jälkeen sopimus jatkuu automaattisesti toistaiseksi voimassa olevana. Valitulla toimittajalla ei ole yksinoikeutta hankinnan kohteena olevien palveluiden toimittamiseen. Sopimuksen perusteella hankintoja voivat tehdä myös Tilaajan seuraavat konserniyhtiöt: - VTK-Kiinteistöt Oy - Vivamus Kiinteistöt Oy - Vantaan tilapalvelut Vantti Oy"
+    ]
+   },
+   "notice-type": "cn-standard",
+   "publication-number": "689264-2026",
+   "classification-cpv": [
+    "48000000",
+    "31351000",
+    "42961100",
+    "72000000",
+    "79000000",
+    "48000000"
+   ],
+   "estimated-value-lot": [
+    "600000"
+   ],
+   "buyer-name": {
+    "fin": [
+     "Vantaan kaupunki"
+    ]
+   },
+   "publication-date": "2026-10-07+02:00",
+   "estimated-value-cur-lot": [
+    "EUR"
+   ],
+   "links": {
+    "xml": {
+     "MUL": "https://ted.europa.eu/en/notice/689264-2026/xml"
+    },
+    "pdf": {
+     "BUL": "https://ted.europa.eu/bg/notice/689264-2026/pdf",
+     "SPA": "https://ted.europa.eu/es/notice/689264-2026/pdf",
+     "CES": "https://ted.europa.eu/cs/notice/689264-2026/pdf",
+     "DAN": "https://ted.europa.eu/da/notice/689264-2026/pdf",
+     "DEU": "https://ted.europa.eu/de/notice/689264-2026/pdf",
+     "EST": "https://ted.europa.eu/et/notice/689264-2026/pdf",
+     "ELL": "https://ted.europa.eu/el/notice/689264-2026/pdf",
+     "ENG": "https://ted.europa.eu/en/notice/689264-2026/pdf",
+     "FRA": "https://ted.europa.eu/fr/notice/689264-2026/pdf",
+     "GLE": "https://ted.europa.eu/ga/notice/689264-2026/pdf",
+     "HRV": "https://ted.europa.eu/hr/notice/689264-2026/pdf",
+     "ITA": "https://ted.europa.eu/it/notice/689264-2026/pdf",
+     "LAV": "https://ted.europa.eu/lv/notice/689264-2026/pdf",
+     "LIT": "https://ted.europa.eu/lt/notice/689264-2026/pdf",
+     "HUN": "https://ted.europa.eu/hu/notice/689264-2026/pdf",
+     "MLT": "https://ted.europa.eu/mt/notice/689264-2026/pdf",
+     "NLD": "https://ted.europa.eu/nl/notice/689264-2026/pdf",
+     "POL": "https://ted.europa.eu/pl/notice/689264-2026/pdf",
+     "POR": "https://ted.europa.eu/pt/notice/689264-2026/pdf",
+     "RON": "https://ted.europa.eu/ro/notice/689264-2026/pdf",
+     "SLK": "https://ted.europa.eu/sk/notice/689264-2026/pdf",
+     "SLV": "https://ted.europa.eu/sl/notice/689264-2026/pdf",
+     "FIN": "https://ted.europa.eu/fi/notice/689264-2026/pdf",
+     "SWE": "https://ted.europa.eu/sv/notice/689264-2026/pdf"
+    },
+    "pdfs": {
+     "FIN": "https://ted.europa.eu/fi/notice/689264-2026/pdfs"
+    },
+    "html": {
+     "BUL": "https://ted.europa.eu/bg/notice/-/detail/689264-2026",
+     "SPA": "https://ted.europa.eu/es/notice/-/detail/689264-2026",
+     "CES": "https://ted.europa.eu/cs/notice/-/detail/689264-2026",
+     "DAN": "https://ted.europa.eu/da/notice/-/detail/689264-2026",
+     "DEU": "https://ted.europa.eu/de/notice/-/detail/689264-2026",
+     "EST": "https://ted.europa.eu/et/notice/-/detail/689264-2026",
+     "ELL": "https://ted.europa.eu/el/notice/-/detail/689264-2026",
+     "ENG": "https://ted.europa.eu/en/notice/-/detail/689264-2026",
+     "FRA": "https://ted.europa.eu/fr/notice/-/detail/689264-2026",
+     "GLE": "https://ted.europa.eu/ga/notice/-/detail/689264-2026",
+     "HRV": "https://ted.europa.eu/hr/notice/-/detail/689264-2026",
+     "ITA": "https://ted.europa.eu/it/notice/-/detail/689264-2026",
+     "LAV": "https://ted.europa.eu/lv/notice/-/detail/689264-2026",
+     "LIT": "https://ted.europa.eu/lt/notice/-/detail/689264-2026",
+     "HUN": "https://ted.europa.eu/hu/notice/-/detail/689264-2026",
+     "MLT": "https://ted.europa.eu/mt/notice/-/detail/689264-2026",
+     "NLD": "https://ted.europa.eu/nl/notice/-/detail/689264-2026",
+     "POL": "https://ted.europa.eu/pl/notice/-/detail/689264-2026",
+     "POR": "https://ted.europa.eu/pt/notice/-/detail/689264-2026",
+     "RON": "https://ted.europa.eu/ro/notice/-/detail/689264-2026",
+     "SLK": "https://ted.europa.eu/sk/notice/-/detail/689264-2026",
+     "SLV": "https://ted.europa.eu/sl/notice/-/detail/689264-2026",
+     "FIN": "https://ted.europa.eu/fi/notice/-/detail/689264-2026",
+     "SWE": "https://ted.europa.eu/sv/notice/-/detail/689264-2026"
+    },
+    "htmlDirect": {
+     "BUL": "https://ted.europa.eu/bg/notice/689264-2026/html",
+     "SPA": "https://ted.europa.eu/es/notice/689264-2026/html",
+     "CES": "https://ted.europa.eu/cs/notice/689264-2026/html",
+     "DAN": "https://ted.europa.eu/da/notice/689264-2026/html",
+     "DEU": "https://ted.europa.eu/de/notice/689264-2026/html",
+     "EST": "https://ted.europa.eu/et/notice/689264-2026/html",
+     "ELL": "https://ted.europa.eu/el/notice/689264-2026/html",
+     "ENG": "https://ted.europa.eu/en/notice/689264-2026/html",
+     "FRA": "https://ted.europa.eu/fr/notice/689264-2026/html",
+     "GLE": "https://ted.europa.eu/ga/notice/689264-2026/html",
+     "HRV": "https://ted.europa.eu/hr/notice/689264-2026/html",
+     "ITA": "https://ted.europa.eu/it/notice/689264-2026/html",
+     "LAV": "https://ted.europa.eu/lv/notice/689264-2026/html",
+     "LIT": "https://ted.europa.eu/lt/notice/689264-2026/html",
+     "HUN": "https://ted.europa.eu/hu/notice/689264-2026/html",
+     "MLT": "https://ted.europa.eu/mt/notice/689264-2026/html",
+     "NLD": "https://ted.europa.eu/nl/notice/689264-2026/html",
+     "POL": "https://ted.europa.eu/pl/notice/689264-2026/html",
+     "POR": "https://ted.europa.eu/pt/notice/689264-2026/html",
+     "RON": "https://ted.europa.eu/ro/notice/689264-2026/html",
+     "SLK": "https://ted.europa.eu/sk/notice/689264-2026/html",
+     "SLV": "https://ted.europa.eu/sl/notice/689264-2026/html",
+     "FIN": "https://ted.europa.eu/fi/notice/689264-2026/html",
+     "SWE": "https://ted.europa.eu/sv/notice/689264-2026/html"
+    }
+   },
+   "notice-title": {
+    "eng": "Finland – Software package and information systems – Kulunvalvontajärjestelmän hankinta"
+   },
+   "buyer-country": [
+    "FIN"
+   ]
+  },
+  {
+   "deadline-receipt-tender-date-lot": [
+    "2026-10-26+01:00"
+   ],
+   "description-lot": {
+    "deu": [
+     "Die Bundesagentur für Arbeit (BA) ist gemäß § 12a Gesetz zur Gleichstellung von Menschen mit Behinderungen (Behindertengleichstellungsgesetz - BGG) zur Barrierefreiheit ihrer digitalen Angebote und Informationen verpflichtet. Diese gesetzliche Verpflichtung erstreckt sich auf alle IT-Anwendungen (u. a. Internet, Intranet), aber auch auf digitale Dokumente wie PDF-Dokumente sowie im Zuge der elektronischen Aktenführung (§ 2 BITV 2.0). Um dies zu überprüfen und sicherzustellen lässt das Usability Accessibility Center (UAC) für bereits eingesetzte IT-Anwendungen, neu zu beschaffende oder entwicke"
+    ]
+   },
+   "notice-type": "cn-standard",
+   "publication-number": "689343-2026",
+   "classification-cpv": [
+    "72000000",
+    "72000000"
+   ],
+   "buyer-name": {
+    "deu": [
+     "Bundesagentur für Arbeit (BA), vertreten durch den Vorstand, hier vertreten durch die Leitung des Geschäftsbereiches Einkauf im BA-Service-Haus"
+    ]
+   },
+   "publication-date": "2026-10-07+02:00",
+   "links": {
+    "xml": {
+     "MUL": "https://ted.europa.eu/en/notice/689343-2026/xml"
+    },
+    "pdf": {
+     "BUL": "https://ted.europa.eu/bg/notice/689343-2026/pdf",
+     "SPA": "https://ted.europa.eu/es/notice/689343-2026/pdf",
+     "CES": "https://ted.europa.eu/cs/notice/689343-2026/pdf",
+     "DAN": "https://ted.europa.eu/da/notice/689343-2026/pdf",
+     "DEU": "https://ted.europa.eu/de/notice/689343-2026/pdf",
+     "EST": "https://ted.europa.eu/et/notice/689343-2026/pdf",
+     "ELL": "https://ted.europa.eu/el/notice/689343-2026/pdf",
+     "ENG": "https://ted.europa.eu/en/notice/689343-2026/pdf",
+     "FRA": "https://ted.europa.eu/fr/notice/689343-2026/pdf",
+     "GLE": "https://ted.europa.eu/ga/notice/689343-2026/pdf",
+     "HRV": "https://ted.europa.eu/hr/notice/689343-2026/pdf",
+     "ITA": "https://ted.europa.eu/it/notice/689343-2026/pdf",
+     "LAV": "https://ted.europa.eu/lv/notice/689343-2026/pdf",
+     "LIT": "https://ted.europa.eu/lt/notice/689343-2026/pdf",
+     "HUN": "https://ted.europa.eu/hu/notice/689343-2026/pdf",
+     "MLT": "https://ted.europa.eu/mt/notice/689343-2026/pdf",
+     "NLD": "https://ted.europa.eu/nl/notice/689343-2026/pdf",
+     "POL": "https://ted.europa.eu/pl/notice/689343-2026/pdf",
+     "POR": "https://ted.europa.eu/pt/notice/689343-2026/pdf",
+     "RON": "https://ted.europa.eu/ro/notice/689343-2026/pdf",
+     "SLK": "https://ted.europa.eu/sk/notice/689343-2026/pdf",
+     "SLV": "https://ted.europa.eu/sl/notice/689343-2026/pdf",
+     "FIN": "https://ted.europa.eu/fi/notice/689343-2026/pdf",
+     "SWE": "https://ted.europa.eu/sv/notice/689343-2026/pdf"
+    },
+    "pdfs": {
+     "DEU": "https://ted.europa.eu/de/notice/689343-2026/pdfs"
+    },
+    "html": {
+     "BUL": "https://ted.europa.eu/bg/notice/-/detail/689343-2026",
+     "SPA": "https://ted.europa.eu/es/notice/-/detail/689343-2026",
+     "CES": "https://ted.europa.eu/cs/notice/-/detail/689343-2026",
+     "DAN": "https://ted.europa.eu/da/notice/-/detail/689343-2026",
+     "DEU": "https://ted.europa.eu/de/notice/-/detail/689343-2026",
+     "EST": "https://ted.europa.eu/et/notice/-/detail/689343-2026",
+     "ELL": "https://ted.europa.eu/el/notice/-/detail/689343-2026",
+     "ENG": "https://ted.europa.eu/en/notice/-/detail/689343-2026",
+     "FRA": "https://ted.europa.eu/fr/notice/-/detail/689343-2026",
+     "GLE": "https://ted.europa.eu/ga/notice/-/detail/689343-2026",
+     "HRV": "https://ted.europa.eu/hr/notice/-/detail/689343-2026",
+     "ITA": "https://ted.europa.eu/it/notice/-/detail/689343-2026",
+     "LAV": "https://ted.europa.eu/lv/notice/-/detail/689343-2026",
+     "LIT": "https://ted.europa.eu/lt/notice/-/detail/689343-2026",
+     "HUN": "https://ted.europa.eu/hu/notice/-/detail/689343-2026",
+     "MLT": "https://ted.europa.eu/mt/notice/-/detail/689343-2026",
+     "NLD": "https://ted.europa.eu/nl/notice/-/detail/689343-2026",
+     "POL": "https://ted.europa.eu/pl/notice/-/detail/689343-2026",
+     "POR": "https://ted.europa.eu/pt/notice/-/detail/689343-2026",
+     "RON": "https://ted.europa.eu/ro/notice/-/detail/689343-2026",
+     "SLK": "https://ted.europa.eu/sk/notice/-/detail/689343-2026",
+     "SLV": "https://ted.europa.eu/sl/notice/-/detail/689343-2026",
+     "FIN": "https://ted.europa.eu/fi/notice/-/detail/689343-2026",
+     "SWE": "https://ted.europa.eu/sv/notice/-/detail/689343-2026"
+    },
+    "htmlDirect": {
+     "BUL": "https://ted.europa.eu/bg/notice/689343-2026/html",
+     "SPA": "https://ted.europa.eu/es/notice/689343-2026/html",
+     "CES": "https://ted.europa.eu/cs/notice/689343-2026/html",
+     "DAN": "https://ted.europa.eu/da/notice/689343-2026/html",
+     "DEU": "https://ted.europa.eu/de/notice/689343-2026/html",
+     "EST": "https://ted.europa.eu/et/notice/689343-2026/html",
+     "ELL": "https://ted.europa.eu/el/notice/689343-2026/html",
+     "ENG": "https://ted.europa.eu/en/notice/689343-2026/html",
+     "FRA": "https://ted.europa.eu/fr/notice/689343-2026/html",
+     "GLE": "https://ted.europa.eu/ga/notice/689343-2026/html",
+     "HRV": "https://ted.europa.eu/hr/notice/689343-2026/html",
+     "ITA": "https://ted.europa.eu/it/notice/689343-2026/html",
+     "LAV": "https://ted.europa.eu/lv/notice/689343-2026/html",
+     "LIT": "https://ted.europa.eu/lt/notice/689343-2026/html",
+     "HUN": "https://ted.europa.eu/hu/notice/689343-2026/html",
+     "MLT": "https://ted.europa.eu/mt/notice/689343-2026/html",
+     "NLD": "https://ted.europa.eu/nl/notice/689343-2026/html",
+     "POL": "https://ted.europa.eu/pl/notice/689343-2026/html",
+     "POR": "https://ted.europa.eu/pt/notice/689343-2026/html",
+     "RON": "https://ted.europa.eu/ro/notice/689343-2026/html",
+     "SLK": "https://ted.europa.eu/sk/notice/689343-2026/html",
+     "SLV": "https://ted.europa.eu/sl/notice/689343-2026/html",
+     "FIN": "https://ted.europa.eu/fi/notice/689343-2026/html",
+     "SWE": "https://ted.europa.eu/sv/notice/689343-2026/html"
+    }
+   },
+   "notice-title": {
+    "eng": "Germany – IT services: consulting, software development, Internet and support – DiBA DL 2027"
+   },
+   "buyer-country": [
+    "DEU"
+   ]
+  },
+  {
+   "deadline-receipt-tender-date-lot": [
+    "2026-11-06+01:00",
+    "2026-11-06+01:00",
+    "2026-11-06+01:00",
+    "2026-11-06+01:00",
+    "2026-11-06+01:00",
+    "2026-11-06+01:00",
+    "2026-11-06+01:00"
+   ],
+   "description-lot": {
+    "deu": [
+     "Die derzeit ca. 65.000 PC-Arbeitsplätze sind mit Hardware unterschiedlicher Firmen und in den meisten Fällen mit Betriebssystemen sowie Bürokommunikations-Software der Firma Microsoft ausgestattet. Daneben werden zentral vorgehaltene Applikationen und Dienste genutzt wie eine zentrale E-Mail-Plattform, Portale auf Basis von SAP Netweaver, ein mit Drupal realisiertes Informationsportal und ein Dokumentenmanagementsystem. Applikationen werden zum Teil auf der Basis von Windows Terminal Servern betrieben. Als Datenbanken werden bis auf wenige Ausnahmen die Produkte der Firmen Oracle und Microsoft",
+     "Die derzeit ca. 65.000 PC-Arbeitsplätze sind mit Hardware unterschiedlicher Firmen und in den meisten Fällen mit Betriebssystemen sowie Bürokommunikations-Software der Firma Microsoft ausgestattet. Daneben werden zentral vorgehaltene Applikationen und Dienste genutzt wie eine zentrale E-Mail-Plattform, Portale auf Basis von SAP Netweaver, ein mit Drupal realisiertes Informationsportal und ein Dokumentenmana-gementsystem. Applikationen werden zum Teil auf der Basis von Windows Terminal Servern betrieben. Als Datenbanken werden bis auf wenige Ausnahmen die Produkte der Firmen Oracle und Microsof",
+     "Die derzeit ca. 65.000 PC-Arbeitsplätze sind mit Hardware unterschiedlicher Firmen und in den meisten Fällen mit Betriebssystemen sowie Bürokommunikations-Software der Firma Microsoft ausgestattet. Daneben werden zentral vorgehaltene Applikationen und Dienste genutzt wie eine zentrale E-Mail-Plattform, Portale auf Basis von SAP Netweaver, ein mit Drupal realisiertes Informationsportal und ein Dokumentenmana-gementsystem. Applikationen werden zum Teil auf der Basis von Windows Terminal Servern betrieben. Als Datenbanken werden bis auf wenige Ausnahmen die Produkte der Firmen Oracle und Microsof",
+     "Die derzeit ca. 65.000 PC-Arbeitsplätze sind mit Hardware unterschiedlicher Firmen und in den meisten Fällen mit Betriebssystemen sowie Bürokommunikations-Software der Firma Microsoft ausgestattet. Daneben werden zentral vorgehaltene Applikationen und Dienste genutzt wie eine zentrale E-Mail-Plattform, Portale auf Basis von SAP Netweaver, ein mit Drupal realisiertes Informationsportal und ein Dokumentenmana-gementsystem. Applikationen werden zum Teil auf der Basis von Windows Terminal Servern betrieben. Als Datenbanken werden bis auf wenige Ausnahmen die Produkte der Firmen Oracle und Microsof",
+     "Die derzeit ca. 65.000 PC-Arbeitsplätze sind mit Hardware unterschiedlicher Firmen und in den meisten Fällen mit Betriebssystemen sowie Bürokommunikations-Software der Firma Microsoft ausgestattet. Daneben werden zentral vorgehaltene Applikationen und Dienste genutzt wie eine zentrale E-Mail-Plattform, Portale auf Basis von SAP Netweaver, ein mit Drupal realisiertes Informationsportal und ein Dokumentenmana-gementsystem. Applikationen werden zum Teil auf der Basis von Windows Terminal Servern betrieben. Als Datenbanken werden bis auf wenige Ausnahmen die Produkte der Firmen Oracle und Microsof",
+     "Die derzeit ca. 65.000 PC-Arbeitsplätze sind mit Hardware unterschiedlicher Firmen und in den meisten Fällen mit Betriebssystemen sowie Bürokommunikations-Software der Firma Microsoft ausgestattet. Daneben werden zentral vorgehaltene Applikationen und Dienste genutzt wie eine zentrale E-Mail-Plattform, Portale auf Basis von SAP Netweaver, ein mit Drupal realisiertes Informationsportal und ein Dokumentenmana-gementsystem. Applikationen werden zum Teil auf der Basis von Windows Terminal Servern betrieben. Als Datenbanken werden bis auf wenige Ausnahmen die Produkte der Firmen Oracle und Microsof",
+     "Die derzeit ca. 65.000 PC-Arbeitsplätze sind mit Hardware unterschiedlicher Firmen und in den meisten Fällen mit Betriebssystemen sowie Bürokommunikations-Software der Firma Microsoft ausgestattet. Daneben werden zentral vorgehaltene Applikationen und Dienste genutzt wie eine zentrale E-Mail-Plattform, Portale auf Basis von SAP Netweaver, ein mit Drupal realisiertes Informationsportal und ein Dokumentenmana-gementsystem. Applikationen werden zum Teil auf der Basis von Windows Terminal Servern betrieben. Als Datenbanken werden bis auf wenige Ausnahmen die Produkte der Firmen Oracle und Microsof"
+    ]
+   },
+   "notice-type": "cn-standard",
+   "publication-number": "689519-2026",
+   "classification-cpv": [
+    "72000000",
+    "72000000",
+    "72000000",
+    "72000000",
+    "72000000",
+    "72000000"
+   ],
+   "estimated-value-lot": [
+    "10533600.00",
+    "6283200.00",
+    "11383680.00",
+    "3917760.00",
+    "10644480.00",
+    "9623200.00",
+    "18221280.00"
+   ],
+   "buyer-name": {
+    "deu": [
+     "Land Hessen, vertreten durch die Hessische Zentrale für Datenverarbeitung"
+    ]
+   },
+   "publication-date": "2026-10-07+02:00",
+   "estimated-value-cur-lot": [
+    "EUR"
+   ],
+   "links": {
+    "xml": {
+     "MUL": "https://ted.europa.eu/en/notice/689519-2026/xml"
+    },
+    "pdf": {
+     "BUL": "https://ted.europa.eu/bg/notice/689519-2026/pdf",
+     "SPA": "https://ted.europa.eu/es/notice/689519-2026/pdf",
+     "CES": "https://ted.europa.eu/cs/notice/689519-2026/pdf",
+     "DAN": "https://ted.europa.eu/da/notice/689519-2026/pdf",
+     "DEU": "https://ted.europa.eu/de/notice/689519-2026/pdf",
+     "EST": "https://ted.europa.eu/et/notice/689519-2026/pdf",
+     "ELL": "https://ted.europa.eu/el/notice/689519-2026/pdf",
+     "ENG": "https://ted.europa.eu/en/notice/689519-2026/pdf",
+     "FRA": "https://ted.europa.eu/fr/notice/689519-2026/pdf",
+     "GLE": "https://ted.europa.eu/ga/notice/689519-2026/pdf",
+     "HRV": "https://ted.europa.eu/hr/notice/689519-2026/pdf",
+     "ITA": "https://ted.europa.eu/it/notice/689519-2026/pdf",
+     "LAV": "https://ted.europa.eu/lv/notice/689519-2026/pdf",
+     "LIT": "https://ted.europa.eu/lt/notice/689519-2026/pdf",
+     "HUN": "https://ted.europa.eu/hu/notice/689519-2026/pdf",
+     "MLT": "https://ted.europa.eu/mt/notice/689519-2026/pdf",
+     "NLD": "https://ted.europa.eu/nl/notice/689519-2026/pdf",
+     "POL": "https://ted.europa.eu/pl/notice/689519-2026/pdf",
+     "POR": "https://ted.europa.eu/pt/notice/689519-2026/pdf",
+     "RON": "https://ted.europa.eu/ro/notice/689519-2026/pdf",
+     "SLK": "https://ted.europa.eu/sk/notice/689519-2026/pdf",
+     "SLV": "https://ted.europa.eu/sl/notice/689519-2026/pdf",
+     "FIN": "https://ted.europa.eu/fi/notice/689519-2026/pdf",
+     "SWE": "https://ted.europa.eu/sv/notice/689519-2026/pdf"
+    },
+    "pdfs": {
+     "DEU": "https://ted.europa.eu/de/notice/689519-2026/pdfs"
+    },
+    "html": {
+     "BUL": "https://ted.europa.eu/bg/notice/-/detail/689519-2026",
+     "SPA": "https://ted.europa.eu/es/notice/-/detail/689519-2026",
+     "CES": "https://ted.europa.eu/cs/notice/-/detail/689519-2026",
+     "DAN": "https://ted.europa.eu/da/notice/-/detail/689519-2026",
+     "DEU": "https://ted.europa.eu/de/notice/-/detail/689519-2026",
+     "EST": "https://ted.europa.eu/et/notice/-/detail/689519-2026",
+     "ELL": "https://ted.europa.eu/el/notice/-/detail/689519-2026",
+     "ENG": "https://ted.europa.eu/en/notice/-/detail/689519-2026",
+     "FRA": "https://ted.europa.eu/fr/notice/-/detail/689519-2026",
+     "GLE": "https://ted.europa.eu/ga/notice/-/detail/689519-2026",
+     "HRV": "https://ted.europa.eu/hr/notice/-/detail/689519-2026",
+     "ITA": "https://ted.europa.eu/it/notice/-/detail/689519-2026",
+     "LAV": "https://ted.europa.eu/lv/notice/-/detail/689519-2026",
+     "LIT": "https://ted.europa.eu/lt/notice/-/detail/689519-2026",
+     "HUN": "https://ted.europa.eu/hu/notice/-/detail/689519-2026",
+     "MLT": "https://ted.europa.eu/mt/notice/-/detail/689519-2026",
+     "NLD": "https://ted.europa.eu/nl/notice/-/detail/689519-2026",
+     "POL": "https://ted.europa.eu/pl/notice/-/detail/689519-2026",
+     "POR": "https://ted.europa.eu/pt/notice/-/detail/689519-2026",
+     "RON": "https://ted.europa.eu/ro/notice/-/detail/689519-2026",
+     "SLK": "https://ted.europa.eu/sk/notice/-/detail/689519-2026",
+     "SLV": "https://ted.europa.eu/sl/notice/-/detail/689519-2026",
+     "FIN": "https://ted.europa.eu/fi/notice/-/detail/689519-2026",
+     "SWE": "https://ted.europa.eu/sv/notice/-/detail/689519-2026"
+    },
+    "htmlDirect": {
+     "BUL": "https://ted.europa.eu/bg/notice/689519-2026/html",
+     "SPA": "https://ted.europa.eu/es/notice/689519-2026/html",
+     "CES": "https://ted.europa.eu/cs/notice/689519-2026/html",
+     "DAN": "https://ted.europa.eu/da/notice/689519-2026/html",
+     "DEU": "https://ted.europa.eu/de/notice/689519-2026/html",
+     "EST": "https://ted.europa.eu/et/notice/689519-2026/html",
+     "ELL": "https://ted.europa.eu/el/notice/689519-2026/html",
+     "ENG": "https://ted.europa.eu/en/notice/689519-2026/html",
+     "FRA": "https://ted.europa.eu/fr/notice/689519-2026/html",
+     "GLE": "https://ted.europa.eu/ga/notice/689519-2026/html",
+     "HRV": "https://ted.europa.eu/hr/notice/689519-2026/html",
+     "ITA": "https://ted.europa.eu/it/notice/689519-2026/html",
+     "LAV": "https://ted.europa.eu/lv/notice/689519-2026/html",
+     "LIT": "https://ted.europa.eu/lt/notice/689519-2026/html",
+     "HUN": "https://ted.europa.eu/hu/notice/689519-2026/html",
+     "MLT": "https://ted.europa.eu/mt/notice/689519-2026/html",
+     "NLD": "https://ted.europa.eu/nl/notice/689519-2026/html",
+     "POL": "https://ted.europa.eu/pl/notice/689519-2026/html",
+     "POR": "https://ted.europa.eu/pt/notice/689519-2026/html",
+     "RON": "https://ted.europa.eu/ro/notice/689519-2026/html",
+     "SLK": "https://ted.europa.eu/sk/notice/689519-2026/html",
+     "SLV": "https://ted.europa.eu/sl/notice/689519-2026/html",
+     "FIN": "https://ted.europa.eu/fi/notice/689519-2026/html",
+     "SWE": "https://ted.europa.eu/sv/notice/689519-2026/html"
+    }
+   },
+   "notice-title": {
+    "eng": "Germany – IT services: consulting, software development, Internet and support – Unterstützungsleistungen im polizeilichen Umfeld in 7 Losen"
+   },
+   "buyer-country": [
+    "DEU"
+   ]
+  }
+ ],
+ "totalNoticeCount": 177
+}

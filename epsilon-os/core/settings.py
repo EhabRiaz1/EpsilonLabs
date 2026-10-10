@@ -160,6 +160,8 @@ def _stored(db) -> dict:
 
 def validate(key: str, value):
     """Return the cleaned value for `key` or raise SettingsError."""
+    if key in TENDER_KEYS:
+        return _validate_tender(key, value)
     if key in BOUNDS:
         lo, hi = BOUNDS[key]
         n = _int(value)
@@ -329,3 +331,71 @@ class Settings:
 
     def outreach_address(self) -> str:
         return outreach_address(self.db)
+
+
+# ---------------------------------------------------------------- tenders (S1, agents/tenders.py)
+TENDER_LIVE = ("ted", "uk_fts", "uk_cf", "canadabuys", "austender", "ungm", "samgov", "worldbank", "ebrd")
+TENDER_DISABLED = ("adb", "afdb", "isdb", "aiib", "etimad", "dubai", "monaqasat", "oman", "bahrain", "kuwait")
+TENDER_SOURCES = TENDER_LIVE + TENDER_DISABLED
+TENDER_SOURCE_LABEL = {"ted": "EU TED", "uk_fts": "UK Find a Tender", "uk_cf": "UK Contracts Finder",
+                       "canadabuys": "CanadaBuys", "austender": "AusTender", "ungm": "UNGM",
+                       "samgov": "SAM.gov", "worldbank": "World Bank", "ebrd": "EBRD", "adb": "ADB (disabled)",
+                       "afdb": "AfDB (disabled)", "isdb": "IsDB (disabled)", "aiib": "AIIB (disabled)",
+                       "etimad": "Saudi Etimad (disabled)", "dubai": "Dubai eSupply (disabled)",
+                       "monaqasat": "Qatar Monaqasat (disabled)", "oman": "Oman Tender Board (disabled)",
+                       "bahrain": "Bahrain Tender Board (disabled)", "kuwait": "Kuwait CTC (disabled)"}
+DEFAULTS.update({
+    "tenders.per_day": 15,
+    "tenders.value_min": 10_000,      # USD equivalent; tenders with no stated value are always kept
+    "tenders.value_max": 500_000,
+    "tenders.sources": list(TENDER_LIVE),
+    "tenders.paused": False,
+})
+BOUNDS["tenders.per_day"] = (0, 50)
+TENDER_KEYS = frozenset({"tenders.per_day", "tenders.value_min", "tenders.value_max", "tenders.sources",
+                         "tenders.paused"})
+
+
+def _validate_tender(key: str, value):
+    if key == "tenders.per_day":
+        lo, hi = BOUNDS[key]
+        n = _int(value)
+        if n is None or not lo <= n <= hi:
+            raise SettingsError(f"Enter a whole number from {lo} to {hi}.")
+        return n
+    if key in ("tenders.value_min", "tenders.value_max"):
+        n = _int(value)
+        if n is None or not 0 <= n <= 100_000_000:
+            raise SettingsError("Enter a whole dollar amount from 0 to 100,000,000.")
+        return n
+    if key == "tenders.sources":
+        if not isinstance(value, (list, tuple)):
+            raise SettingsError("Sources must be a list.")
+        bad = [s for s in value if s not in TENDER_SOURCES]
+        if bad:
+            raise SettingsError("Unknown source: " + ", ".join(str(b) for b in bad))
+        out = [s for s in TENDER_SOURCES if s in value]
+        if not out:
+            raise SettingsError("Pick at least one source, or pause tenders.")
+        return out
+    if not isinstance(value, bool):
+        raise SettingsError("Paused must be true or false.")
+    return value
+
+
+def tenders_per_day(db) -> int:
+    return get(db, "tenders.per_day")
+
+
+def tenders_value_band(db) -> tuple[int, int]:
+    """(min, max) in USD. A swapped pair is read as (smaller, larger) rather than rejecting every tender."""
+    lo, hi = get(db, "tenders.value_min"), get(db, "tenders.value_max")
+    return (lo, hi) if lo <= hi else (hi, lo)
+
+
+def tenders_sources(db) -> list[str]:
+    return get(db, "tenders.sources")
+
+
+def tenders_paused(db) -> bool:
+    return get(db, "tenders.paused")

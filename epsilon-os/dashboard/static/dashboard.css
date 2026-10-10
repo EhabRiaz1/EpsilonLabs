@@ -435,3 +435,27 @@ fieldset.setcard legend{padding:0}
 .qrow .fielderr{grid-column:1 / -1}
 .qrow.bad .inp,.quotas.bad .inp{border-color:var(--red)}
 @media (max-width:1023px){.quotas{grid-template-columns:1fr}}
+
+/* opportunities */
+.oppspage{max-width:1280px}
+.oppintro{margin:-14px 0 26px}
+.opp-g{margin-bottom:32px}
+.opp-g > .lbl,.opp-g summary{display:flex;align-items:center;gap:8px}
+.opp-g summary{cursor:pointer;min-height:40px;list-style:none}
+.opp-g summary::-webkit-details-marker{display:none}
+.oppcard{background:var(--card);border:1px solid var(--edge);border-radius:var(--r-lg);box-shadow:var(--shadow);clip-path:var(--clip);overflow:auto}
+.opps{table-layout:auto}
+.opps td{vertical-align:top}
+.opps td:nth-child(2){min-width:280px}
+.opps td a{font-weight:600}.opps td a:hover{color:var(--accent)}
+.opps .oppnote{font-size:12.5px;color:var(--muted);margin-top:4px;max-width:260px}
+.fit{display:inline-block;min-width:38px;text-align:center;font:500 13px var(--mono);padding:3px 6px;border-radius:calc(var(--r) / 2);box-shadow:0 0 0 1px var(--edge2) inset;color:var(--ink2)}
+.fit.hi{color:var(--green);background:var(--signal-soft);box-shadow:0 0 0 1px color-mix(in srgb,var(--green) 40%,transparent) inset}
+.fit.mid{color:var(--amber);background:var(--amber-soft);box-shadow:none}
+.fit.lo{color:var(--muted)}
+#opp-panel{width:min(520px,100%)}
+#opp-panel .brief{gap:8px;padding-left:18px;list-style:disc}
+#opp-panel .brief li{padding-left:2px}
+.oppacts{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 4px}
+.passf{flex:1 1 260px}.passf .inp{min-width:0}
+@media (max-width:1023px){.oppintro{margin-top:-8px}.opps .oppnote{max-width:none}}

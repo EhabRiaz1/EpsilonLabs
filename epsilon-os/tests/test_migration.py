@@ -55,6 +55,25 @@ def test_migration(pg):
     assert pg("select count(*) from pg_indexes where indexname in ('approval_queue_sequence_idx','approval_queue_followup_due_idx')") == "2"
     pg(f"delete from approval_queue where id='{first}'")  # parent delete never cascades into the follow-up
     assert pg("select count(*) from approval_queue where sequence_step=2 and sequence_parent is null") == "1"
+    # 006: opportunities (strategy S1, tenders)
+    apply("migrations/006_epsilon_os_v6.sql")
+    pg("insert into opportunities (source, source_id, title, fit) values ('ted','1-2026','t','{\"score\": 80}')")
+    apply("migrations/006_epsilon_os_v6.sql")  # idempotent, and keeps rows
+    assert pg("select count(*) from opportunities") == "1"
+    assert pg("select status from opportunities") == "new"
+    assert pg("select data_type from information_schema.columns where table_name='opportunities' and column_name='cpv_or_naics'") == "ARRAY"
+    assert pg("select data_type from information_schema.columns where table_name='opportunities' and column_name='fit'") == "jsonb"
+    assert pg("select relrowsecurity from pg_class where relname='opportunities'") == "t"
+    assert pg("select count(*) from pg_policies where tablename='opportunities' and 'service_role'=any(roles)") == "1"
+    dup = sh("psql", "-d", DB, "-c", "insert into opportunities (source, source_id, title) values ('ted','1-2026','again')", check=False)
+    assert dup.returncode != 0                                  # unique (source, source_id)
+    pg("insert into opportunities (source, source_id, title) values ('uk_fts','1-2026','same id, other source')")
+    for bad in ("insert into opportunities (source, source_id, title) values ('nope','x','t')",
+                "insert into opportunities (source, source_id, title, status) values ('ted','y','t','maybe')"):
+        assert sh("psql", "-d", DB, "-c", bad, check=False).returncode != 0
+    for s in ("worldbank", "ebrd", "samgov", "ungm", "austender", "canadabuys", "uk_cf", "adb", "kuwait"):
+        pg(f"insert into opportunities (source, source_id, title) values ('{s}','z','t')")
+    assert pg("select count(*) from pg_indexes where tablename='opportunities' and indexname like 'opportunities_%_idx'") == "2"
     assert pg("select value from settings where key='prospector.per_day'") == "7"
     assert pg("select count(*) from settings") == "7"
     assert pg("select value::text from settings where key='outreach.started_on'") == "null"

@@ -193,7 +193,8 @@ def shell(db, now: datetime) -> dict:
         status = ("red", "LLM budget reached")
     queue = len(db.select("approval_queue", status="pending", held="eq.false", select="id", limit=1000))
     return {"agents": agents, "watchdog": watchdog, "calls": calls, "cost": cost,
-            "budget": budget, "status": status, "queue": queue, "prospected": prospected_today(db, now)}
+            "budget": budget, "status": status, "queue": queue, "prospected": prospected_today(db, now),
+            "tenders": tenders_summary(db, now)}
 
 
 # ------------------------------------------------------------------ Today
@@ -356,3 +357,121 @@ def settings_view(db, now: datetime) -> dict:
         "prospected": prospected_today(db, now),
         "markets": cfg.markets(db), "quotas": cfg.quotas(db), "auto_rebalance": cfg.auto_rebalance(db), "pinned": cfg.pinned(db),
     }
+
+
+# ------------------------------------------------------------------ Opportunities (S1 tenders)
+
+WORTH_A_LOOK = 60
+LOW_FIT = 40
+ELIG_BADGE = {"ok": ("OK", "sig"), "flag": ("CHECK", "amber"), "exclude": ("EXCLUDED", "red")}
+
+
+def fmt_amount(v) -> str:
+    v = float(v)
+    if v >= 1_000_000:
+        return f"{v / 1_000_000:.1f}M".replace(".0M", "M")
+    if v >= 1000:
+        return f"{v / 1000:.0f}k"
+    return f"{v:.0f}"
+
+
+def opp_value(row: dict) -> str:
+    lo, hi, cur = row.get("value_min"), row.get("value_max"), row.get("currency") or ""
+    if not lo and not hi:
+        return "Not stated"
+    lo, hi = lo or hi, hi or lo
+    amt = fmt_amount(lo) if float(lo) == float(hi) else f"{fmt_amount(lo)}-{fmt_amount(hi)}"
+    return f"{cur} {amt}".strip()
+
+
+def countdown(deadline, now: datetime) -> tuple[str, str]:
+    d = actions.parse_ts(deadline)
+    if d is None:
+        return "No deadline stated", ""
+    days = (d - now).total_seconds() / 86400
+    if days < 0:
+        return "Closed", "red"
+    if days < 1:
+        return "Closes today", "red"
+    n = int(days)
+    return f"{n}d left", "red" if n < 5 else ("amber" if n < 10 else "")
+
+
+def safe_url(u) -> str:
+    u = str(u or "")
+    return u if u.startswith(("https://", "http://")) and " " not in u else ""
+
+
+def offer_name(slug) -> str:
+    if not slug:
+        return ""
+    try:
+        import json as _json
+        from prompts import loader
+        for o in _json.loads(loader.CATALOGUE.read_text()).get("offers", []):
+            if o.get("slug") == slug:
+                return o.get("name", slug)
+    except Exception:
+        pass
+    return str(slug)
+
+
+def opp_card(r: dict, now: datetime) -> dict:
+    fit = r.get("fit") or {}
+    el = fit.get("eligibility") or {}
+    status = el.get("status") if el.get("status") in ELIG_BADGE else "ok"
+    badge, tone = ELIG_BADGE[status]
+    text, cd_tone = countdown(r.get("deadline_at"), now)
+    slug = fit.get("offer_slug")
+    return {
+        "id": r["id"], "title": r.get("title") or "", "buyer": r.get("buyer") or "", "country": r.get("country") or "",
+        "source": cfg.TENDER_SOURCE_LABEL.get(r.get("source"), r.get("source") or ""), "score": int(fit.get("score") or 0),
+        "offer": offer_name(slug), "offer_slug": slug, "value": opp_value(r),
+        "deadline": text, "deadline_tone": cd_tone, "badge": badge, "badge_tone": tone, "elig_status": status,
+        "elig_notes": list(el.get("notes") or []), "status": r.get("status"), "url": safe_url(r.get("url")),
+        "summary": r.get("summary") or "", "reasons": list(fit.get("reasons") or []),
+        "requirements": list(fit.get("requirements") or []), "what_we_need": list(fit.get("what_we_need") or []),
+        "effort": fit.get("effort") or "", "notes": r.get("notes") or "", "cpv": list(r.get("cpv_or_naics") or [])[:8],
+        "published": (r.get("published_at") or "")[:10], "deadline_date": (r.get("deadline_at") or "")[:10],
+    }
+
+
+def opportunities(db, now: datetime) -> dict:
+    new = [opp_card(r, now) for r in db.select("opportunities", status="new", limit=500)]
+    new.sort(key=lambda c: (-c["score"], c["deadline"]))
+    active = [opp_card(r, now) for r in db.select("opportunities", status="in.(bid,submitted)", limit=200)]
+    closed = db.select("opportunities", status="in.(won,lost)", select="status", limit=500)
+    return {"new": new, "active": active, "won": sum(1 for r in closed if r["status"] == "won"),
+            "lost": sum(1 for r in closed if r["status"] == "lost"),
+            "passed": len(db.select("opportunities", status="pass", select="id", limit=5000))}
+
+
+def opportunity(db, oid: str, now: datetime) -> dict | None:
+    rows = db.select("opportunities", id=oid)
+    return opp_card(rows[0], now) if rows else None
+
+
+def tenders_summary(db, now: datetime) -> dict | None:
+    """For the Today right rail. None when the table is not migrated yet, so the page still renders."""
+    try:
+        rows = db.select("opportunities", status="new", limit=1000)
+    except Exception:
+        return None
+    worth = sum(1 for r in rows if int(((r.get("fit") or {}).get("score")) or 0) >= WORTH_A_LOOK)
+    return {"new": len(rows), "worth": worth}
+
+
+def tenders_settings(db) -> dict:
+    return {"per_day": cfg.tenders_per_day(db), "value_min": cfg.get(db, "tenders.value_min"),
+            "value_max": cfg.get(db, "tenders.value_max"), "sources": cfg.tenders_sources(db),
+            "paused": cfg.tenders_paused(db)}
+
+
+def tenders_form_draft(base: dict, p: dict) -> dict:
+    """Submitted values over the saved ones, for re-rendering the form after a validation error."""
+    srcs = p.get("tenders_sources") or []
+    return {**base, "per_day": p.get("tenders_per_day", base["per_day"]),
+            "value_min": p.get("tenders_value_min", base["value_min"]),
+            "value_max": p.get("tenders_value_max", base["value_max"]),
+            "sources": [srcs] if isinstance(srcs, str) else list(srcs),
+            "paused": p.get("tenders_paused") in ("1", "on", "true")}

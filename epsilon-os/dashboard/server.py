@@ -67,12 +67,15 @@ def _api(app: App, name: str, p: dict) -> dict:
     if name == "mark_sent":
         return actions.mark_sent_verified(db, qid)
     if name == "settings":
-        return actions.save_settings(db, p)
+        return actions.save_settings_all(db, p)
+    if name.startswith("opp_"):
+        return actions.opp_decide(db, qid, name[4:], str(p.get("reason") or "") or None)
     return actions.fail("unknown_action", "Unknown action.")
 
 
-ACTION_NAMES = {"approve", "undo", "reject", "later", "release", "suppress", "retry", "mark_sent", "settings"}
-MULTI_FIELDS = {"segments"}  # form fields that legitimately repeat (checkbox groups)
+ACTION_NAMES = {"approve", "undo", "reject", "later", "release", "suppress", "retry", "mark_sent", "settings",
+                "opp_bid", "opp_pass", "opp_submitted", "opp_won", "opp_lost"}
+MULTI_FIELDS = {"segments", "tenders_sources"}  # form fields that legitimately repeat (checkbox groups)
 
 
 def make_handler(app: App):
@@ -154,9 +157,16 @@ def make_handler(app: App):
                 html = views.pipeline(csrf, data.shell(db, now), data.pipeline(db, now, ch), ch, panel, demo)
             elif path == "/health":
                 html = views.health(csrf, data.shell(db, now), data.health(db, now), demo)
+            elif path == "/opportunities":
+                panel = ""
+                if q.get("id"):
+                    opp = data.opportunity(db, q["id"], now)
+                    panel = views.opportunity_panel(csrf, opp, "/opportunities?id=" + q["id"]) if opp else ""
+                html = views.opportunities_page(csrf, data.shell(db, now), data.opportunities(db, now), panel, demo)
             elif path == "/settings":
-                html = views.settings_page(csrf, data.shell(db, now), data.settings_view(db, now), {},
-                                           q.get("saved") == "1", demo)
+                v = data.settings_view(db, now)
+                v["tenders"] = data.tenders_settings(db)
+                html = views.settings_page(csrf, data.shell(db, now), v, {}, q.get("saved") == "1", demo)
             else:
                 return self._send(404, views.message_page(csrf, "Not found", "No such page.", demo=demo).encode())
             self._send(200, html.encode())
@@ -222,7 +232,8 @@ def make_handler(app: App):
                          segments=[segs] if isinstance(segs, str) else list(segs),
                          address_draft=str(p.get("address") or ""),
                          strategy_draft={k: val for k, val in p.items() if k.startswith(("quota_", "pin_")) or k in ("auto_rebalance", "markets")}
-                         if any(k.startswith("quota_") for k in p) else None)
+                         if any(k.startswith("quota_") for k in p) else None,
+                         tenders=data.tenders_form_draft(data.tenders_settings(db), p))
                 html = views.settings_page(app.csrf, data.shell(db, now), v, errors, False, app.demo)
                 return self._send(422, html.encode())
             except Exception as ex:

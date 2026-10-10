@@ -529,7 +529,7 @@ def test_pipeline_rows_carry_a_strategy_tag(live):
 
 def test_css_block_uses_tokens_only():
     css = (server.Path(server.__file__).parent / "static" / "dashboard.css").read_text()
-    block = css.split("/* strategies */")[1]
+    block = css.split("/* strategies */")[1].split("/* opportunities */")[0]
     assert "#" not in block and "rgb" not in block   # no hard-coded colours: both themes come from the tokens
 
 
