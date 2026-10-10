@@ -367,3 +367,25 @@
     });
   }
 })();
+
+/* Theme (studio / console) + mobile sidebar. */
+(function () {
+  'use strict';
+  var root = document.documentElement;
+  document.querySelectorAll('[data-theme-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var next = root.dataset.theme === 'console' ? 'studio' : 'console';
+      root.dataset.theme = next;
+      try { localStorage.setItem('eos-theme', next); } catch (_) {}
+    });
+  });
+  var sb = document.getElementById('sidebar');
+  document.querySelectorAll('[data-menu]').forEach(function (b) {
+    b.addEventListener('click', function () { document.body.classList.toggle('nav-open'); });
+  });
+  document.addEventListener('click', function (ev) {
+    if (document.body.classList.contains('nav-open') && sb && !sb.contains(ev.target) && !ev.target.closest('[data-menu]')) {
+      document.body.classList.remove('nav-open');
+    }
+  });
+})();

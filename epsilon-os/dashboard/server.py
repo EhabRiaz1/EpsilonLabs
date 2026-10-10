@@ -18,7 +18,7 @@ from dashboard import actions, data, views
 HOST = "127.0.0.1"
 PORT = 8787
 STATIC = Path(__file__).resolve().parent / "static"
-STATIC_TYPES = {"dashboard.css": "text/css; charset=utf-8", "dashboard.js": "text/javascript; charset=utf-8"}
+STATIC_TYPES = {"dashboard.css": "text/css; charset=utf-8", "theme.js": "text/javascript; charset=utf-8", "dashboard.js": "text/javascript; charset=utf-8"}
 CSP = ("default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; "
        "frame-ancestors 'none'; base-uri 'none'")

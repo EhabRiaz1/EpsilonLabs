@@ -5,9 +5,8 @@ from datetime import datetime
 from dashboard import data
 
 e = html.escape
-NAV = [("/", "Today"), ("/pipeline", "Pipeline"), ("/health", "Health")]
-FONTS = ("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&"
-         "family=IBM+Plex+Mono:wght@400;500&display=swap")
+FONTS = ("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&"
+         "family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap")
 
 
 def tag(text: str, tone: str = "") -> str:
@@ -34,34 +33,77 @@ def rail_html(sh: dict, compact: bool = False) -> str:
             f'<span class="st {wd["state"]}">{e(wd["text"])}</span></div></div>')
 
 
+ICON = {
+    "today": '<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>',
+    "deck": '<path d="M4 7h16v13H4z"/><path d="M7 4h10M9 11h6"/>',
+    "held": '<path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M12 8v5M12 16v.5"/>',
+    "pipeline": '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    "health": '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+    "site": '<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>',
+    "search": '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+    "menu": '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    "theme": '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
+}
+
+
+def icon(name: str) -> str:
+    return (f'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" '
+            f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{ICON[name]}</svg>')
+
+
+SIDENAV = [(None, "/", "Today", "today"), (None, "/deck", "Deck", "deck"),
+           ("Work", "/#held", "Held", "held"), ("Work", "/pipeline", "Pipeline", "pipeline"),
+           ("System", "/health", "Health", "health")]
+THEME_BOOT = '<script src="/static/theme.js"></script>'
+
+
 def page(title: str, body: str, active: str, csrf: str, sh: dict | None, demo: bool = False,
          rail: bool = False, cls: str = "") -> str:
-    tabs = "".join(
-        f'<a href="{href}"{" class=on aria-current=page" if label == active else ""}>{label}'
-        + (f'<b aria-label="{sh["queue"]} drafts waiting">{sh["queue"]}</b>' if sh and label == "Today" and sh["queue"] else "")
-        + "</a>" for href, label in NAV)
+    current = "Deck" if title == "Deck" else active
+    nav, section = "", None
+    for sec, href, label, ic in SIDENAV:
+        if sec != section and sec:
+            nav += f'<p class="navsec mono">{e(sec)}</p>'
+        section = sec
+        badge = ""
+        if sh and label == "Deck" and sh["queue"]:
+            badge = f'<b aria-label="{sh["queue"]} drafts waiting">{sh["queue"]}</b>'
+        on = label == current
+        nav += (f'<a href="{href}"{" class=on aria-current=page" if on else ""}>{icon(ic)}'
+                f'<span>{e(label)}</span>{badge}</a>')
     if sh:
         tone, text = sh["status"]
         detail = f'<span class="rail-pop">{rail_html(sh)}</span>'
         status = (f'<details class="statuspop"><summary><span class="dot {tone}" aria-hidden="true"></span>'
-                  f'{e(text)} · {sh["calls"]}/{sh["budget"]} calls today</summary>{detail}</details>')
+                  f'<span class="stxt">{e(text)} · {sh["calls"]}/{sh["budget"]} calls</span></summary>{detail}</details>')
     else:
         status = '<div class="statuspop"><span class="dot red" aria-hidden="true"></span>Status unavailable</div>'
     demo_b = '<span class="tag amber demo">DEMO DATA</span>' if demo else ""
     aside = f'<aside class="side" aria-label="Status">{rail_html(sh)}</aside>' if rail and sh else ""
-    main = f'<div class="page{" with-rail" if aside else ""}"><main id="main" class="main {cls}">{body}</main>{aside}</div>'
-    return (f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
+    content = f'<div class="page{" with-rail" if aside else ""}"><main id="main" class="main {cls}">{body}</main>{aside}</div>'
+    return (f'<!doctype html><html lang="en" data-theme="studio"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<meta name="csrf" content="{e(csrf)}"><meta name="referrer" content="no-referrer">'
-            f'<title>{e(title)} · Epsilon OS</title>'
+            f'<title>{e(title)} · Epsilon OS</title>{THEME_BOOT}'
             f'<link href="{FONTS}" rel="stylesheet"><link rel="stylesheet" href="/static/dashboard.css"></head>'
-            f'<body><a class="skip" href="#main">Skip to content</a>'
-            f'<header class="top"><a class="brand" href="/"><i aria-hidden="true">ε</i><span>Epsilon OS</span></a>'
-            f'<nav class="tabs" aria-label="Primary">{tabs}</nav>{demo_b}'
-            f'<button type="button" class="cmdk" data-cmdk aria-haspopup="dialog">'
-            f'<span>Jump to…</span>{kbd("⌘K")}</button>'
-            f'<div class="status">{status}</div></header>'
-            f'{main}'
+            f'<body><a class="skip" href="#main">Skip to content</a><div class="shell">'
+            f'<aside class="sidebar" id="sidebar" aria-label="Sidebar">'
+            f'<div class="sb-head"><a class="brand" href="/"><i aria-hidden="true">ε</i><span>Epsilon Labs</span></a></div>'
+            f'<p class="zone mono">Operations</p>'
+            f'<nav class="sidenav" aria-label="Primary">{nav}</nav>'
+            f'<div class="sb-foot"><span class="me" aria-hidden="true">ER</span><span class="me-t"><b>Ehab Riaz</b>'
+            f'<span class="mono">Founder</span></span>'
+            f'<button type="button" class="iconbtn" data-theme-toggle aria-label="Switch theme" title="Switch theme">'
+            f'{icon("theme")}</button></div></aside>'
+            f'<div class="col"><header class="top">'
+            f'<button type="button" class="iconbtn menu" data-menu aria-label="Open menu" aria-controls="sidebar">{icon("menu")}</button>'
+            f'<p class="toptitle"><span class="crumb">Operations</span><span class="sep">/</span>'
+            f'<span>{e(title)}</span></p>{demo_b}'
+            f'<div class="topr"><button type="button" class="cmdk" data-cmdk aria-haspopup="dialog">{icon("search")}'
+            f'<span>Search</span>{kbd("⌘K")}</button>'
+            f'<a class="viewsite mono" href="https://www.epsilon-labs.co" target="_blank" rel="noopener">View site</a>'
+            f'<div class="status">{status}</div></div></header>'
+            f'{content}</div></div>'
             f'<div id="toasts" class="toasts" role="status" aria-live="polite"></div>'
             f'{shortcuts_sheet()}{palette()}'
             f'<script src="/static/dashboard.js" defer></script></body></html>')
@@ -303,7 +345,7 @@ def pipeline(csrf: str, sh: dict, p: dict, channel: str | None, panel: str, demo
             secs += f'<details class="stage-g"><summary>{head}</summary>{table}</details>'
         else:
             secs += f'<section class="stage-g" aria-label="{e(label)}">{head}{table}</section>'
-    body = (f'<div class="pt-row"><h1 class="pt">Pipeline</h1><span class="mono">{p["total"]} deals</span></div>'
+    body = (f'<p class="eyebrow mono">Operations</p><div class="pt-row"><h1 class="pt">Pipeline</h1><span class="mono">{p["total"]} deals</span></div>'
             f'{funnel_html}<div class="chips" role="group" aria-label="Filter by channel">'
             f'{"".join(chips)}</div>{secs}')
     panel_html = f'<aside id="panel" class="panel" aria-label="Deal details"{"" if panel else " hidden"}>{panel}</aside>'
@@ -354,7 +396,7 @@ def health(csrf: str, sh: dict, h: dict, demo: bool) -> str:
         f'<td class="mono sm">{e((a.get("target_id") or "")[:8])}</td></tr>' for a in h["actions"]) or \
         '<tr><td colspan="4" class="muted">No actions yet.</td></tr>'
     rt = h["restore_tested"] or "not recorded"
-    body = (f'<h1 class="pt">Health</h1><p class="muted">Backup last restore test: {e(str(rt))}</p>'
+    body = (f'<p class="eyebrow mono">System</p><h1 class="pt">Health</h1><p class="muted">Backup last restore test: {e(str(rt))}</p>'
             f'<section aria-labelledby="llm"><h2 id="llm" class="mono lbl">LLM calls per day · 14d</h2>'
             f'<ul class="bars" aria-label="LLM calls per day">{bars}</ul></section>'
             f'<section aria-labelledby="runs"><h2 id="runs" class="mono lbl">Agent runs · last 20 each</h2>{runs}</section>'
