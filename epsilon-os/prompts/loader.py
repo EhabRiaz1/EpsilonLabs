@@ -36,6 +36,16 @@ def offer_line(slug: str, path: Path = CATALOGUE) -> str:
     raise KeyError(slug)
 
 
+def offer_detail(slug: str, path: Path = CATALOGUE) -> str:
+    """Name, tagline, summary and deliverables of one offer, as the only basis for a follow-up's new angle."""
+    for o in json.loads(path.read_text()).get("offers", []):
+        if o.get("slug") == slug:
+            lines = [f"{o.get('name', '').strip()}: {o.get('tagline', '').strip()}", (o.get("summary") or "").strip()]
+            lines += [f"- Deliverable: {d}" for d in (o.get("deliverables") or [])[:6]]
+            return "\n".join(x for x in lines if x)
+    raise KeyError(slug)
+
+
 def compose(task: str, context: dict[str, str] | None = None, preamble: str = "preamble") -> str:
     ctx = dict(context or {})
     if "{{offers}}" in _read(task):

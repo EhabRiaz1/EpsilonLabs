@@ -235,7 +235,8 @@ def _write(S, p: dict, dossier: str, draft: dict | None) -> dict:
         S.c["held"] += 1 if held else 0
         out["queued"] = row["id"]
         _log(S, "draft_queued", target_table="approval_queue", target_id=row["id"],
-             detail={"kind": "outbound", "held": held, "lint": len(hits), "notes": (draft.get("notes") or "")[:200]})
+             detail={"kind": "outbound", "held": held, "lint": len(hits), "offer": p["offer_slug"],
+                     "notes": (draft.get("notes") or "")[:200]})
     return out
 
 

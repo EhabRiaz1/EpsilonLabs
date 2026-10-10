@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parseaddr
 from pathlib import Path
 
+from agents import followups
 from core import config, guard, ledger, lint, llm, mail, settings
 from core.db import DB, DBError
 from prompts import loader, schemas
@@ -158,6 +159,16 @@ def _upsert_company(S, n) -> dict:
     return S.db.insert("companies", {"name": n["name"] or n["sender"]})[0]
 
 
+def _stop_sequences(S, reason: str, contact_id=None, deal_id=None, email=None) -> None:
+    """A reply, opt-out or bounce ends any follow-up sequence for that contact. Best effort: outreach re-checks
+    right before it sends, so a failure here only costs a log line."""
+    try:
+        followups.expire_sequence(S.db, AGENT, S.run_id, contact_id=contact_id, deal_id=deal_id, email=email,
+                                  reason=reason)
+    except Exception as e:
+        _log(S, "sequence_stop_error", detail={"error": type(e).__name__, "reason": reason})
+
+
 def _suppress(S, addr: str, reason: str, touch_id: str | None) -> None:
     if S.db.select("suppression_list", email=addr, limit=1):
         return
@@ -221,6 +232,17 @@ def _hard_bounce_recipient(n, own: tuple[str, ...] = ()) -> str | None:
     return None
 
 
+def _bounce_touch(S, n, classifier) -> dict:
+    """Log a bounce, linked to the contact whose address bounced when it can be worked out, and end its sequence.
+    The recipient is read from the bounce report (never from the model); an unknown one stays unlinked."""
+    rcpt = _hard_bounce_recipient(n, S.own)
+    contact = _find_contact(S, rcpt) if rcpt else None
+    t = _touch(S, n, "bounce", classifier=classifier, contact_id=contact["id"] if contact else None)
+    if contact:
+        _stop_sequences(S, "bounce", contact_id=contact["id"], email=contact["email"])
+    return t
+
+
 def _opt_out(S, n, cls, via: str) -> None:
     contact = _upsert_contact(S, n)
     S.db.update("contacts", {"opted_out": True}, id=contact["id"])
@@ -233,6 +255,7 @@ def _opt_out(S, n, cls, via: str) -> None:
     if not already:
         _queue_draft(S, "optout_confirm", n, OPTOUT_CONFIRM.format(name=first_name(n["name"])),
                      touch["id"], None, contact["id"])
+    _stop_sequences(S, "opt_out", contact_id=contact["id"], email=n["sender"])
     S.c["opt_outs"] += 1
     _log(S, "opt_out", target_table="touches", target_id=touch["id"], detail={"via": via})
 
@@ -264,6 +287,7 @@ def _inquiry(S, n, cls, thread, injection: bool) -> None:
     deal_id, contact_id = _crm(S, n, cls["wedge"], thread)
     classifier = {**cls, "injection_suspected": injection, "triage": triage}
     touch = _touch(S, n, "human_reply", classifier=classifier, deal_id=deal_id, contact_id=contact_id)
+    _stop_sequences(S, "human_reply", contact_id=contact_id, deal_id=deal_id, email=n["sender"])
     S.c["inquiries"] += 1
     held, why = (True, "injection_suspected") if injection else (False, None)
     if triage and cls["stage_proposal"] != "none":
@@ -296,7 +320,10 @@ def _handle_label(S, n, cls, thread) -> None:
     if label == "opt_out":
         _opt_out(S, n, cls, "model")
     elif label in ("auto_reply", "bounce"):
-        _touch(S, n, label, classifier=cls)
+        if label == "bounce":
+            _bounce_touch(S, n, cls)
+        else:
+            _touch(S, n, label, classifier=cls)
         S.c["auto_replies" if label == "auto_reply" else "bounces"] += 1
     elif label == "injection_suspected":
         S.c["injections"] += 1
@@ -306,6 +333,8 @@ def _handle_label(S, n, cls, thread) -> None:
             contact = _find_contact(S, n["sender"])
             t = _touch(S, n, "human_reply", classifier={**cls, "injection_suspected": True},
                        contact_id=contact["id"] if contact else None)
+            if contact:
+                _stop_sequences(S, "human_reply", contact_id=contact["id"], email=n["sender"])
             _log(S, "injection_flagged", target_table="touches", target_id=t["id"], detail={"reason": cls["reason"][:200]})
     else:
         _inquiry(S, n, cls, thread, injection=False)
@@ -341,7 +370,7 @@ def _process(S: State, m: dict) -> None:
         _touch(S, n, "auto_reply", classifier=g)
         S.c["auto_replies"] += 1
     elif d.action == "bounce":
-        t = _touch(S, n, "bounce", classifier={**g, "hard": d.hard_bounce})
+        t = _bounce_touch(S, n, {**g, "hard": d.hard_bounce})
         S.c["bounces"] += 1
         if d.hard_bounce:
             rcpt = _hard_bounce_recipient(n, S.own)
@@ -353,6 +382,8 @@ def _process(S: State, m: dict) -> None:
     elif d.action in ("suppressed", "already_acked"):
         contact = _find_contact(S, n["sender"])
         _touch(S, n, "human_reply", classifier=g, contact_id=contact["id"] if contact else None)
+        if contact:
+            _stop_sequences(S, "human_reply", contact_id=contact["id"], email=n["sender"])
     else:
         if S.budget_hit:
             S.c["unprocessed"] += 1  # no touch written: picked up by a later run
@@ -365,7 +396,11 @@ def _process(S: State, m: dict) -> None:
             return
         except llm.LLMError as e:
             S.c["classify_failed"] += 1
-            t = _touch(S, n, "human_reply", classifier={"label": "classify_failed", "needs_human": True})
+            contact = _find_contact(S, n["sender"])
+            t = _touch(S, n, "human_reply", classifier={"label": "classify_failed", "needs_human": True},
+                       contact_id=contact["id"] if contact else None)
+            if contact:
+                _stop_sequences(S, "human_reply", contact_id=contact["id"], email=n["sender"])
             _log(S, "classify_failed", target_table="touches", target_id=t["id"], detail={"error": str(e)[:200]})
             return
         _handle_label(S, n, cls, thread)

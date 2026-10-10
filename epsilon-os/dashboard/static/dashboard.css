@@ -239,6 +239,8 @@ section[aria-labelledby="needs"] .list{background:var(--card);border:1px solid v
 .cols{display:grid;grid-template-columns:1fr 1.3fr;gap:28px}
 .untrusted{padding:16px 18px;color:var(--ink2);font-size:14.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;border-radius:var(--r);
   background:repeating-linear-gradient(135deg,transparent 0 7px,var(--hover) 7px 8px),var(--well);border:1px dashed var(--edge2)}
+.ours{padding:16px 18px;color:var(--ink2);font-size:14.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;border-radius:var(--r);
+  background:var(--well);border:1px solid var(--edge)}
 .untrusted.small{font-size:13.5px;padding:10px 12px;margin-top:8px}
 .draft{font-size:16px;line-height:1.7;color:var(--ink);white-space:pre-wrap;word-break:break-word}
 .draft-edit{width:100%;min-height:260px;resize:vertical;font:400 16px/1.7 var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--accent);

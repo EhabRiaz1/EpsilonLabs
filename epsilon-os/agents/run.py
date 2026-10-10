@@ -1,4 +1,4 @@
-"""Single launchd entrypoint: python -m agents.run <inbox|outbox|brief|backup>.
+"""Single launchd entrypoint: python -m agents.run <inbox|outbox|brief|backup|prospector|outreach|followups>.
 
 Process lock so a slow run is never overlapped by the next tick; any exception becomes a
 heartbeat status=error (exception type only, never the message) and a non-zero exit.
@@ -12,7 +12,8 @@ from pathlib import Path
 from core import ledger, watchdog
 from core.db import DB
 
-JOBS = ("inbox", "outbox", "brief", "backup", "prospector", "outreach")
+JOBS = ("inbox", "outbox", "brief", "backup", "prospector", "outreach", "followups")
+LOCK_NAME = {"followups": "outreach"}  # a manual follow-up run must not overlap the outreach job that also runs it
 LOCK_DIR = Path.home() / "Library" / "Application Support" / "EpsilonOS" / "locks"
 
 
@@ -35,7 +36,17 @@ def lock(name: str, lock_dir: Path | None = None):
         f.close()  # closing releases the flock
 
 
+def _outreach_job(db):
+    """Follow-ups are drafted (at most hourly) before sending, in this one job, so the order is guaranteed.
+    gated_run never raises: a broken follow-up step must not stop first touches from going out."""
+    from agents import followups, outreach
+    followups.gated_run(db)
+    return outreach.run(db=db)
+
+
 def _default_job(name: str):
+    if name == "outreach":
+        return _outreach_job
     return importlib.import_module(f"agents.{name}").run
 
 
@@ -47,7 +58,7 @@ def main(argv: list[str] | None = None, jobs: dict | None = None, db_factory=DB,
         return 2
     name = argv[0]
     try:
-        with lock(name, lock_dir):
+        with lock(LOCK_NAME.get(name, name), lock_dir):
             db = None
             try:
                 db = db_factory()

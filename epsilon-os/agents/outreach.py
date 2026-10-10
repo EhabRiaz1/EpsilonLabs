@@ -13,7 +13,7 @@ import sys
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from agents import outbox
+from agents import followups, outbox
 from core import config, ledger, mail, settings
 from core.db import DB
 
@@ -121,7 +121,7 @@ def run(db: DB | None = None, now: datetime | None = None, mail_factory=None) ->
     mail_factory = mail_factory or mail.outreach_mailbox
     run_id = ledger.new_run_id()
     c = dict.fromkeys(("candidates", "sent", "failed", "ambiguous", "lost_claim", "suppressed", "stale_sent",
-                       "stale_failed", "stale_unchecked", "errors"), 0)
+                       "stale_failed", "stale_unchecked", "stopped", "errors"), 0)
     address = settings.outreach_address(db)
     box = None
     if address:
@@ -149,12 +149,17 @@ def run(db: DB | None = None, now: datetime | None = None, mail_factory=None) ->
         cutoff = (now - timedelta(seconds=config.UNDO_SECONDS)).isoformat()
         try:
             rows = db.select("approval_queue", status="in.(approved,edited_approved)", kind="outbound",
-                             held="eq.false", decided_at=f"lt.{cutoff}", order="decided_at.asc", limit=room)
+                             held="eq.false", decided_at=f"lt.{cutoff}", order="decided_at.asc", limit=500)
+            # Follow-ups first: they are time-sensitive threads that already got a reply or a first touch. Both kinds
+            # share the one daily cap, which is applied by stopping after `room` sends below.
+            rows.sort(key=lambda r: 0 if (r.get("sequence_step") or 0) >= 2 else 1)
         except Exception as e:
             ledger.heartbeat(db, AGENT, "error", {"run_id": run_id, "error": outbox._err(e)})
             return {"run_id": run_id, "error": type(e).__name__, **c}
     c["candidates"] = len(rows)
     for row in rows:
+        if c["sent"] + c["ambiguous"] >= room:
+            break
         try:
             if row.get("to_email") and db.rpc("is_suppressed", {"addr": row["to_email"]}):
                 db.update("approval_queue", {"status": "failed", "send_error": "recipient is on the suppression list"},
@@ -162,6 +167,16 @@ def run(db: DB | None = None, now: datetime | None = None, mail_factory=None) ->
                 c["suppressed"] += 1
                 _log(db, run_id, "send_blocked_suppressed", row["id"])
                 continue
+            if (row.get("sequence_step") or 0) >= 2:
+                # Last look before the claim: a reply, opt-out, bounce or stage change since approval ends the sequence.
+                why = followups.stop_reason_for_row(db, row)
+                if why:
+                    db.update("approval_queue", {"status": "expired"}, id=row["id"],
+                              status="in.(approved,edited_approved)")
+                    c["stopped"] += 1
+                    _log(db, run_id, "sequence_expired", row["id"], {"reason": why, "step": row["sequence_step"],
+                                                                       "was": row["status"], "at": "send"})
+                    continue
             _send_one(db, run_id, box, address, row, now, c)
         except Exception as e:
             c["errors"] += 1

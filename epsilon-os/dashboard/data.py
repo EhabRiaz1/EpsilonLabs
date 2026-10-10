@@ -12,7 +12,7 @@ PKT = ZoneInfo(config.TZ)
 FIRST_NAME = "Ehab"
 LATE_AFTER = timedelta(hours=2)
 # expected run interval per known agent (seconds); amber when older than 2x
-AGENTS = [("inbox", 5 * 60), ("outbox", 60), ("prospector", 26 * 3600), ("outreach", 5 * 60), ("brief", 26 * 3600), ("backup", 8 * 86400)]
+AGENTS = [("inbox", 5 * 60), ("outbox", 60), ("prospector", 26 * 3600), ("outreach", 5 * 60), ("followups", 3600), ("brief", 26 * 3600), ("backup", 8 * 86400)]
 WATCHDOG_INTERVAL = 30 * 60
 STAGES = [("lead", "Lead"), ("conversation", "Conversation"), ("scoping_call", "Scoping"),
           ("quote_out", "Quote out"), ("won_lost", "Won / Lost"), ("dormant", "Dormant")]
@@ -72,6 +72,7 @@ def enrich(db, rows: list[dict], now: datetime) -> list[dict]:
     deals = _by_id(db, "deals", [r.get("deal_id") for r in rows])
     companies = _by_id(db, "companies", [d.get("company_id") for d in deals.values()]
                        + [c.get("company_id") for c in contacts.values()])
+    parents = _by_id(db, "approval_queue", [r.get("sequence_parent") for r in rows if (r.get("sequence_step") or 0) >= 2])
     out = []
     for r in rows:
         t = touches.get(r.get("in_reply_to_touch_id")) or {}
@@ -85,6 +86,9 @@ def enrich(db, rows: list[dict], now: datetime) -> list[dict]:
         conf = (t.get("classifier") or {}).get("confidence")
         wedge = d.get("wedge") or co.get("wedge")
         subject = re.sub(r"^(re|fwd?):\s*", "", t.get("subject") or d.get("title") or r.get("subject") or "", flags=re.I)
+        step = r.get("sequence_step") if (r.get("sequence_step") or 0) >= 2 else None
+        parent = parents.get(r.get("sequence_parent")) or {}
+        ours = (parent.get("final_text") or parent.get("draft") or "") if step else ""
         late = r.get("kind") == "ack" and now - created > LATE_AFTER
         out.append({
             "id": r["id"], "kind": r.get("kind") or "reply", "kind_label": KIND_LABEL.get(r.get("kind") or "reply", "REPLY"),
@@ -92,7 +96,8 @@ def enrich(db, rows: list[dict], now: datetime) -> list[dict]:
             "to": r.get("to_email") or "", "subject": subject, "thread": r.get("subject") or "",
             "created": created, "age": ago(created, now), "late": late, "late_age": ago(created, now),
             "wedge": WEDGE_LABEL.get(wedge, ""), "channel": d.get("source_channel") or "",
-            "they_wrote": t.get("body_excerpt") or (co.get("notes") or "" if r.get("kind") == "outbound" else ""), "draft": r.get("draft") or "",
+            "step": step, "ours": ours,
+            "they_wrote": t.get("body_excerpt") or ("" if step else (co.get("notes") or "" if r.get("kind") == "outbound" else "")), "draft": r.get("draft") or "",
             "classifier": (f"{label} {int(round(conf * 100))}%" if label and isinstance(conf, (int, float))
                            else (label or "—")),
             "lint": r.get("lint") or [], "held": bool(r.get("held")), "held_reason": r.get("held_reason") or "",

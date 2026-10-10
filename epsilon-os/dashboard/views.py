@@ -154,6 +154,8 @@ def _form(csrf: str, act: str, qid: str, label: str, cls: str = "", nxt: str = "
 
 def card_tags(c: dict, lint: bool = True) -> str:
     out = [tag(c["kind_label"], {"reply": "sig", "quote": "sig", "outbound": "out"}.get(c["kind"], ""))]
+    if c.get("step"):
+        out.append(tag(f"Follow-up {c['step']} of 3", "cu"))
     if c["wedge"]:
         out.append(tag(c["wedge"], "cu"))
     if c["channel"] == "referral":
@@ -262,6 +264,11 @@ def deck_card(c: dict, outreach_ready: bool = True) -> str:
             f'consider rewording.</p>') if c["late"] else ""
     ctx = f'{e(c["subject"])} · arrived {e(c["age"])} ago' if c["subject"] else f'arrived {e(c["age"])} ago'
     wrote = e(c["they_wrote"]) if c["they_wrote"] else '<span class="muted">No inbound text on record.</span>'
+    ours = bool(c.get("ours")) and not c["they_wrote"]
+    if ours:  # a follow-up has no inbound text; show our own earlier email, labelled as ours (not untrusted)
+        wrote = e(c["ours"])
+    col_head = ("Our previous email" if ours else
+                "Why them · from the web, untrusted" if c["kind"] == "outbound" else "They wrote · untrusted")
     wait = f'<span class="waitnote">{e(OUTREACH_WAIT)}</span>' if c["kind"] == "outbound" and not outreach_ready else ""
     lint_meta = f'{len(c["lint"])} warning{"s" if len(c["lint"]) != 1 else ""}' if c["lint"] else "clean"
     return (
@@ -271,8 +278,8 @@ def deck_card(c: dict, outreach_ready: bool = True) -> str:
         f'<h2 id="t-{e(c["id"])}" tabindex="-1">{e(c["who"])}{", " + e(c["company"]) if c["company"] else ""}</h2>'
         f'<p>{ctx}</p></div><div class="tags">{card_tags(c, lint=False)}</div></div>'
         f'{late}{lint_html}'
-        f'<div class="cols"><div><h3 class="mono lbl">{"Why them · from the web, untrusted" if c["kind"] == "outbound" else "They wrote · untrusted"}</h3>'
-        f'<div class="untrusted">{wrote}</div></div>'
+        f'<div class="cols"><div><h3 class="mono lbl">{col_head}</h3>'
+        f'<div class="{"ours" if ours else "untrusted"}">{wrote}</div></div>'
         f'<div><h3 class="mono lbl">You\'ll send</h3>'
         f'<div class="draft" data-draft>{e(c["draft"])}</div>'
         f'<p class="editnote" hidden></p></div></div>'

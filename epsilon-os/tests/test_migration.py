@@ -41,6 +41,20 @@ def test_migration(pg):
     apply("migrations/004_epsilon_os_v4.sql")
     pg("update settings set value='7'::jsonb where key='prospector.per_day'")
     apply("migrations/004_epsilon_os_v4.sql")  # idempotent, and never overwrites a changed setting
+    # 005: rows that exist before it is applied (a prospector first touch and an inbox reply on the outreach mailbox)
+    pg("insert into approval_queue (agent, kind, draft) values ('prospector','outbound','a'),('inbox','outbound','b'),('inbox','reply','c')")
+    apply("migrations/005_epsilon_os_v5.sql")
+    apply("migrations/005_epsilon_os_v5.sql")  # idempotent
+    assert pg("select string_agg(coalesce(sequence_step::text,'null'), ',' order by agent, kind) from approval_queue") == "null,null,1"
+    first = pg("select id from approval_queue where agent='prospector'")
+    pg(f"insert into approval_queue (agent, kind, draft, sequence_step, sequence_parent) values ('prospector','outbound','f2',2,'{first}')")
+    apply("migrations/005_epsilon_os_v5.sql")  # re-applying never rewrites a later step
+    assert pg("select count(*) from approval_queue where sequence_step=2 and sequence_parent is not null") == "1"
+    assert sh("psql", "-d", DB, "-c", "insert into approval_queue (agent, kind, draft, sequence_step) values ('x','outbound','y',4)",
+              check=False).returncode != 0
+    assert pg("select count(*) from pg_indexes where indexname in ('approval_queue_sequence_idx','approval_queue_followup_due_idx')") == "2"
+    pg(f"delete from approval_queue where id='{first}'")  # parent delete never cascades into the follow-up
+    assert pg("select count(*) from approval_queue where sequence_step=2 and sequence_parent is null") == "1"
     assert pg("select value from settings where key='prospector.per_day'") == "7"
     assert pg("select count(*) from settings") == "7"
     assert pg("select value::text from settings where key='outreach.started_on'") == "null"
