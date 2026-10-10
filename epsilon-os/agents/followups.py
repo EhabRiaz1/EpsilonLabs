@@ -36,7 +36,7 @@ OPT_OUT_LINE = "Reply 'stop' and I won't write again."
 STEP_RULES = {
     2: ("This is follow-up 2, sent 4 days after the first email. At most 70 words in total, counting the greeting, "
         "the sign-off and the last line (aim for 55 to 65). Do not restate the first email. Bring exactly one new "
-        "angle, taken only from the offer text below: either one concrete deliverable, or one relevant proof point, "
+        "angle, taken only from the offer text below: one concrete deliverable "
         "tied to the prospect's situation in the facts. Then the same soft ask as before: a 20-minute call, or they "
         "can suggest a time or say no."),
     3: ("This is follow-up 3, the last one, sent 5 days after follow-up 2. At most 50 words in total, counting the "

@@ -152,7 +152,7 @@ def test_s4_prospect_gets_partner_outbound_without_sales_wording():
     body = system.split("Task: write")[1].split("Focus offer")[0].lower()   # our instructions, not the offer catalogue
     for word in ("sales", "pitch", "customer pitch", "buy ", "hire us", "our services", "solutions"):
         assert word not in body, word
-    for rule in ("130 words", "https://epsilon-labs.co/work", "Reply 'stop' and I won't write again.", "Ehab Riaz"):
+    for rule in ("130 words", "https://epsilon-labs.co", "Reply 'stop' and I won't write again.", "Ehab Riaz"):
         assert rule in system
     assert strat.S4.angle in system and "no prices" not in system.lower()
     assert db.rows("approval_queue")[0]["held"] is False
@@ -184,7 +184,7 @@ def test_partner_draft_with_customer_sales_wording_is_held():
 
 def test_partner_prompt_file_carries_the_same_rules_as_outbound():
     system = loader.compose("partner_outbound", {"context": "c", "focus": "f", "angle": "a"})
-    assert "https://epsilon-labs.co/work" in system and "eFuelPro" in system and "Epsilon Labs · epsilon-labs.co" in system
+    assert "https://epsilon-labs.co" in system and "Never name a specific protocol, board, client or project" in system and "Epsilon Labs · epsilon-labs.co" in system
     assert "prices, rates, margins" in system and "130 words" in system
 
 
