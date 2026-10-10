@@ -22,7 +22,7 @@ a{color:var(--signal)}
 .statuspop summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:default;min-height:40px}
 .statuspop summary::-webkit-details-marker{display:none}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px #4fbf7a22;display:inline-block}
-.dot.amber{background:var(--amber);box-shadow:0 0 0 3px #e0a84e22}.dot.red{background:var(--red);box-shadow:0 0 0 3px #e5534b22}
+.dot.idle{background:var(--muted);box-shadow:none}.dot.amber{background:var(--amber);box-shadow:0 0 0 3px #e0a84e22}.dot.red{background:var(--red);box-shadow:0 0 0 3px #e5534b22}
 .rail-pop{display:none}
 .tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:2px 6px;border-radius:3px;border:1px solid var(--rule2);color:var(--muted);display:inline-block;vertical-align:middle;text-transform:uppercase}
 .tag.red{color:var(--red);border-color:#e5534b55;background:#e5534b14}.tag.amber{color:var(--amber);border-color:#e0a84e55;background:#e0a84e14}
@@ -86,8 +86,8 @@ a{color:var(--signal)}
 @media (prefers-reduced-motion:reduce){.card,.card.exit{transition:none}.card.enter{animation:none}}
 .who{display:flex;align-items:center;gap:14px}
 .av{width:40px;height:40px;border-radius:50%;background:#1d2a2d;color:var(--signal);display:grid;place-items:center;font-weight:600;flex:none}
-.who h2{font-size:22px;font-weight:500;letter-spacing:-.015em}.who h2:focus{outline:none}.who h2:focus-visible{outline:2px solid var(--copper)}
-.who p{color:var(--muted);font-size:14px;margin-top:3px}.who h2:focus-visible{outline-offset:5px}.who .tags{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.who h2{font-size:22px;font-weight:500;letter-spacing:-.015em}.who h2:focus{outline:none}.who h2:focus-visible{outline:none;box-shadow:inset 0 -2px 0 var(--copper)}
+.who p{color:var(--muted);font-size:14px;margin-top:3px}.who .tags{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .cols{display:grid;grid-template-columns:1fr 1.25fr;gap:24px}
 .untrusted{background:#0b0d0e;border:1px dashed var(--rule2);border-radius:6px;padding:16px 18px;color:#b9c1c6;font-size:15px;white-space:pre-wrap;word-break:break-word}
 .untrusted.small{font-size:13.5px;padding:10px 12px;margin-top:6px}

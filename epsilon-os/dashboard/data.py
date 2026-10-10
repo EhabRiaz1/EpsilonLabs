@@ -171,6 +171,8 @@ def shell(db, now: datetime) -> dict:
         status = ("red", "Agent error")
     elif "amber" in states:
         status = ("amber", "Agents partly down")
+    elif not [a for a in agents if a["state"] in ("ok", "amber", "red")]:
+        status = ("idle", "Agents not started")
     else:
         status = ("ok", "All agents OK")
     if calls >= config.DAILY_LLM_CALL_BUDGET:
