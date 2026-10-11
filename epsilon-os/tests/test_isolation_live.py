@@ -130,8 +130,8 @@ def test_isolation_live():
                                       {"org_id": org_b, "user_id": b_id, "role": "owner"}]))
         ok(svc.insert("staff", {"user_id": s_id, "email": s_email, "scope": "test"}))
         projects = ok(svc.insert("projects", [{"org_id": org_a, "name": "PA", "repo_path": "/tmp/a"},
-                                              {"org_id": org_b, "name": "PB"},
-                                              {"org_id": org_real, "name": "PR"}]))
+                                              {"org_id": org_b, "name": "PB", "repo_path": None},
+                                              {"org_id": org_real, "name": "PR", "repo_path": None}]))
         p_a, p_b, p_real = (p["id"] for p in projects)
         ok(svc.insert("invites", {"org_id": org_b, "email": f"x-{tag}@test.epsilon-labs.co", "token_hash": f"iso-{tag}"}))
 
