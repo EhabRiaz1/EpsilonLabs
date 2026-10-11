@@ -240,10 +240,10 @@
 
   /* ═══ start: guided intake ═════════════════════════════════════════ */
 
-  /* One question per card, branching on software / hardware / both. It
-     composes a mailto rather than posting anywhere: a static site cannot
-     process a form without a third party, and the visitor sees exactly what
-     is sent. Offer names come from #offer-index (rendered from offers.py). */
+  /* One question per card, branching on software / hardware / both. The
+     review step posts the answers to /api/intake (same origin), which stores
+     them and emails Ehab; if that fails, the mailto with the same text is
+     offered instead. Offer names come from #offer-index (from offers.py). */
 
   var wiz = $('#wiz');
   if (wiz) {
@@ -342,7 +342,8 @@
       both: 'The equipment, how many sites, what you want to see on the screen, and what it connects to…'
     };
 
-    var a = { track: '', need: null, state: '', when: '', budget: '', name: '', company: '', note: '' };
+    var a = { track: '', need: null, state: '', when: '', budget: '', name: '', email: '', company: '', note: '', hp: '' };
+    var sent = false;
     var step = 0;
     var TOTAL = 7;
 
@@ -482,18 +483,26 @@
           'If there is hardware involved, a model number and a photo of the connector save us both a week.'));
         var form = el('form', 'wiz__form');
         var row = el('div', 'wiz__row');
-        var mk = function (label, key, ph, type) {
+        var mk = function (label, key, ph, type, req) {
           var w = el('label', 'wiz__field');
           w.appendChild(el('span', 'mono', label));
           var i = el('input');
-          i.type = type || 'text'; i.placeholder = ph; i.value = a[key];
+          i.type = type || 'text'; i.placeholder = ph; i.value = a[key]; i.required = !!req;
           i.addEventListener('input', function () { a[key] = i.value.trim(); });
           w.appendChild(i);
           return w;
         };
-        row.appendChild(mk('Your name', 'name', 'Name'));
+        row.appendChild(mk('Your name', 'name', 'Name', 'text', true));
+        row.appendChild(mk('Email', 'email', 'you@company.com', 'email', true));
         row.appendChild(mk('Company', 'company', 'Company (optional)'));
         form.appendChild(row);
+        /* honeypot: invisible to people, filled in by form bots */
+        var hp = mk('Website', 'hp', '');
+        hp.setAttribute('aria-hidden', 'true');
+        hp.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
+        $('input', hp).tabIndex = -1;
+        $('input', hp).autocomplete = 'off';
+        form.appendChild(hp);
         var tw = el('label', 'wiz__field');
         tw.appendChild(el('span', 'mono', 'The constraint you are most worried about'));
         var ta = el('textarea');
@@ -519,7 +528,8 @@
          ['Today', a.state || '—', 2],
          ['Timing', a.when || '—', 3],
          ['Budget', a.budget || '—', 4],
-         ['Details', a.note || '—', 5]].forEach(function (r) {
+         ['Details', a.note || '—', 5],
+         ['Reply to', a.email || '—', 5]].forEach(function (r) {
           var d = el('div');
           d.appendChild(el('dt', 'mono', r[0]));
           var dd = el('dd', null, r[1]);
@@ -532,8 +542,8 @@
         });
         view.appendChild(sum);
         var acts = el('div', 'wiz__acts');
-        var send = el('a', 'btn', 'Send to er@epsilon-labs.co');
-        send.href = mailto();
+        var send = el('button', 'btn', 'Send to Ehab');
+        send.type = 'button';
         acts.appendChild(send);
         if (on && a.need.o) {
           var rd = el('a', 'arrow', 'Read the scope');
@@ -541,23 +551,78 @@
           acts.appendChild(rd);
         }
         view.appendChild(acts);
-        view.appendChild(el('p', 'wiz__hint', 'Opens your email app with everything filled in. Nothing is sent from this page.'));
+        var hint = el('p', 'wiz__hint', 'Goes straight to er@epsilon-labs.co. You get a confirmation email.');
+        view.appendChild(hint);
+        send.addEventListener('click', function () { submit(send, hint, view); });
+      }
+
+      if (step === 7) {
+        view.appendChild(question('Sent', 'Thanks' + (a.name ? ', ' + a.name.split(/\s+/)[0] : '') + '. Ehab has it.',
+          'A confirmation is on its way to ' + a.email + '. You will get a reply from a person within two working days.'));
+        var done = offerName();
+        if (done && a.need && a.need.o) {
+          var ra = el('div', 'wiz__acts');
+          var rs = el('a', 'arrow', 'Read the ' + done + ' scope meanwhile');
+          rs.href = a.need.o;
+          ra.appendChild(rs);
+          view.appendChild(ra);
+        }
       }
 
       return view;
     };
 
+    /* POST to /api/intake. Success replaces the review with a thank-you (step 7); any failure keeps every
+       answer on screen and offers the same text as an email instead. */
+    var submit = function (btn, hint, view) {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      var old = $('.note', view);
+      if (old) old.parentNode.removeChild(old);
+      var fail = function (msg) {
+        btn.disabled = false;
+        btn.textContent = 'Try again';
+        var n = el('div', 'note');
+        n.setAttribute('role', 'alert');
+        n.style.cssText = 'max-width:680px;margin:var(--s-24) auto 0';
+        var p = el('p', null, msg + ' ');
+        var m = el('a', null, 'Email it instead');
+        m.href = mailto();
+        p.appendChild(m);
+        n.appendChild(p);
+        view.insertBefore(n, hint);
+      };
+      var body = {
+        name: a.name, email: a.email, company: a.company, kind: a.track, budget: a.budget, message: a.note, website: a.hp,
+        answers: { need: a.need ? a.need.t : '', offer: a.need ? a.need.o : '', offer_name: offerName(), state: a.state, when: a.when }
+      };
+      fetch('/api/intake', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) {
+          if (r.ok) { sent = true; go(7); return; }
+          if (r.status === 429) return fail('Too many enquiries from this connection in the last hour.');
+          if (r.status === 400) {
+            return r.json().then(function (j) {
+              var f = (j && j.fields) || {};
+              fail(f.email || f.name || f.message || f.company || 'Something in the form could not be read. Use Edit to check it.');
+            }, function () { fail('Something in the form could not be read.'); });
+          }
+          fail('We could not send it just now. Your answers are still here.');
+        }, function () { fail('We could not reach the server. Check your connection; your answers are still here.'); });
+    };
+
     var go = function (n) {
       if (n > 0 && !a.track) n = 0;
-      step = Math.max(0, Math.min(TOTAL - 1, n));
+      step = Math.max(0, Math.min(sent ? TOTAL : TOTAL - 1, n));
       var view = render();
       stage.innerHTML = '';
       stage.appendChild(view);
-      back.hidden = step === 0;
+      back.hidden = step === 0 || sent;
       var sec = $('#intake-sec');
       if (sec) sec.classList.toggle('is-going', step > 0);
-      count.textContent = String(step + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
-      fill.style.width = ((step + 1) / TOTAL * 100) + '%';
+      var shown = Math.min(step + 1, TOTAL);
+      count.textContent = String(shown).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+      fill.style.width = (shown / TOTAL * 100) + '%';
       wiz.setAttribute('data-accent', a.track ? accentFor() : '');
       var h = $('.wiz__h', view);
       if (h && document.activeElement && document.activeElement !== document.body) h.focus({ preventScroll: true });

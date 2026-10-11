@@ -1,0 +1,11 @@
+{
+  "name": "epsilon-labs-site",
+  "private": true,
+  "description": "Static site. The only Node code is the Vercel function api/intake.js (the /start form).",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "nodemailer": "10.0.11"
+  }
+}
