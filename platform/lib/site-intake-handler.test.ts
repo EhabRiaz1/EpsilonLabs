@@ -1,7 +1,7 @@
 // The site's POST /api/intake handler (api/intake.js), with fetch stubbed and no SMTP configured.
 import { Readable } from "node:stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import handler from "../../api/intake.js";
+import handlerJs from "../../api/intake.js";
 
 type Res = { statusCode: number; headers: Record<string, string>; body: string; setHeader(k: string, v: string): void; end(b: string): void };
 
@@ -27,6 +27,9 @@ function req(body: unknown, { method = "POST", headers = {} as Record<string, st
   return r;
 }
 
+// api/intake.js is plain CommonJS (a Vercel function on the static site); this is its shape.
+const handler = handlerJs as unknown as (req: unknown, res: Res) => Promise<void>;
+
 const good = { name: "Jonas", email: "jonas@northwind.example", kind: "hardware", message: "hi", answers: { need: "x" } };
 
 async function call(body: unknown, opts?: Parameters<typeof req>[1]) {
@@ -49,7 +52,11 @@ afterEach(() => {
 });
 
 function db(status: number, body: unknown) {
-  const f = vi.fn(async (..._args: unknown[]) => new Response(JSON.stringify(body), { status }));
+  const f = vi.fn(async (url: string, init?: RequestInit) => {
+    void url;
+    void init;
+    return new Response(JSON.stringify(body), { status });
+  });
   vi.stubGlobal("fetch", f);
   return f;
 }

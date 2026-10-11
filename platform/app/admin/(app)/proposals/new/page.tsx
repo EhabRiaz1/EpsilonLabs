@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { PACKAGES } from "@/lib/packages";
 import { DEFAULT_SCHEDULE } from "@/lib/money";
 import { isoDaysFromNow } from "@/lib/dates";
+import { proposalPrefill, type IntakeRow } from "@/lib/intake";
 import { ProposalForm } from "../ProposalForm";
 import { createProposal } from "../actions";
 
@@ -15,8 +16,8 @@ type Deal = { id: string; title: string; stage: string; value_usd: number | null
 
 const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
 
-export default async function NewProposal({ searchParams }: { searchParams: Promise<{ q?: string; deal?: string }> }) {
-  const { q = "", deal = "" } = await searchParams;
+export default async function NewProposal({ searchParams }: { searchParams: Promise<{ q?: string; deal?: string; intake?: string }> }) {
+  const { q = "", deal = "", intake = "" } = await searchParams;
   const { supabase } = await getSession();
 
   if (/^[0-9a-f-]{36}$/i.test(deal)) {
@@ -30,6 +31,16 @@ export default async function NewProposal({ searchParams }: { searchParams: Prom
       const company = one(d.companies as { name: string } | { name: string }[] | null);
       const contact = one(d.contacts as { full_name: string | null; email: string | null } | { full_name: string | null; email: string | null }[] | null);
       const valid = isoDaysFromNow(30);
+      // converted from an enquiry (admin /intake): prefill from what the visitor wrote; everything stays editable
+      let pre: ReturnType<typeof proposalPrefill> | null = null;
+      if (/^[0-9a-f-]{36}$/i.test(intake)) {
+        const { data: row } = await supabase
+          .from("intake")
+          .select("id, name, email, company, kind, budget, message, answers, deal_id")
+          .eq("id", intake)
+          .maybeSingle();
+        if (row && row.deal_id === d.id) pre = proposalPrefill(row as IntakeRow);
+      }
       return (
         <>
           <Head title="New proposal" sub={`For ${company?.name ?? "the deal"} · ${d.title}`} />
@@ -39,11 +50,11 @@ export default async function NewProposal({ searchParams }: { searchParams: Prom
             submitLabel="Create draft"
             showChanges={false}
             initial={{
-              title: d.title,
-              client_company: company?.name ?? "",
-              contact_name: contact?.full_name ?? "",
-              contact_email: contact?.email ?? "",
-              summary: "",
+              title: pre?.title ?? d.title,
+              client_company: pre?.client_company ?? company?.name ?? "",
+              contact_name: pre?.contact_name ?? contact?.full_name ?? "",
+              contact_email: pre?.contact_email ?? contact?.email ?? "",
+              summary: pre?.summary ?? "",
               scope_md: "",
               timeline_md: "",
               changes_md: "",

@@ -86,3 +86,19 @@ export function founderNotice(o: { subject: string; lines: string[]; link?: stri
     text: `${o.subject}\n\n${o.lines.join("\n")}${o.link ? `\n\n${o.link}` : ""}\n`,
   };
 }
+
+/** Portal invite (F3, F9): the link signs the person in and adds them to the organisation. Valid 7 days, once. */
+export function inviteEmail(o: { orgName: string; inviter: string; link: string; expiresOn: string; role: "owner" | "member" }): Mail {
+  const who = o.inviter.trim() || "Epsilon Labs";
+  return {
+    subject: `${who} invited you to the ${o.orgName} portal`,
+    html: layout(
+      `Join ${o.orgName} on Epsilon Labs`,
+      h1(`Join ${o.orgName}`) +
+        p(`${esc(who)} invited you to the <strong>${esc(o.orgName)}</strong> portal on Epsilon Labs${o.role === "owner" ? " as an owner" : ""}. It is where requests, files, progress and invoices for your projects live.`) +
+        button(o.link, "Accept and sign in") +
+        p(`<span style="color:#8a867f;font-size:12px">The link works once and expires on ${esc(o.expiresOn)}. No password is needed; next time, sign in at client.epsilon-labs.co with this email address. If you weren't expecting this, ignore it.</span>`),
+    ),
+    text: `${who} invited you to the ${o.orgName} portal on Epsilon Labs.\n\nAccept and sign in:\n${o.link}\n\nThe link works once and expires on ${o.expiresOn}. If you weren't expecting this, ignore it.\n\n${FOOT_TEXT}`,
+  };
+}

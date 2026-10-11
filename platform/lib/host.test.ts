@@ -62,6 +62,12 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/p/abc", "admin")).toBe(false);
     expect(isPublicPath("/legal/T-2026-1.pdf", "admin")).toBe(false);
   });
+
+  it("opens a portal invite link on client.* only, and nothing else in the portal", () => {
+    expect(isPublicPath("/invite/abcDEF_123-xyz", "client")).toBe(true);
+    for (const p of ["/invite/a/b", "/invite/", "/tickets/1", "/files/1", "/account"]) expect(isPublicPath(p, "client")).toBe(false);
+    expect(isPublicPath("/invite/abc", "admin")).toBe(false);
+  });
 });
 
 describe("publicUrl", () => {

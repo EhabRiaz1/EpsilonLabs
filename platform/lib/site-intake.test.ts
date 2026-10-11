@@ -1,7 +1,20 @@
 // The site's /api/intake helpers (api/_intake.js at the repo root). They run on the epsilon-labs.co Vercel project,
 // not in this app; they are tested here so they share `npm test` and CI.
 import { describe, expect, it } from "vitest";
-import core from "../../api/_intake.js";
+import coreJs from "../../api/_intake.js";
+
+type Value = { name: string; email: string; company: string; kind: string; budget: string; message: string; answers: Record<string, string>; website: string; source: string };
+type Mail = { subject: string; html: string; text: string };
+// api/_intake.js is plain CommonJS (it deploys with the static site); this is its shape.
+const core = coreJs as unknown as {
+  validate(b: unknown): { ok: true; value: Value } | { ok: false; errors: Record<string, string> };
+  originAllowed(o: string | undefined): boolean;
+  ipKey(ip: string, secret: string, now: Date): string;
+  clientIp(h: Record<string, string>): string;
+  supabaseHeaders(key: string): Record<string, string>;
+  ackEmail(v: Value): Mail;
+  founderEmail(v: Value, id: string | null): Mail;
+};
 
 const good = {
   name: " Jonas Weber ",
@@ -86,7 +99,7 @@ describe("supabaseHeaders", () => {
 });
 
 describe("emails", () => {
-  const v = (core.validate({ ...good, name: "<b>Jonas</b> W", company: "A&B <Ltd>", message: "<script>x</script>" }) as { ok: true; value: Parameters<typeof core.founderEmail>[0] }).value;
+  const v = (core.validate({ ...good, name: "<b>Jonas</b> W", company: "A&B <Ltd>", message: "<script>x</script>" }) as { ok: true; value: Value }).value;
   it("acknowledgement is a fixed template with the first name escaped", () => {
     const m = core.ackEmail(v);
     expect(m.subject).toBe("We have your enquiry · Epsilon Labs");
