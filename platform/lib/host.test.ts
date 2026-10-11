@@ -63,6 +63,16 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/legal/T-2026-1.pdf", "admin")).toBe(false);
   });
 
+  it("opens the admin PWA shell and the push sender on admin.* only", () => {
+    for (const p of ["/manifest.webmanifest", "/sw.js", "/offline.html", "/icons/icon-192.png", "/icons/maskable-512.png", "/api/cron/push"]) {
+      expect(isPublicPath(p, "admin")).toBe(true);
+      expect(isPublicPath(p, "client")).toBe(false);
+    }
+    for (const p of ["/api/cron/push/x", "/api/cron", "/icons/../sw.js", "/icons/x.svg", "/icons/a/b.png", "/approvals", "/settings"]) {
+      expect(isPublicPath(p, "admin")).toBe(false);
+    }
+  });
+
   it("opens a portal invite link on client.* only, and nothing else in the portal", () => {
     expect(isPublicPath("/invite/abcDEF_123-xyz", "client")).toBe(true);
     for (const p of ["/invite/a/b", "/invite/", "/tickets/1", "/files/1", "/account"]) expect(isPublicPath(p, "client")).toBe(false);

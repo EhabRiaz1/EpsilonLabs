@@ -49,15 +49,23 @@ export function internalPath(site: Site, pathname: string): string {
 /**
  * Paths reachable without a session. Everything else redirects to /login. On client.* the deal room (/p/<token>),
  * a portal invite (/invite/<token>; in both the token is the credential) and the published contract terms
- * (/legal/*.pdf) are public too.
+ * (/legal/*.pdf) are public too. On admin.* the PWA shell (manifest, service worker, offline page, icons: static
+ * files with no data) and the push sender (/api/cron/push, which checks its own bearer secret) are public.
  */
 export function isPublicPath(pathname: string, site?: Site): boolean {
   if (pathname === "/login" || pathname.startsWith("/login/") || pathname.startsWith("/auth/")) return true;
+  if (site === "admin") {
+    return (
+      ADMIN_PUBLIC.has(pathname) || /^\/icons\/[A-Za-z0-9-]+\.png$/.test(pathname)
+    );
+  }
   return (
     site === "client" &&
     (/^\/p\/[^/]+$/.test(pathname) || /^\/invite\/[^/]+$/.test(pathname) || /^\/legal\/[A-Za-z0-9._-]+\.pdf$/.test(pathname))
   );
 }
+
+const ADMIN_PUBLIC: ReadonlySet<string> = new Set(["/manifest.webmanifest", "/sw.js", "/offline.html", "/api/cron/push"]);
 
 /** The client.* origin that matches an admin.* request (links admin sends to prospects). */
 export function clientOrigin(h: { host?: string | null; forwardedHost?: string | null; forwardedProto?: string | null }): string {
