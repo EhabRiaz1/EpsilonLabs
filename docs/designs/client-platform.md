@@ -42,7 +42,7 @@ everything, including AI-proposed code changes, from any device.
                                      command queue   │            │ jobs table (run_now, ticket_plan,
                                      results, logs   │            ▼ ticket_execute, report, invoice)
                                          Mac worker (launchd, Claude Code `claude -p`)
-                                         email (Zoho) · prospector · tenders · project agent · PDF render
+                                         email (sales, Zoho) · prospector · tenders · project agent (PDFs are rendered on the hosted side, F15)
 ```
 
 - **One hosted web app, two hostnames.** client.* and admin.* are served by the same Vercel project,
@@ -59,7 +59,7 @@ everything, including AI-proposed code changes, from any device.
 
 ## Phases
 
-Build order after the CEO review: 0 → 1 → 1b → 2 → 3 → 4 → 4b → 5 → 6 → 7.
+Build order: superseded by OV5 (revenue first).
 
 ### 0. Foundation (schema + auth + isolation)
 - Tables:
@@ -113,7 +113,8 @@ Build order after the CEO review: 0 → 1 → 1b → 2 → 3 → 4 → 4b → 5 
   - Urgent events (ticket needs their input, invoice issued, report published) are sent immediately.
   - Everything else is batched into at most one email per person per day, at 10:00 in their timezone.
   - Per-user preferences: immediate / daily / off.
-- Sent from the Zoho er@ mailbox through the existing outbox (bounce, opt-out and suppression all apply).
+- Sent by the hosted mailer from Zoho **notifications@** (F9). The mailer checks the shared suppression_list
+  and records bounces. Sales mail stays on the Mac outbox from er@ and the outreach domain.
 - **Weekly update (E2):** each Friday at 15:00 PKT, a worker job reads every active project's week
   (tickets closed, commits on linked repos, ticket_events, founder notes) and drafts "Done this week /
   Next / Needs your input". The founder approves, edits or skips each one in admin. On approval it is
@@ -180,12 +181,64 @@ Build order after the CEO review: 0 → 1 → 1b → 2 → 3 → 4 → 4b → 5 
   RPCs reject the demo org. A nightly reset re-seeds it. It is linked from epsilon-labs.co/work and from
   proposals.
 
+## Engineering decisions (eng review 2026-10-11)
+| # | Decision |
+|---|---|
+| EN1 | Repo layout: `platform/` (Next.js, TypeScript) in this repo, as a **second Vercel project** serving client.epsilon-labs.co and admin.epsilon-labs.co (host-only cookies; the browser isolates them from the public site and from each other). `/api/intake` and `/api/events` are `api/` functions in the **existing epsilon-labs.co project**, so the forms post same-origin and there is no CORS. Migrations stay in `epsilon-os/migrations` (one history). |
+| EN2 | The project agent works on the **founder's existing folders**. `projects.repo_path` is a local path on the Mac (e.g. ~/dev/master-paints, ~/Desktop/FP&LM/fabricportApp, folders under oy-everything). There is no cloning. Pipeline: (1) a tool-less brief from the ticket, which the founder approves; (2) a **read-only** plan agent in repo_path (Read/Grep/Glob only, deny Edit/Write/Bash/WebFetch, and deny `**/.env*`, `**/*secret*`, `**/*cred*`, `*.rtf`, `*.pem`, `*.key`), which the founder approves; (3) the founder picks **Agent** or **Manual**. With Agent, the edits happen only in `git worktree add ~/EpsilonWork/worktrees/<project>/EL-<n> -b ticket/EL-<n>`, so the founder's working copy and any uncommitted work are never touched. The founder reviews the diff, then clicks Merge (done by the founder) or Discard. With Manual, the worker scans `git log` in repo_path every 10 min for `EL-<n>` in commit messages, adds them to the ticket timeline (internal) and the founder marks the ticket done. |
+| EN3 | The AI session never pushes or deploys. After review, **"Push branch for preview"** makes the worker's plain code (not the AI) run `git push origin ticket/EL-<n>`. The resulting preview URL (Vercel/Netlify on the client repo) can be attached to the ticket by the founder. No change ever reaches main/production automatically. |
+| EN4 | The Mac worker is **Python in epsilon-os** (`agents/worker.py` + job handlers), reusing db.py, llm.py (budget), heartbeats, the watchdog and launchd. Job parameter shapes are written once as **JSON Schema** in `shared/jobs/*.json` and validated by both the TS app (ajv) and the worker (jsonschema). |
+| EN5 | **One rulebook:** every state transition is a Postgres function with the checks inside. Examples: approve/reject/hold/edit draft, approve brief/plan, choose agent/manual, accept proposal, issue invoice, publish update/report, invite/revoke. Both 8787 (Python) and admin.* (TS) call these and do not reimplement them. Each function writes its `actions` audit row. Lint stays in Python: an edit made on admin.* sets the draft to `edited_pending_lint`, and the worker lints it before the outbox may claim it. |
+| OV1 | One rulebook confirmed. RPCs accept `is_staff()` (aal2) **or** the worker's service role (`auth.role() = 'service_role'`). An approval on the phone is recorded instantly and sent when the Mac's outbox runs, as today. A draft edited off the Mac becomes `edited_pending_lint` and is re-linted by the worker before the outbox can claim it. 8787 is switched to the RPCs as a code change; the existing tables are not rewritten. |
+| OV2 | The agent may **run the project's configured test command** in the worktree. The command is set per project by the founder in admin (e.g. `npm test`); the AI never chooses a command. node_modules is symlinked from the real folder. .env is not copied unless the founder sets a per-project "test env file". Agent mode is offered only for git repos; non-git folders are Manual-only. The founder reviews everything. **Accepted risk:** the project's own scripts run as the founder's macOS user. |
+| OV3 | Testing stays against live (F14 confirmed after the risks were explained). CI uses a **low-privilege test staff user** whose staff rights are limited to `is_test` orgs (`staff.scope = 'test'`), and its TOTP seed is in GitHub secrets. Magic-link E2E uses a test inbox address on the founder's domain. A cleanup job deletes `is_test` orgs older than 24h. |
+| OV4 | Proposal acceptance needs a **6-digit code emailed to the addressee**. The acceptance record stores the sha256 of (proposal version + contract terms version), name, email, timestamp, IP and UA. IP is kept only as contract evidence and never in analytics. Accept is rate-limited (5 tries per token per hour). Nothing can be accepted until a terms version exists (founder supplies the template). |
+| OV5 | **Revenue-first build order:** (1) scaffold + minimal schema + isolation suite → (2) deal room + deposit invoice PDF → (3) /start intake → (4) client portal v1 + admin 2FA → (5) Deck rulebook + phone Deck → comms → reports/invoices/referrals/retainers → project agent → analytics → demo. |
+| EN6 | **CI:** GitHub Actions runs on every push: epsilon-os pytest, platform vitest and the isolation suite. The Vercel production promotion is gated on it passing. Playwright E2E runs against each preview URL. The test Supabase user and TOTP seed are stored as GitHub secrets. |
+
+## Schema (migration 008+, additive)
+```
+organizations(id, name, slug unique, domain, company_id→companies, status active|archived, is_test, is_demo, created_at)
+staff(user_id pk→auth.users, email unique)                      -- founder only
+memberships(org_id, user_id, role owner|member, invited_by, created_at)   pk(org_id,user_id); idx(user_id)
+invites(id, org_id, email, role, token_hash, expires_at, accepted_at, revoked_at)
+projects(id, org_id, name, status, summary, repo_path (staff-only column via view), created_at)
+tickets(id, org_id, project_id, number serial-per-year EL-n, author_id, title, body, type bug|change|question|new,
+        priority low|normal|urgent, status new|triaged|briefed|planned|approved|in_progress|review|done|declined,
+        mode agent|manual null, created_at, updated_at)
+ticket_events(id, org_id, ticket_id, kind status|comment|commit|brief|plan|diff|preview, body, data jsonb,
+        client_visible bool default false, actor, created_at)
+updates(id, org_id, project_id, title, body_md, status draft|approved|published, published_at, source weekly|manual)
+files(id, org_id, project_id, ticket_id null, path, name, mime, size, uploaded_by, created_at)
+notifications(id, org_id, user_id, kind, title, link, urgent bool, emailed_at, read_at, digest_key, created_at)
+proposals(id, deal_id, org_id null, version, scope_md, timeline_md, lines jsonb, schedule jsonb, currency,
+        total, valid_until, status draft|approved|sent|viewed|accepted|declined|expired|void, token_hash, sha256)
+acceptances(proposal_id unique, name, email, ip, user_agent, sha256, accepted_at)
+invoices(id, org_id, number unique (EL-2026-001 via per-year sequence), kind invoice|credit_note, ref_invoice_id,
+        proposal_id, lines jsonb, tax_label, tax_rate, currency, total, due_date, status draft|approved|sent|paid|overdue|void,
+        pdf_path, issued_at, paid_at)
+reports(id, org_id, project_id, title, html_path, pdf_path, status draft|approved|published, published_at)
+retainers(id, org_id, tier, hours_included, period monthly, starts_on, status)
+time_entries(id, org_id, ticket_id, minutes, note, billable, logged_by, logged_at)
+testimonials(id, org_id, author_name, quote, status requested|client_approved|published, approved_at)
+jobs(id, type (allow-list), params jsonb, status queued|claimed|running|done|failed|expired, lease_until,
+        attempts, result jsonb, error, log_tail, requested_by, created_at, started_at, finished_at)
+push_subscriptions(id, user_id, endpoint, keys jsonb, created_at)
+site_events(id, session_id, path, kind view|click, target, referrer, utm jsonb, created_at)  -- no IP
+```
+RLS uses one pattern for every org table:
+`using (org_id in (select org_id from memberships where user_id = (select auth.uid())) or (select is_staff()))`.
+ticket_events also require `client_visible`. Clients are read-only on everything except via RPCs
+(create_ticket, add_comment, upload_file, approve_testimonial, accept_proposal (token), mark_read).
+Existing Epsilon OS tables get `is_staff()` policies only.
+
 ## Auth and tenancy
 - Staff: `staff` table (user_id, email), seeded with the founder only. `is_staff()` = in the staff table
   AND `auth.jwt()->>'aal' = 'aal2'`. Admin routes need a staff user. MFA enrolment uses a QR code with
   Google Authenticator, at first admin login. Recovery: a second TOTP factor on another device, plus a
   documented break-glass procedure (reset the factor via the Supabase dashboard with the founder's
-  Supabase account).
+  Supabase account). The founder enrols **two** TOTP devices at setup (phone + 1Password), because
+  Supabase MFA has no recovery codes.
 - Clients: magic link (Supabase Auth, custom SMTP = Zoho notifications@) with an optional password.
   Redirect URLs are allow-listed for client.* and admin.* only. Session cookies are **host-only**, so a
   client.* session never applies on admin.*.
@@ -197,8 +250,12 @@ Build order after the CEO review: 0 → 1 → 1b → 2 → 3 → 4 → 4b → 5 
   org switcher.
 - Existing Epsilon OS tables stay service_role-only for clients. Staff read/write is added as
   `is_staff()` policies, so the hosted admin acts as the founder and holds no master key. Server keys live
-  only on the Mac worker (keychain) and in the two public Vercel functions (env, scoped to the insert
-  RPCs they call).
+  only on the Mac worker (keychain). The two public Vercel functions use the **anon** key and may only
+  execute `submit_intake` / `record_event`, which are security-definer RPCs with grants to anon. They hold
+  no service_role key.
+- Supabase Auth: **public sign-up is disabled** (accounts are invite-only), so a random email can never get an
+  `authenticated` token. A staff revoke takes effect at the next token refresh. The JWT lifetime is set to
+  15 min for this project.
 
 ## Reliability baseline (F12)
 ```
@@ -214,6 +271,9 @@ Build order after the CEO review: 0 → 1 → 1b → 2 → 3 → 4 → 4b → 5 
 - Proposals: a sent version is frozen (sha256 stored). An edit creates v2 and voids the v1 token.
   Tokens expire (default 30 days) and can be revoked. Accept is idempotent: a unique constraint on
   (proposal_id) in acceptances. A double click gives one acceptance, one org and one deposit invoice.
+- PDFs are rendered **once**, when an invoice or report is issued (approved). The file is stored, and that
+  stored file is what the client downloads, so an issued document can never change. If rendering fails,
+  the issue is not completed; the item stays `approved` and is retried.
 - Invoices: numbers come from a Postgres sequence per year (`EL-2026-001`) and are never reused. Sent
   invoices are immutable. Corrections are credit notes (`kind = credit_note`, referencing the original).
   Tax: an optional single tax line per invoice, as in epsilon-invoice. Currency per org.
@@ -245,9 +305,10 @@ Build order after the CEO review: 0 → 1 → 1b → 2 → 3 → 4 → 4b → 5 
 - The raw ticket text, client uploads and email bodies are untrusted. They reach only tool-less model
   calls (`<untrusted>` blocks, schema-validated output), as in Epsilon OS.
 - The execute sandbox:
-  - Runs in a git worktree under ~/EpsilonWork/<project>/.
-  - Claude Code permissions are restricted to that directory. There is no access to ~/.ssh, the keychain,
-    ~/Desktop or the epsilon-os folder.
+  - Runs in a git worktree created from the project's real folder (EN2). The worktree lives at
+    `~/EpsilonWork/worktrees/<project>/EL-<n>`, outside the founder's working copy.
+  - Claude Code permissions are restricted to that worktree. There is no access to ~/.ssh, the keychain,
+    the epsilon-os folder or other projects.
   - Network is limited to package registries. There is no `git push`, and secrets are never passed in.
   - The founder merges.
   - A dedicated macOS user is a later hardening step (TODOS).
@@ -316,16 +377,60 @@ seats for subcontractors, and online card payments.
 - Should the project agent ever deploy (e.g. a Vercel preview URL for the client to check), or only
   produce branches?
 
+## Test coverage map (eng review)
+```
+CODE PATHS                                         USER FLOWS
+[+] RLS + RPCs (008)                               [+] Client onboarding
+  ├─ cross-org select/insert/update   [GAP→T]        ├─ invite → magic link → set name  [GAP→E2E]
+  ├─ staff without aal2 refused       [GAP→T]        ├─ expired / revoked invite        [GAP→E2E]
+  ├─ client_visible filter            [GAP→T]        └─ member removed → access ends    [GAP→T]
+  └─ demo org write refused           [GAP→T]      [+] Tickets
+[+] /api/intake, /api/events                         ├─ new ticket + 25MB attachment    [GAP→E2E]
+  ├─ valid / invalid schema / >32KB   [GAP→T]        ├─ disallowed MIME / oversize      [GAP→T]
+  └─ rate limit, honeypot, DB down    [GAP→T]        └─ status change → notification    [GAP→T]
+[+] jobs worker (agents/worker.py)                 [+] Deal room
+  ├─ claim/lease/expire/retry once    [GAP→T]        ├─ open link → accept → invoice    [GAP→E2E]
+  ├─ unknown type / bad params        [GAP→T]        ├─ double click, two tabs          [GAP→T]
+  └─ offline banner after 2 min       [GAP→T]        └─ expired / v2-voided token       [GAP→T]
+[+] ticket pipeline                                [+] Admin
+  ├─ brief: malformed/empty/refusal   [GAP→T]        ├─ login requires TOTP             [GAP→E2E]
+  ├─ injection ticket → no exfil step [GAP→EVAL]     ├─ approve from phone (Deck RPC)   [GAP→E2E]
+  ├─ plan agent settings deny writes+secrets [GAP→T] └─ worker offline → queued msg     [GAP→T]
+  ├─ worktree isolates uncommitted work [GAP→T]    [+] Comms
+  ├─ manual: EL-n commit picked up    [GAP→T]        ├─ urgent immediate, rest ≤1/day   [GAP→T]
+  └─ push preview only on click       [GAP→T]        └─ suppressed address skipped      [GAP→T]
+[+] invoices/reports                               [+] Regression
+  ├─ per-year sequence, no reuse      [GAP→T]        └─ Deck approve via RPC == old Python behaviour
+  ├─ sent invoice immutable, credit note [GAP→T]        (all 503 epsilon-os tests stay green) [CRITICAL]
+  └─ PDF render timeout → retry/HTML  [GAP→T]
+COVERAGE today: 0/38 (new system). Every GAP above is a required test written with its phase.
+T = pytest (epsilon-os/tests, isolation via real JWTs) or vitest (platform/); E2E = Playwright on preview; EVAL = add
+injection tickets to the golden set (evals/), 100% pass required.
+```
+
+## Implementation Tasks
+- [ ] **T1 (P1, human ~1d / CC ~30m)** platform scaffold: Next.js app, two Vercel domains, host-only cookies, CI workflow (EN1, EN6)
+- [ ] **T2 (P1, human ~2d / CC ~1h)** migration 008 schema + RLS + is_staff(aal2) + isolation suite (Schema, F11)
+- [ ] **T3 (P1, human ~2d / CC ~1h)** rulebook RPCs for the Deck; 8787 switched to call them; 503 tests green (EN5)
+- [ ] **T4 (P1, human ~1d / CC ~30m)** /api/intake on the site + /start wiring + admin intake list (Phase 1)
+- [ ] **T5 (P1, human ~1w / CC ~1.5d)** deal room: proposal draft job, approve, token page, accept RPC, deposit invoice + hosted PDF (1b, F15)
+- [ ] **T6 (P1, human ~1w / CC ~2d)** client portal v1 + admin clients/tickets + Supabase MFA enrolment (Phase 2, F11)
+- [ ] **T7 (P2, human ~3d / CC ~1d)** notifications@ mailer, branded template, digest, weekly update job, PWA push (Phase 3, E2, E5)
+- [ ] **T8 (P2, human ~1w / CC ~1.5d)** delivery-report skill + reports, invoices UI, referrals, retainers (Phase 4, 4b)
+- [ ] **T9 (P2, human ~1w / CC ~2d)** worker + ticket pipeline (brief, read-only plan, worktree execute, manual commit scan, preview push) (Phase 5, EN2–EN4)
+- [ ] **T10 (P3, human ~3d / CC ~1d)** analytics + sitemap + live visitors; demo portal (Phase 6, 7)
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
-| CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | CLEAR | 8 proposals, 6 accepted, 2 deferred; 8 review decisions (F8–F15) |
-| Codex Review | `/codex review` | Independent 2nd opinion | 1 | ISSUES (claude subagent) | 6/10 spec score; gaps folded in as F12 and new sections; scope cuts rejected by the founder |
-| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 0 | — | — |
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | CLEAR | 8 proposals, 6 accepted, 2 deferred |
+| Codex Review | `/codex review` | Independent 2nd opinion | 2 | ISSUES RESOLVED (claude subagent) | Spec 6/10 + eng challenge with 10 findings; 5 fixed in the doc, 5 decided by the founder (OV1–OV5) |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR | 11 decisions (EN1–EN6, OV1–OV5), 38 test gaps mapped as required tests, 0 critical gaps open |
 | Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
 | DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
 
-- **VERDICT:** CEO CLEARED. The eng review is required before building.
+- **CROSS-MODEL:** Both reviewers agreed on the agent sandbox, acceptance proof and build order. The founder overrode the outside voice on staging (OV3) and on agent test runs (OV2), and the accepted risks are recorded.
+- **VERDICT:** CEO + ENG CLEARED. The design review (portal + admin mockups) is next, then the build starts with OV5 step 1.
 
 NO UNRESOLVED DECISIONS
