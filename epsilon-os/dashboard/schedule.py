@@ -92,6 +92,9 @@ def until(when: datetime | None, now: datetime) -> str:
     if s <= 60:
         return "due now"
     h, m = divmod(s // 60, 60)
+    if h >= 48:
+        d, h = divmod(h, 24)
+        return f"in {d}d {h}h"
     return f"in {h}h {m}m" if h else f"in {m}m"
 
 
@@ -107,3 +110,21 @@ def view(last_runs: dict, now: datetime) -> list[dict]:
                      "until": "running now" if is_running else until(when, now),
                      "runnable": job in RUNNABLE})
     return rows
+
+
+def state(job: str) -> dict:
+    """launchd view of one job: loaded?, running?, pid, last exit code."""
+    try:
+        r = subprocess.run(["launchctl", "print", f"gui/{os.getuid()}/{PREFIX}{job}"],
+                           capture_output=True, text=True, timeout=3)
+    except Exception:
+        return {"loaded": False, "running": False, "exit": None}
+    if r.returncode != 0:
+        return {"loaded": False, "running": False, "exit": None}
+    out = r.stdout
+    exit_code = None
+    for line in out.splitlines():
+        line = line.strip()
+        if line.startswith("last exit code = "):
+            exit_code = line.split("=", 1)[1].strip()
+    return {"loaded": True, "running": "state = running" in out, "exit": exit_code}

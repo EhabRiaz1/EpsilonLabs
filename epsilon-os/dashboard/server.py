@@ -246,6 +246,10 @@ def make_handler(app: App):
                     return self._send(200, panel.encode())
                 d = app.cache.get(("pipeline", ch), lambda: G(sh=shell_plus, p=lambda: data.pipeline(db, now, ch)))
                 html = views.pipeline(csrf, d["sh"], d["p"], ch, panel, demo)
+            elif path == "/agents":
+                d = app.cache.get(("agents",), lambda: G(
+                    sh=shell_plus, a=lambda: data.agents_overview(db, now, schedule.state, schedule.next_run)))
+                html = views.agents_page(csrf, d["sh"], d["a"], now, demo)
             elif path == "/health":
                 d = app.cache.get(("health",), lambda: G(sh=shell_plus, h=lambda: data.health(db, now)))
                 html = views.health(csrf, d["sh"], d["h"], demo)
@@ -342,7 +346,7 @@ def _prewarm(port: int, every: float = 12.0) -> None:
     import urllib.request
     time.sleep(2)
     while True:
-        for path in ("/", "/pipeline", "/health", "/opportunities"):
+        for path in ("/", "/pipeline", "/health", "/opportunities", "/agents"):
             try:
                 req = urllib.request.Request(f"http://127.0.0.1:{port}{path}", headers={"Host": f"127.0.0.1:{port}"})
                 urllib.request.urlopen(req, timeout=30).read()

@@ -77,6 +77,7 @@ ICON = {
     "held": '<path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M12 8v5M12 16v.5"/>',
     "pipeline": '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     "health": '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+    "agents": '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12h.01M15 12h.01M9 16h6"/>',
     "sliders": '<path d="M4 6h8.6M17.4 6H20M4 12h2.6M11.4 12H20M4 18h10.6M19.4 18H20"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/>',
     "site": '<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>',
     "search": '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
@@ -94,7 +95,7 @@ def icon(name: str) -> str:
 SIDENAV = [(None, "/", "Today", "today"), (None, "/deck", "Deck", "deck"),
            ("Work", "/#held", "Held", "held"), ("Work", "/opportunities", "Opportunities", "briefcase"),
            ("Work", "/pipeline", "Pipeline", "pipeline"),
-           ("System", "/health", "Health", "health"), ("System", "/settings", "Settings", "sliders")]
+           ("System", "/agents", "Agents", "agents"), ("System", "/health", "Health", "health"), ("System", "/settings", "Settings", "sliders")]
 THEME_BOOT = '<script src="/static/theme.js"></script>'
 
 
@@ -162,7 +163,7 @@ def shortcuts_sheet() -> str:
 
 def palette() -> str:
     items = [("/", "Today", "G T"), ("/deck", "Start the deck", "↵"), ("/opportunities", "Opportunities", ""), ("/pipeline", "Pipeline", "G P"),
-             ("/health", "Health", "G H"), ("/settings", "Settings", "G S"), ("/#held", "Held tray", ""), ("?", "Keyboard shortcuts", "?")]
+             ("/agents", "Agents", "G A"), ("/health", "Health", "G H"), ("/settings", "Settings", "G S"), ("/#held", "Held tray", ""), ("?", "Keyboard shortcuts", "?")]
     li = "".join(f'<li role="option" data-href="{e(h)}" tabindex="-1"><span>{e(t)}</span>{kbd(k) if k else ""}</li>'
                  for h, t, k in items)
     return (f'<dialog id="palette" class="palette" aria-label="Jump to"><input id="pal-q" type="text" '
@@ -725,3 +726,58 @@ def tenders_card(t: dict, errors: dict) -> str:
             f'{money("tenders_value_min", "Minimum value (USD)", "Tenders with no stated value are always kept.", t["value_min"])}'
             f'{money("tenders_value_max", "Maximum value (USD)", "Converted at approximate rates.", t["value_max"])}'
             f'{sources}{paused}</section>')
+
+
+_STATE_LABEL = {"ok": "ok", "amber": "warn", "red": "down", "idle": "idle"}
+
+
+def agents_page(csrf: str, sh: dict, a: dict, now, demo: bool) -> str:
+    from dashboard import schedule
+    c = a["counts"]
+    bits = [f'{c["ok"]} healthy']
+    if c["amber"]:
+        bits.append(f'{c["amber"]} need a look')
+    if c["red"]:
+        bits.append(f'{c["red"]} down')
+    if c["idle"]:
+        bits.append(f'{c["idle"]} idle')
+    nxt = ""
+    if a["soonest"]:
+        nxt = f' · next up: {e(a["soonest"][0])} {e(schedule.until(a["soonest"][1], now))}'
+    secs = ""
+    for cat, items in a["categories"]:
+        rows = ""
+        for r in items:
+            pips = "".join(f'<i class="pip {({"error": "red", "warn": "amber"}).get(h, "ok")}"></i>' for h in r["history"])
+            when = ""
+            if r["next"]:
+                when = f'<span class="ag-next">{e(r["next"].strftime("%a %H:%M"))} · {e(schedule.until(r["next"], now))}</span>'
+            btn = ""
+            if r["runnable"] and csrf:
+                btn = (f'<form method="post" action="/act/run_job" class="runf"><input type="hidden" name="csrf" value="{e(csrf)}">'
+                       f'<input type="hidden" name="job" value="{e(r["job"])}"><input type="hidden" name="next" value="/agents">'
+                       f'<button class="runbtn">Run now</button></form>')
+            issue = f'<p class="ag-issue">{e(r["issue"])}</p>' if r["issue"] else ""
+            calls = f'<span class="ag-calls" title="AI calls today">{r["calls"]} AI calls</span>' if r["calls"] else ""
+            rows += (f'<li class="agrow {r["state"]}{" running" if r["running"] else ""}">'
+                     f'<span class="agdot {r["state"]}" aria-hidden="true"></span>'
+                     f'<div class="ag-main"><div class="ag-title"><b>{e(r["label"])}</b>'
+                     f'<span class="agstate {r["state"]}">{e(r["text"])}</span></div>'
+                     f'<p class="ag-what">{e(r["what"])}</p>{issue}</div>'
+                     f'<div class="ag-last"><span>{"Last run " + e(r["last"]) + (" ago" if r["last"] not in ("never", "now") else "") if r["cadence"] or r["history"] else ""}</span>'
+                     f'<span class="ag-sum">{e(r["summary"])}</span></div>'
+                     f'<div class="ag-sched"><span class="ag-cad">{e(r["cadence"])}</span>{when}</div>'
+                     f'<div class="ag-hist" aria-label="Last runs">{pips}</div>'
+                     f'<div class="ag-act">{calls}{btn}</div></li>')
+        n_bad = sum(1 for r in items if r["state"] in ("amber", "red"))
+        flag = f'<span class="agcat-flag">{n_bad} need attention</span>' if n_bad else ""
+        secs += (f'<section class="agcat"><h2 class="agcat-h">{e(cat)} <span class="agcat-n">{len(items)}</span>{flag}</h2>'
+                 f'<ul class="aglist">{rows}</ul></section>')
+    planned = "".join(f'<li class="agrow planned"><span class="agdot idle" aria-hidden="true"></span>'
+                      f'<div class="ag-main"><div class="ag-title"><b>{e(n)}</b><span class="agstate idle">planned</span></div>'
+                      f'<p class="ag-what">{e(w)}</p></div></li>' for n, w in a["planned"])
+    secs += (f'<section class="agcat"><h2 class="agcat-h">Coming with the client platform <span class="agcat-n">{len(a["planned"])}</span></h2>'
+             f'<ul class="aglist">{planned}</ul></section>')
+    body = (f'<header class="aghead"><p class="eyebrow mono">System</p><h1 class="pt">Agents</h1>'
+            f'<p class="muted">{" · ".join(bits)}{nxt}</p></header>{secs}')
+    return page("Agents", body, "Agents", csrf, sh, demo, cls="agentspage")

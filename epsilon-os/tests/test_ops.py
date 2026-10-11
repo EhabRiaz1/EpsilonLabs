@@ -317,4 +317,4 @@ def test_agent_plists_static_checks():
         assert "/Users/ehabriaz/.local/bin" in path and "/usr/bin" in path and "/bin" in path
     assert jobs["inbox"]["StartInterval"] == 300 and jobs["outbox"]["StartInterval"] == 60
     assert jobs["brief"]["StartCalendarInterval"] == {"Hour": 8, "Minute": 30}
-    assert jobs["backup"]["StartCalendarInterval"] == {"Weekday": 0, "Hour": 2}
+    assert jobs["backup"]["StartCalendarInterval"] == {"Weekday": 0, "Hour": 2, "Minute": 0}

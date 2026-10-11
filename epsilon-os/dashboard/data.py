@@ -485,3 +485,142 @@ def tenders_form_draft(base: dict, p: dict) -> dict:
             "value_max": p.get("tenders_value_max", base["value_max"]),
             "sources": [srcs] if isinstance(srcs, str) else list(srcs),
             "paused": p.get("tenders_paused") in ("1", "on", "true")}
+
+
+# ------------------------------------------------------------------ Agents page
+
+# (category, [(key, label, what it does, launchd job or None, heartbeat name or None, stale-after seconds)])
+AGENT_CATALOG = [
+    ("Sales & outreach", [
+        ("prospector", "Prospector", "Finds new companies with the research strategies and drafts first emails for the Deck.",
+         "prospector", "prospector", 26 * 3600),
+        ("outreach", "Outreach sends", "Sends approved cold emails inside the warm-up cap, with threading.",
+         "outreach", "outreach", 15 * 60),
+        ("followups", "Follow-ups", "Drafts day-4 and day-9 follow-ups and stops a sequence when someone replies.",
+         "outreach", "followups", 2 * 3600),
+    ]),
+    ("Research", [
+        ("tenders", "Tender scan", "Reads government and development-bank tender feeds and scores fit.",
+         "tenders", "tenders", 26 * 3600),
+    ]),
+    ("Mail", [
+        ("inbox", "Inbox", "Reads er@ and the outreach mailbox, classifies replies and drafts answers.",
+         "inbox", "inbox", 15 * 60),
+        ("outbox", "Outbox", "Sends what you approved after the undo window, and verifies delivery.",
+         "outbox", "outbox", 5 * 60),
+    ]),
+    ("Reporting & safety", [
+        ("brief", "Morning brief", "Emails you the day's summary at 08:30.", "brief", "brief", 26 * 3600),
+        ("backup", "Backup", "Weekly export of every table to ~/EpsilonOS-backups.", "backup", "backup", 8 * 86400),
+        ("scheduler", "Scheduler", "Every 5 min, starts any daily job whose time has passed but has not run yet.",
+         "scheduler", "scheduler", 2 * 3600),
+        ("watchdog", "Watchdog", "Pings healthchecks.io so you are emailed if the system stops.", None, "watchdog", 3600),
+    ]),
+    ("Always on", [
+        ("dashboard", "Dashboard", "This cockpit at 127.0.0.1:8787.", "dashboard", None, 0),
+        ("keepawake", "Keep-awake", "Stops the Mac from idle-sleeping so jobs keep running.", "keepawake", None, 0),
+    ]),
+]
+PLANNED_AGENTS = [
+    ("Project worker", "Turns client tickets into briefs and plans, and does approved work in a side copy."),
+    ("Weekly updates", "Drafts each client's Friday update for your approval."),
+    ("Proposal drafter", "Drafts deal-room proposals from your packages and call notes."),
+    ("Invoice and report drafter", "Drafts invoices and R2-style delivery reports."),
+]
+_SKIP_DETAIL = {"run_id", "message_id", "mode", "state", "for", "ok"}
+
+
+def _summary(detail) -> str:
+    if not isinstance(detail, dict):
+        return ""
+    parts = []
+    for k, v in detail.items():
+        if k in _SKIP_DETAIL or isinstance(v, bool):
+            continue
+        if isinstance(v, (int, float)) and v:
+            parts.append(f"{k.replace('_', ' ')} {v:g}" if isinstance(v, float) else f"{k.replace('_', ' ')} {v}")
+        if len(parts) >= 4:
+            break
+    if detail.get("state"):
+        parts.insert(0, str(detail["state"]))
+    return " · ".join(parts)
+
+
+def _issue(detail) -> str:
+    if not isinstance(detail, dict):
+        return ""
+    if detail.get("error"):
+        return str(detail["error"])[:160]
+    for k, v in (detail.get("feeds") or {}).items():
+        if isinstance(v, str) and v.startswith("failed"):
+            return f"{k}: {v}"[:160]
+    return ""
+
+
+def agents_overview(db, now: datetime, sched_state, next_run) -> dict:
+    """Everything the Agents page shows. `sched_state(job)` and `next_run(job, last, now)` come from
+    dashboard.schedule (injected so tests can fake launchd)."""
+    from concurrent.futures import ThreadPoolExecutor
+    entries = [(cat, a) for cat, items in AGENT_CATALOG for a in items]
+    live = type(db).__name__ == "DB"
+
+    def beats(hb):
+        return db.select("agent_heartbeats", agent=hb, order="last_run.desc", limit=8) if hb else []
+
+    def launchd(job):
+        return sched_state(job) if job else None
+
+    hbs = [a[4] for _, a in entries]
+    jobs = [a[3] for _, a in entries]
+    if live:
+        with ThreadPoolExecutor(max_workers=2 * len(entries)) as ex:
+            beat_rows = list(ex.map(beats, hbs))
+            ld = list(ex.map(launchd, jobs))
+    else:
+        beat_rows, ld = [beats(h) for h in hbs], [launchd(j) for j in jobs]
+    calls: dict = {}
+    for r in db.select("actions", action="llm_call", at=f"gte.{pkt_midnight(now).isoformat()}",
+                       select="agent", limit=5000):
+        calls[r.get("agent")] = calls.get(r.get("agent"), 0) + 1
+
+    cats: dict = {}
+    counts = {"ok": 0, "amber": 0, "red": 0, "idle": 0}
+    soonest = None
+    for (cat, (key, label, what, job, hb, stale)), rows, st in zip(entries, beat_rows, ld):
+        last = rows[0] if rows else None
+        t = actions.parse_ts(last["last_run"]) if last else None
+        running = bool(st and st["running"])
+        if job and stale == 0:  # always-on services: launchd is the truth
+            state = "ok" if running else "red"
+            text = "running" if running else ("not loaded" if not (st and st["loaded"]) else "stopped")
+        elif not last:
+            state, text = ("idle", "not run yet") if (st is None or st["loaded"]) else ("red", "not installed")
+        else:
+            age = (now - t).total_seconds() if t else 1e12
+            status = last.get("status")
+            state = "red" if status == "error" else ("amber" if status == "warn" or age > stale else "ok")
+            text = {"ok": "healthy", "amber": "needs a look", "red": "failing"}[state]
+            if age > stale and status == "ok":
+                text = "overdue"
+        if job and st is not None and not st["loaded"] and stale:
+            state, text = "red", "not installed"
+        nxt, cadence = (None, "every 30 min" if key == "watchdog" else "")
+        if job and stale:
+            nxt, cadence = next_run(job, t, now)
+            if key == "followups":
+                cadence = "hourly, inside outreach"
+        if running and stale:
+            text = "running now"
+        counts[state] += 1
+        if nxt and (soonest is None or nxt < soonest[1]):
+            soonest = (label, nxt)
+        cats.setdefault(cat, []).append({
+            "key": key, "label": label, "what": what, "state": state, "text": text, "running": running,
+            "cadence": cadence, "last": ago(t, now) if t else "never", "summary": _summary(last.get("detail")) if last else "",
+            "issue": _issue(last.get("detail")) if last else "", "next": nxt, "calls": calls.get(hb or key, 0),
+            "runnable": job in ("prospector", "tenders", "brief") and not running,
+            "job": job, "history": [r.get("status") for r in rows][::-1],
+            "exit": (st or {}).get("exit"),
+        })
+    return {"categories": list(cats.items()), "counts": counts, "soonest": soonest, "planned": PLANNED_AGENTS,
+            "total": sum(counts.values())}
