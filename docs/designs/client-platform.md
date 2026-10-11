@@ -443,17 +443,58 @@ injection tickets to the golden set (evals/), 100% pass required.
 - [ ] **T9 (P2, human ~1w / CC ~2d)** worker + ticket pipeline (brief, read-only plan, worktree execute, manual commit scan, preview push) (Phase 5, EN2–EN4)
 - [ ] **T10 (P3, human ~3d / CC ~1d)** analytics + sitemap + live visitors; demo portal (Phase 6, 7)
 
+## Design system (design review 2026-10-11, approved by the founder)
+Source of truth: `~/.gstack/projects/epsilon-labs/designs/platform-v2-20261011/`. It contains `system.css`, `motion.js`, the 4 approved
+prototypes, `shots/` (41 screenshots) and `refs/` (the founder's references: Celoxis, 2IXO, Shakuro). When building, copy
+`system.css` and `motion.js` into `platform/` as the base layer and port the prototype markup into components.
+- **Direction:** light-first and airy, with frosted white panels on a warm-grey canvas, soft diffuse shadows and no hard borders.
+  The rounded outer app frame holds a rounded inset sidebar. Dark mode is secondary, switched with the sun/moon pill.
+- **Type:** Manrope (UI) and Urbanist (display numbers), with JetBrains Mono for IDs and amounts. Big numbers are light weight
+  with greyed decimals ($7,200.00).
+- **Shape:** radii 20/26/32 and pill buttons.
+- **Colour:** neutrals plus one accent. Accent choices are Coral (default, ~#D9532F), Graphite and Copper (#D2793C). Status
+  pills are tinted and carry a dot.
+- **Signature patterns:**
+  - Fanned 3D card deck: projects and invoices on the client home.
+  - KPI tiles with sparklines; an arc gauge for build progress; a trend chart with a floating tooltip.
+  - Table rows that expand inline with pill actions: tickets, and the admin approval queue.
+  - Slide-over drill-down with category cards: Files, Reports, Invoices.
+  - Bottom sheet for "New request".
+  - ⌘K command palette everywhere; undo toasts; keyboard queue (J/K/A/E/R).
+- **States, all prototyped:**
+  - Loading: skeleton shimmer.
+  - Empty: "All clear" on the queue, "No commits mentioning EL-n" for Manual mode.
+  - Error/edge: an expired OTP and resend timer.
+  - Success: accepted proposal, then deposit invoice.
+  - Offline worker: "Worker online · Mac" chip, plus "queued until the Mac is back".
+- **Responsive:** every screen fits a 390px phone with no horizontal scroll and 44px touch targets. The admin queue is
+  phone-first.
+- **Accessibility:** contrast was computed for every token pair (lowest 4.59:1), with visible focus rings and
+  `prefers-reduced-motion` honoured. Not yet emulated: reduced motion, and click-testing in dark mode. Both go to QA during
+  the build.
+- **8787:** once the platform ships, the local cockpit adopts the same system (light default). The interim Linear-style
+  Console theme (commit af4581e) is superseded.
+
+## Approved Mockups
+| Screen | Prototype | Screenshots |
+|---|---|---|
+| Client home | platform-v2-20261011/client-home.html | shots/client-home-light-1440.png, -390.png, ix-client-*.png |
+| Deal room | platform-v2-20261011/deal-room.html | shots/deal-room-light-1440.png, ix-deal-*.png |
+| Admin approval queue | platform-v2-20261011/admin-queue.html | shots/admin-queue-light-1440.png, -390.png, ix-queue-*.png |
+| Admin ticket | platform-v2-20261011/ticket.html | shots/ticket-light-1440.png, ix-ticket-*.png |
+Rejected directions are kept for the record: client-portal-20261011/ (paper/editorial, round 1) and the Linear-dark
+first pass of v2.
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
 | CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | CLEAR | 8 proposals, 6 accepted, 2 deferred |
-| Codex Review | `/codex review` | Independent 2nd opinion | 2 | ISSUES RESOLVED (claude subagent) | Spec 6/10 + eng challenge with 10 findings; 5 fixed in the doc, 5 decided by the founder (OV1–OV5) |
-| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR | 11 decisions (EN1–EN6, OV1–OV5), 38 test gaps mapped as required tests, 0 critical gaps open |
-| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+| Codex Review | `/codex review` | Independent 2nd opinion | 2 | ISSUES RESOLVED (claude subagent) | Spec 6/10 plus an eng challenge with 10 findings, all fixed or decided |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR | 11 decisions (EN1–EN6, OV1–OV5) plus the free-plan fit (F16); 38 test gaps mapped |
+| Design Review | `/plan-design-review` | UI/UX gaps | 1 | CLEAR | score 3/10 → 9/10; 2 rejected rounds, 3rd approved; design system and 4 prototypes locked |
 | DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
 
-- **CROSS-MODEL:** Both reviewers agreed on the agent sandbox, acceptance proof and build order. The founder overrode the outside voice on staging (OV3) and on agent test runs (OV2), and the accepted risks are recorded.
-- **VERDICT:** CEO + ENG CLEARED. The design review (portal + admin mockups) is next, then the build starts with OV5 step 1.
+- **VERDICT:** CEO + ENG + DESIGN CLEARED. Ready to implement, starting with OV5 step 1 (scaffold, minimal schema, isolation suite).
 
 NO UNRESOLVED DECISIONS
