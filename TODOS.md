@@ -44,3 +44,15 @@ Deferred work with context. Added by /plan-ceo-review 2026-10-09.
 - **Context:** E1 builds everything product-grade precisely so this packaging is
   cheap later. CEO plan: ~/.gstack/projects/epsilon-labs/ceo-plans/2026-10-09-epsilon-growth-engine.md
 - **Effort:** M → S with CC. **Blocked by:** Epsilon OS running + ≥1 interested buyer.
+
+## Client platform: deferred by the CEO review (2026-10-11)
+- **E7 Device fleet view** for hardware clients. Per-product integration, starting with eFuelPro: live
+  status, last reading and alerts in the client portal. Revisit in Q1 2027, once the portal is in use.
+- **E8 Client "ask about my project" assistant.** Strictly org-scoped, read-only, logged. It must only
+  quote approved dates. Revisit once real content exists and the isolation tests have run clean for a month.
+- **Lineamode admin 2FA gap** (found 2026-10-11). The TOTP code is only checked in
+  `app/api/admin/auth/login/route.ts`. Signing in directly with Supabase password auth skips it, and
+  `admins.totp_secret` is stored in plaintext. Fix: move to Supabase MFA (aal2) enforced in RLS, the same
+  as the Epsilon client platform.
+- **Project agent hardening.** Run ticket_execute under a dedicated macOS user with no access to the
+  founder's home directory. Revisit after the first 10 executed tickets.
