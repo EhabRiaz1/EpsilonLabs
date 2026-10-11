@@ -28,6 +28,7 @@ everything, including AI-proposed code changes, from any device.
 | F12 | The reliability baseline (below) is adopted in full. |
 | F13 | Approval rule: **fixed-template system messages go automatically** (login link, ticket received, status changed, invoice/report available once the founder has approved that invoice/report). **Any AI-written wording waits for the founder** (updates, replies, proposals, reports, referral asks). This refines F5. |
 | F14 | **No staging project** (founder's choice). Testing happens against live, carefully: additive-only migrations, a backup before each migration, test orgs flagged `is_test` and removed after each isolation-test run, and Vercel preview deploys for UI. |
+| F16 | Runs on the **Supabase free plan** (see "Supabase free-plan fit"). Retention jobs keep it under the caps. |
 | F15 | PDFs (invoices, reports) are **rendered on the hosted side** (headless Chromium in a server function) from the epsilon-invoice and R2 designs. The Mac is needed only for AI drafting. |
 
 ## Architecture
@@ -231,6 +232,28 @@ RLS uses one pattern for every org table:
 ticket_events also require `client_visible`. Clients are read-only on everything except via RPCs
 (create_ticket, add_comment, upload_file, approve_testimonial, accept_proposal (token), mark_read).
 Existing Epsilon OS tables get `is_staff()` policies only.
+
+## Supabase free-plan fit (checked 2026-10-11, F16)
+The founder runs the free plan. Everything in this plan fits within it:
+- **Postgres features:** triggers, functions, RLS, pg_cron and pg_net are available. pg_cron is used for
+  the expiry/cleanup jobs.
+- **Auth MFA:** TOTP is free. Phone MFA is the paid add-on and is not used.
+- **Edge Functions:** not used. Public endpoints are Vercel functions.
+- **Auth email:** the built-in SMTP sends only to team members, at about 2 per hour. Zoho custom SMTP is
+  **required** (F9). The custom-SMTP default is 30 per hour; set it to 60 per hour.
+- **Pausing:** the project pauses after 7 days of low activity. The worker's per-minute queries prevent this.
+  The watchdog alerts if the worker is silent for more than 30 min.
+- **Database cap (500 MB):** 14 MB today. Heartbeats grow about 250 MB a year, so pg_cron deletes
+  agent_heartbeats older than 14 days and site_events older than 180 days. The admin System panel shows DB
+  size and alerts at 70%.
+- **Storage cap (1 GB):** the 25 MB upload cap applies. Usage is shown in admin, which alerts at 70%.
+  Clients are asked to share big CAD/video files by link instead.
+- **Egress (5 GB):** pages and PDFs are small. Storage downloads use signed URLs.
+- **Backups:** there are no downloadable daily backups. The weekly backup job exports the tables **and the
+  Storage objects**, and runs before every migration (F14).
+- **Branching:** Pro only. Not used (F14).
+Upgrade trigger: move to Pro ($25/mo) when DB or Storage passes 70%, or when the first retainer client is
+signed (for daily backups and no pausing risk).
 
 ## Auth and tenancy
 - Staff: `staff` table (user_id, email), seeded with the founder only. `is_staff()` = in the staff table
