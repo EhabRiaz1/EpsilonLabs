@@ -39,7 +39,7 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
 
-  if (!signedIn && !isPublicPath(pathname)) {
+  if (!signedIn && !isPublicPath(pathname, site)) {
     const login = publicUrl("/login", {
       host: request.headers.get("host"),
       forwardedHost: request.headers.get("x-forwarded-host"),

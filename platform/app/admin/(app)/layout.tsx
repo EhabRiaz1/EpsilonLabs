@@ -16,7 +16,12 @@ export default async function AdminAppLayout({ children }: { children: ReactNode
       orgName="Epsilon admin"
       orgHost="admin.epsilon-labs.co"
       searchLabel="Jump to…"
-      nav={[{ href: "/", label: "Overview", icon: "home", current: true }]}
+      nav={[
+        { href: "/", label: "Overview", icon: "home" },
+        { href: "/proposals", label: "Proposals", icon: "file" },
+        { href: "/invoices", label: "Invoices", icon: "receipt" },
+        { href: "/terms", label: "Terms", icon: "shield" },
+      ]}
       status={
         staff.scope === "test" ? (
           <span className="pill pill-warn">

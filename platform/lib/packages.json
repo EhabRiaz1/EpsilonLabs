@@ -1,0 +1,245 @@
+[
+  {
+    "slug": "design-review",
+    "name": "Pre-Fab Design Review",
+    "category": "Engagements",
+    "price_from": 900,
+    "currency": "USD",
+    "price_note": "per board revision",
+    "duration": "3–5 days"
+  },
+  {
+    "slug": "protocol-decode",
+    "name": "Protocol Decode Sprint",
+    "category": "Engagements",
+    "price_from": 6000,
+    "currency": "USD",
+    "price_note": "per protocol, fixed fee",
+    "duration": "2–4 weeks"
+  },
+  {
+    "slug": "board-to-fab",
+    "name": "Board-to-Fab",
+    "category": "Engagements",
+    "price_from": 12000,
+    "currency": "USD",
+    "price_note": "typical 2–4 layer board, quoted per project",
+    "duration": "6–10 weeks"
+  },
+  {
+    "slug": "firmware-rescue",
+    "name": "Firmware Rescue",
+    "category": "Engagements",
+    "price_from": 8000,
+    "currency": "USD",
+    "price_note": "after a paid assessment, credited if you proceed",
+    "duration": "3–6 weeks"
+  },
+  {
+    "slug": "efuelpro",
+    "name": "eFuelPro",
+    "category": "Products",
+    "price_from": 650,
+    "currency": "USD",
+    "price_note": "per terminal, plus from $20 per pump per month",
+    "duration": "install in a day"
+  },
+  {
+    "slug": "epsilon1",
+    "name": "Epsilon1",
+    "category": "Platform",
+    "price_from": 650,
+    "currency": "USD",
+    "price_note": "per node, plus from $25 per node per month. OEM licensing quoted.",
+    "duration": "2–6 weeks to first vertical"
+  },
+  {
+    "slug": "device-pentest",
+    "name": "Device Penetration Test",
+    "category": "Security",
+    "price_from": 7500,
+    "currency": "USD",
+    "price_note": "per device, fixed fee",
+    "duration": "2–3 weeks"
+  },
+  {
+    "slug": "authz-review",
+    "name": "Authorisation Model Review",
+    "category": "Security",
+    "price_from": 3500,
+    "currency": "USD",
+    "price_note": "per application, fixed fee",
+    "duration": "1 week"
+  },
+  {
+    "slug": "software-pentest",
+    "name": "Software Penetration Test",
+    "category": "Security",
+    "price_from": 6000,
+    "currency": "USD",
+    "price_note": "per application, fixed fee",
+    "duration": "2 weeks"
+  },
+  {
+    "slug": "remote-decode",
+    "name": "Remote Protocol Decode",
+    "category": "Desk work",
+    "price_from": 3500,
+    "currency": "USD",
+    "price_note": "per protocol, fixed fee, from your captures",
+    "duration": "1–2 weeks"
+  },
+  {
+    "slug": "bom-audit",
+    "name": "BOM Risk Audit",
+    "category": "Desk work",
+    "price_from": 600,
+    "currency": "USD",
+    "price_note": "per BOM, up to 150 line items",
+    "duration": "3–5 days"
+  },
+  {
+    "slug": "footprint",
+    "name": "Datasheet to Footprint",
+    "category": "Desk work",
+    "price_from": 180,
+    "currency": "USD",
+    "price_note": "per part, symbol + footprint + 3D",
+    "duration": "2–3 days"
+  },
+  {
+    "slug": "epsilon1-kit",
+    "name": "Epsilon1 Design Package",
+    "category": "Platform",
+    "price_from": 2500,
+    "currency": "USD",
+    "price_note": "one-off licence, delivered on purchase",
+    "duration": "immediate"
+  },
+  {
+    "slug": "bookings",
+    "name": "Booking & Scheduling",
+    "category": "Software",
+    "price_from": 8000,
+    "currency": "USD",
+    "price_note": "build, then optional hosting from $150 per month",
+    "duration": "4–6 weeks"
+  },
+  {
+    "slug": "quote-engine",
+    "name": "Quote Engine",
+    "category": "Software",
+    "price_from": 6000,
+    "currency": "USD",
+    "price_note": "build, per product family",
+    "duration": "3–5 weeks"
+  },
+  {
+    "slug": "ops-analyst",
+    "name": "Ops Analyst",
+    "category": "Software",
+    "price_from": 9000,
+    "currency": "USD",
+    "price_note": "build, plus your own model usage",
+    "duration": "4–6 weeks"
+  },
+  {
+    "slug": "dashboards",
+    "name": "Sales & Admin Dashboards",
+    "category": "Software",
+    "price_from": 5000,
+    "currency": "USD",
+    "price_note": "build, per dashboard",
+    "duration": "3–4 weeks"
+  },
+  {
+    "slug": "inventory",
+    "name": "Inventory & Stock",
+    "category": "Software",
+    "price_from": 7000,
+    "currency": "USD",
+    "price_note": "build",
+    "duration": "4–6 weeks"
+  },
+  {
+    "slug": "crm",
+    "name": "CRM & Case Management",
+    "category": "Software",
+    "price_from": 7000,
+    "currency": "USD",
+    "price_note": "build",
+    "duration": "4–6 weeks"
+  },
+  {
+    "slug": "marketplace",
+    "name": "Marketplaces",
+    "category": "Software",
+    "price_from": 12000,
+    "currency": "USD",
+    "price_note": "build",
+    "duration": "6–10 weeks"
+  },
+  {
+    "slug": "mobile-apps",
+    "name": "Mobile Apps",
+    "category": "Software",
+    "price_from": 10000,
+    "currency": "USD",
+    "price_note": "build, iOS and Android",
+    "duration": "6–10 weeks"
+  },
+  {
+    "slug": "digital-twin",
+    "name": "Digital Twins",
+    "category": "Frontier",
+    "price_from": 15000,
+    "currency": "USD",
+    "price_note": "first site; further sites of the same type quoted per site",
+    "duration": "6–10 weeks"
+  },
+  {
+    "slug": "robotics-infra",
+    "name": "Robot-Learning Infrastructure",
+    "category": "Frontier",
+    "price_from": 12000,
+    "currency": "USD",
+    "price_note": "setup, then optional monthly operation",
+    "duration": "3–6 weeks"
+  },
+  {
+    "slug": "sensing",
+    "name": "Sensing & Calibration",
+    "category": "Frontier",
+    "price_from": 9000,
+    "currency": "USD",
+    "price_note": "per sensing system",
+    "duration": "4–8 weeks"
+  },
+  {
+    "slug": "plant-visibility-pilot",
+    "name": "Plant Visibility Pilot",
+    "category": "Engagements",
+    "price_from": 18000,
+    "currency": "USD",
+    "price_note": "per site, 5–10 monitored machines, 40/40/20",
+    "duration": "6 weeks"
+  },
+  {
+    "slug": "hardware-rescue",
+    "name": "Hardware Rescue",
+    "category": "Engagements",
+    "price_from": 20000,
+    "currency": "USD",
+    "price_note": "firmware rescue plus one board respin to fab, 40/40/20",
+    "duration": "8 weeks"
+  },
+  {
+    "slug": "ops-software-build",
+    "name": "Ops Software Build",
+    "category": "Engagements",
+    "price_from": 22000,
+    "currency": "USD",
+    "price_note": "inventory + CRM + dashboards as one system, 40/40/20",
+    "duration": "8 weeks"
+  }
+]

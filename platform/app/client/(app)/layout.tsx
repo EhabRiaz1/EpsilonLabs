@@ -15,7 +15,7 @@ export default async function ClientAppLayout({ children }: { children: ReactNod
       orgName={org?.name ?? "Your portal"}
       orgHost="client.epsilon-labs.co"
       searchLabel="Search or jump to…"
-      nav={[{ href: "/", label: "Home", icon: "home", current: true }]}
+      nav={[{ href: "/", label: "Home", icon: "home" }]}
       user={{
         name,
         detail: org ? `${org.role === "owner" ? "Owner" : "Member"} · ${org.name}` : (claims.email ?? ""),

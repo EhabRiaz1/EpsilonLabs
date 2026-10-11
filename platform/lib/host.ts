@@ -46,9 +46,21 @@ export function internalPath(site: Site, pathname: string): string {
   return p === "/" ? `/${site}` : `/${site}${p}`;
 }
 
-/** Paths reachable without a session. Everything else redirects to /login. */
-export function isPublicPath(pathname: string): boolean {
-  return pathname === "/login" || pathname.startsWith("/login/") || pathname.startsWith("/auth/");
+/**
+ * Paths reachable without a session. Everything else redirects to /login. On client.* the deal room (/p/<token>,
+ * where the token is the credential) and the published contract terms (/legal/*.pdf) are public too.
+ */
+export function isPublicPath(pathname: string, site?: Site): boolean {
+  if (pathname === "/login" || pathname.startsWith("/login/") || pathname.startsWith("/auth/")) return true;
+  return site === "client" && (/^\/p\/[^/]+$/.test(pathname) || /^\/legal\/[A-Za-z0-9._-]+\.pdf$/.test(pathname));
+}
+
+/** The client.* origin that matches an admin.* request (links admin sends to prospects). */
+export function clientOrigin(h: { host?: string | null; forwardedHost?: string | null; forwardedProto?: string | null }): string {
+  const host = (h.forwardedHost || h.host || "").toLowerCase();
+  const dev = /^admin\.localhost(:\d+)?$/.exec(host);
+  if (dev) return `${h.forwardedProto || "http"}://client.localhost${dev[1] ?? ""}`;
+  return "https://client.epsilon-labs.co";
 }
 
 /**

@@ -1,12 +1,11 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { signOut } from "@/lib/auth-actions";
 import { Icon } from "./Icon";
-import type { IconName } from "./icons";
+import { NavLinks, type NavItem } from "./NavLinks";
 import { ThemePill } from "./ThemePill";
 import { CloseMenuButton, SearchButton } from "./ShellControls";
 
-export type NavItem = { href: string; label: string; icon: IconName; current?: boolean; count?: number };
+export type { NavItem };
 
 /** The approved shell: rounded outer frame, frosted inset sidebar, theme pill in the sidebar foot. */
 export function Shell(props: {
@@ -32,13 +31,7 @@ export function Shell(props: {
           <CloseMenuButton />
         </div>
         <SearchButton label={props.searchLabel} />
-        {props.nav.map((n) => (
-          <Link key={n.href} className="nav-item" href={n.href} aria-current={n.current ? "page" : undefined}>
-            <Icon name={n.icon} />
-            {n.label}
-            {n.count !== undefined && <span className="count">{n.count}</span>}
-          </Link>
-        ))}
+        <NavLinks items={props.nav} />
         <div className="sb-foot">
           <div className="row between" style={{ padding: "0 6px" }}>
             <ThemePill />
