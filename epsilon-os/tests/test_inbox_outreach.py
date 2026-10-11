@@ -174,3 +174,11 @@ def test_not_interested_reply_marks_the_deal_lost(db):
     inbox.run(db, FakeMail(), ask, outreach_mail=outreach_box(reply(body="No thanks, we have this covered in-house.")))
     d = db.rows("deals")[0]
     assert d["stage"] == "lost" and d["lost_reason"] == "not interested"
+
+
+def test_platform_notification_mail_to_er_is_ignored_not_triaged(db):
+    er = FakeMail()
+    er.add_raw(eml("Epsilon Labs <notifications@epsilon-labs.co>", "Your sign-in link", "Click to sign in.", "<n1@epsilon-labs.co>"))
+    inbox.run(db, er, FakeAsk(), outreach_mail=FakeMail())
+    t = db.rows("touches")[0]
+    assert t["direction"] == "internal" and not db.rows("approval_queue")

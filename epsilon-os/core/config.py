@@ -5,6 +5,7 @@ SUPABASE_URL = "https://lueawvqogdodtjsfqdeh.supabase.co"
 SUPABASE_ACCOUNT = "lueawvqogdodtjsfqdeh"
 TZ = "Asia/Karachi"
 ER = "er@epsilon-labs.co"
+NOTIFICATIONS = "notifications@epsilon-labs.co"  # client-platform system mail (login links, alerts); never a lead
 IMAP_HOST, IMAP_PORT = "imappro.zoho.com", 993
 SMTP_HOST, SMTP_PORT = "smtppro.zoho.com", 465
 DAILY_LLM_CALL_BUDGET = 250  # fallback only; the live value is settings llm.daily_budget

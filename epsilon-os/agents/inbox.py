@@ -480,7 +480,7 @@ def run(db: DB | None = None, mail_mod=mail, ask=llm.ask, mode: str = "all", fet
         box, addr = _outreach_box(db)
     else:
         box, addr = outreach_mail, settings.outreach_address(db)
-    S.own = (addr,) if addr else ()
+    S.own = ((addr,) if addr else ()) + (config.NOTIFICATIONS,)
     try:
         messages = mail_mod.fetch_new(fetch_days)
     except (TimeoutError, OSError, imaplib.IMAP4.abort) as e:
