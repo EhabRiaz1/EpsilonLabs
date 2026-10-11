@@ -1,0 +1,33 @@
+/* Platform layer on top of the approved design system (styles/system.css). Tokens only; no new colours. */
+
+/* signed-out screens: same frame and canvas as .app, one centred panel */
+.auth {
+  min-height: calc(100vh - var(--frame-pad) * 2); margin: var(--frame-pad);
+  background: var(--canvas); border-radius: var(--r-xl); padding: 24px 16px;
+  box-shadow: inset 0 0 0 1px var(--hairline), 0 30px 80px -40px rgba(27, 26, 24, .35);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+}
+.auth-card { width: min(440px, 100%); padding: 30px 28px 26px; border-radius: var(--r-lg); box-shadow: var(--shadow-md); animation: enter var(--d-slow) var(--ease) both; }
+.auth-title { font-size: var(--t-28); }
+.auth-sub { color: var(--text-2); font-size: var(--t-13); margin-top: 8px; line-height: 1.55; }
+.auth-foot { display: flex; align-items: center; gap: 12px; }
+.auth-error { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 14px; border-radius: 14px; font-size: var(--t-13); color: var(--bad); background: color-mix(in srgb, var(--bad) 9%, transparent); }
+.resend-line { margin-top: 18px; text-align: center; font-size: var(--t-12); color: var(--text-3); }
+.link-btn { background: none; border: 0; padding: 0; color: var(--accent-text); font-weight: 600; cursor: pointer; font-size: inherit; }
+.link-btn:disabled { color: var(--text-3); cursor: default; }
+.mfa-qr { display: flex; gap: 18px; align-items: center; margin-top: 20px; padding: 14px; border-radius: 18px; background: var(--surface-2); }
+.mfa-qr img { display: block; border-radius: 12px; background: #fff; padding: 6px; flex: none; }
+.mfa-secret { display: block; margin-top: 8px; font-size: var(--t-12); color: var(--ink); word-break: break-all; line-height: 1.6; }
+
+/* home placeholders */
+.home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.proj { padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
+.proj .title { font-weight: 600; font-size: var(--t-16); color: var(--ink); }
+.empty h2 { font-size: var(--t-22); }
+
+@media (max-width: 960px) {
+  .auth { margin: 0; border-radius: 0; min-height: 100vh; box-shadow: none; }
+  .auth-card { padding: 24px 20px 22px; }
+  .mfa-qr { flex-direction: column; align-items: flex-start; }
+  .otp input { width: 42px; height: 52px; }
+}

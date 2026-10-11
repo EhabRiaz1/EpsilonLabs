@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  epsilon-os:
+    name: epsilon-os (pytest, offline)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: epsilon-os
+    services:
+      # test_migration.py / test_platform_migration.py apply the schema to a real Postgres (with a stub auth schema).
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: epsilon-os/requirements.txt
+      - run: pip install -r requirements.txt
+      # The live isolation suite (marker `live`) skips itself unless EOS_LIVE_TESTS=1.
+      - run: python -m pytest -q tests
+
+  platform:
+    name: platform (lint, build, vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: platform/package-lock.json
+      - run: npm ci
+      # publishable values only (F11)
+      - run: cp .env.example .env.local
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
