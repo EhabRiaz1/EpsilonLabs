@@ -106,7 +106,7 @@ export function toInvoice(row: InvoiceRow, issuer: IssuerDetails): Invoice {
     currency: row.currency,
     mark: "ε",
     company: "Epsilon Labs AI Solutions",
-    companySuffix: "(SMC-Private) Limited",
+    companySuffix: "(SMC-PVT) Ltd.",
     address: issuer.address,
     email: issuer.email,
     regLine: issuer.regLine,
@@ -280,6 +280,6 @@ export function parseIssuerDetails(raw: string | undefined): IssuerDetails | nul
     payRows,
     bankName: str(o.bankName),
     bankAddress: str(o.bankAddress),
-    footerText: str(o.footerText) || "Epsilon Labs AI Solutions (SMC-Private) Limited",
+    footerText: str(o.footerText) || "Epsilon Labs AI Solutions (SMC-PVT) Ltd.",
   };
 }

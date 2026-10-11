@@ -20,6 +20,6 @@ export function invoiceHtml(row: InvoiceRow): string | null {
 export function invoicePreviewHtml(row: InvoiceRow): { html: string; configured: boolean } {
   const issuer = issuerDetails();
   if (issuer) return { html: invoiceDocument(toInvoice(row, issuer)), configured: true };
-  const placeholder = { address: "Issuer address not configured (INVOICE_DETAILS_JSON)", email: "er@epsilon-labs.co", regLine: "", payHint: "", payRows: [], bankName: "", bankAddress: "", footerText: "Epsilon Labs AI Solutions (SMC-Private) Limited" };
+  const placeholder = { address: "Issuer address not configured (INVOICE_DETAILS_JSON)", email: "er@epsilon-labs.co", regLine: "", payHint: "", payRows: [], bankName: "", bankAddress: "", footerText: "Epsilon Labs AI Solutions (SMC-PVT) Ltd." };
   return { html: invoiceDocument(toInvoice(row, placeholder)), configured: false };
 }
