@@ -1,0 +1,554 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Epsilon Labs — Services Agreement (T-2026-1)</title>
+<style>
+  @page { size: A4; margin: 22mm 20mm; }
+
+  :root {
+    --ink: #111111;
+    --muted: #5a5a5a;
+    --rule: #d8d8d8;
+    --soft: #f4f2ee;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12.5pt;
+    line-height: 1.55;
+    color: var(--ink);
+    background: #ffffff;
+    margin: 0;
+    padding: 0 28px 64px;
+    max-width: 900px;
+    margin-inline: auto;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead { text-align: center; padding: 56px 0 22px; }
+  .logo { display: block; margin: 0 auto 14px; }
+  .wordmark {
+    font-size: 12pt; letter-spacing: 0.42em; text-transform: uppercase;
+    color: var(--ink); margin: 0 0 4px; padding-left: 0.42em;
+    text-align: center;
+  }
+  .tagline {
+    font-size: 9.5pt; letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--muted); margin: 0; padding-left: 0.24em;
+    text-align: center;
+  }
+
+  .doc-title {
+    text-align: center; font-size: 25pt; font-weight: normal;
+    margin: 40px 0 6px; letter-spacing: 0.01em;
+  }
+  .doc-sub { text-align: center; font-size: 13pt; color: var(--muted); margin: 0 0 6px; font-style: italic; }
+  .doc-meta { text-align: center; font-size: 10.5pt; color: var(--muted); margin: 0 0 34px; }
+
+  .divider { border: 0; border-top: 1px solid var(--rule); margin: 30px 0; }
+  .divider-thin { border: 0; border-top: 1px solid var(--rule); margin: 18px 0; }
+
+  /* ---------- headings ---------- */
+  h1.section {
+    text-align: center; font-size: 17pt; font-weight: bold;
+    margin: 46px 0 6px; letter-spacing: 0.02em;
+    break-after: avoid; page-break-after: avoid;
+  }
+  h1.section + .section-rule {
+    width: 68px; border: 0; border-top: 2px solid var(--ink);
+    margin: 0 auto 24px;
+    break-after: avoid; page-break-after: avoid;
+  }
+  h2 { text-align: center; font-size: 14.5pt; font-weight: bold; margin: 32px 0 14px; }
+  h3 { font-size: 13pt; font-weight: bold; margin: 22px 0 8px; text-align: left; break-after: avoid; }
+  h4 { font-size: 12.5pt; font-weight: bold; margin: 16px 0 6px; font-style: italic; break-after: avoid; }
+
+  p { margin: 0 0 11px; text-align: justify; }
+  ul, ol { margin: 0 0 12px; padding-left: 22px; }
+  li { margin-bottom: 5px; }
+
+  code, .mono {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10pt; background: var(--soft); padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* ---------- contract clauses ---------- */
+  .cl { position: relative; padding-left: 3.2em; margin: 0 0 11px; text-align: justify; orphans: 3; widows: 3; }
+  .cl > .n { position: absolute; left: 0; top: 0; }
+  .cl.sub { padding-left: 5.6em; margin-bottom: 7px; }
+  .cl.sub > .n { left: 3.2em; }
+  .cl + .cl:not(.sub) { margin-top: 0; }
+  .sub + .cl:not(.sub) { margin-top: 11px; }
+  .term { font-weight: bold; }
+  .ph {
+    font-family: "Times New Roman", Times, serif; font-size: 0.92em; letter-spacing: 0.04em;
+    background: var(--soft); padding: 0 3px;
+  }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 11.5pt; }
+  th {
+    text-align: left; border-bottom: 1.5px solid var(--ink); padding: 7px 9px;
+    font-weight: bold; vertical-align: bottom;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 7px 9px; vertical-align: top; }
+  tr { break-inside: avoid; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  td.k { width: 34%; color: var(--muted); }
+  table.record td { font-size: 11pt; }
+  table.record td.v { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9.5pt; word-break: break-all; }
+
+  /* ---------- blocks ---------- */
+  .callout {
+    background: var(--soft); border-left: 3px solid var(--ink);
+    padding: 13px 17px; margin: 18px 0; font-size: 11.5pt;
+    break-inside: avoid;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label {
+    display: block; font-size: 9.5pt; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 5px;
+  }
+  .callout.note { margin-left: 3.2em; }
+  .callout.note p { font-style: italic; }
+
+  .toc { margin: 0 auto 10px; max-width: 560px; }
+  .toc ol { padding-left: 26px; }
+  .toc h2 { margin-top: 8px; }
+  .toc li { margin-bottom: 0; line-height: 1.45; }
+  .toc ul { list-style: none; padding-left: 0; margin-top: 8px; margin-bottom: 0; }
+
+  .page-break { page-break-before: always; break-before: page; }
+
+  .parties { max-width: 600px; margin: 0 auto 26px; }
+  .parties td:first-child { width: 30%; color: var(--muted); }
+
+  .counsel {
+    text-align: center; font-size: 10pt; color: var(--muted); font-style: italic;
+    margin: 34px auto 0; max-width: 520px;
+  }
+
+  .sig { display: flex; gap: 36px; margin: 20px 0 10px; break-inside: avoid; }
+  .sig > div { flex: 1 1 0; }
+  .sig h4 { font-style: normal; letter-spacing: 0.14em; text-transform: uppercase; font-size: 10pt; font-weight: normal; color: var(--muted); margin: 0 0 6px; }
+  .sig .line { border-bottom: 1px solid var(--ink); height: 34px; margin-bottom: 3px; }
+  .sig .cap { font-size: 9.5pt; color: var(--muted); margin: 0 0 10px; text-align: left; }
+
+  .footer-note {
+    text-align: center; font-size: 10pt; color: var(--muted);
+    border-top: 1px solid var(--rule); padding-top: 16px; margin-top: 50px;
+  }
+</style>
+
+
+<!-- ===================== COVER ===================== -->
+
+<div class="masthead">
+  <svg class="logo" width="46" height="52" viewBox="0 0 46 52" aria-label="Epsilon Labs">
+    <text x="23" y="40" text-anchor="middle"
+          font-family="Times New Roman, Times, serif" font-size="46" fill="#111111">&#949;</text>
+  </svg>
+  <p class="wordmark">Epsilon Labs</p>
+  <p class="tagline">Hardware &amp; Software Engineering</p>
+</div>
+
+<hr class="divider">
+
+<h1 class="doc-title">Services Agreement</h1>
+<p class="doc-sub">Master terms accepted by reference in every Epsilon Labs Proposal</p>
+<p class="doc-meta">Prepared for clients of Epsilon Labs &middot; Terms version T-2026-1 &middot; October 2026</p>
+
+<table class="parties">
+  <tr><th colspan="2">Parties</th></tr>
+  <tr><td>Supplier</td><td><span class="ph">[LEGAL ENTITY NAME]</span>, trading as Epsilon Labs, registration no. <span class="ph">[REGISTRATION NO.]</span>, of <span class="ph">[REGISTERED ADDRESS]</span>, Lahore, Pakistan</td></tr>
+  <tr><td>Contact</td><td>Ehab Riaz, Founder &middot; er@epsilon-labs.co &middot; epsilon-labs.co</td></tr>
+  <tr><td>Client</td><td>The organisation named in the accepted Proposal</td></tr>
+  <tr><td>Terms version</td><td>T-2026-1</td></tr>
+</table>
+
+<div class="callout note" style="margin-left:auto; margin-right:auto; max-width:600px;">
+  <span class="label">Drafting note &mdash; founder to confirm</span>
+  <p>[Insert the contracting entity&rsquo;s exact legal name, registered address and registration number before first use. Do not publish this version with the placeholders in place.]</p>
+</div>
+
+<p class="counsel">Template for review by qualified counsel before first use.</p>
+
+
+<!-- ===================== CONTENTS ===================== -->
+
+<div class="page-break"></div>
+
+<div class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li>Parties and Structure</li>
+    <li>Definitions</li>
+    <li>Proposals and Electronic Acceptance</li>
+    <li>Scope and Change Requests</li>
+    <li>Client Responsibilities</li>
+    <li>Fees and Payment</li>
+    <li>Hardware and Third-Party Components</li>
+    <li>Acceptance</li>
+    <li>Warranty</li>
+    <li>Intellectual Property</li>
+    <li>Confidentiality</li>
+    <li>Data Protection</li>
+    <li>Security, AI and Tooling</li>
+    <li>Publicity</li>
+    <li>Liability</li>
+    <li>Term and Termination</li>
+    <li>Non-Solicitation</li>
+    <li>Independent Contractor and Subcontractors</li>
+    <li>Force Majeure</li>
+    <li>Notices</li>
+    <li>Governing Law and Disputes</li>
+    <li>General</li>
+  </ol>
+  <ul>
+    <li>Schedule A &mdash; Proposal Acceptance and Signature Record</li>
+    <li>Schedule B &mdash; Payment Schedule Example</li>
+  </ul>
+</div>
+
+<div class="callout">
+  <span class="label">How to read this agreement</span>
+  <p>
+    This is the standing set of terms behind every piece of work we do. The Proposal you accept
+    says what we will build, when, and for how much; this agreement says how we work together
+    while we do it. We have written it in plain English and kept it balanced, because we would
+    rather you read it than skim it. Where &ldquo;we&rdquo; or &ldquo;us&rdquo; appears, it means
+    Epsilon Labs; &ldquo;you&rdquo; means the Client.
+  </p>
+</div>
+
+
+<!-- ===================== CLAUSES ===================== -->
+
+<div class="page-break"></div>
+
+<h1 class="section">1. Parties and Structure</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">1.1</span>This Services Agreement (the <span class="term">&ldquo;Agreement&rdquo;</span>) is made between <span class="ph">[LEGAL ENTITY NAME]</span>, trading as Epsilon Labs (<span class="term">&ldquo;Epsilon Labs&rdquo;</span>, <span class="term">&ldquo;we&rdquo;</span>, <span class="term">&ldquo;us&rdquo;</span>), and the organisation named as the client in a Proposal (the <span class="term">&ldquo;Client&rdquo;</span>, <span class="term">&ldquo;you&rdquo;</span>).</p>
+<p class="cl"><span class="n">1.2</span>Each Proposal you accept forms a separate contract made up of that Proposal and this Agreement, in the terms version stated in the Proposal. Accepting a Proposal is how this Agreement comes into force between us; no separate signature of this Agreement is needed.</p>
+<p class="cl"><span class="n">1.3</span>If documents conflict, they take priority in this order: (a) terms written specifically into the Proposal, including any special conditions; then (b) this Agreement. The terms of any purchase order, vendor registration form, supplier code or similar document you issue are expressly excluded and have no effect, even if we sign, acknowledge or invoice against it. A purchase order number may be quoted on our invoices for your administrative convenience only.</p>
+<p class="cl"><span class="n">1.4</span>We provide services to businesses only. You confirm that you are entering into each Proposal in the course of a business and not as a consumer.</p>
+
+<h1 class="section">2. Definitions</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">2.1</span>In this Agreement the following words have these meanings:</p>
+<p class="cl sub"><span class="n">(a)</span><span class="term">&ldquo;Acceptance&rdquo;</span> means your acceptance of a Deliverable or Milestone under clause 8, including deemed acceptance; <span class="term">&ldquo;Accepted&rdquo;</span> has a corresponding meaning.</p>
+<p class="cl sub"><span class="n">(b)</span><span class="term">&ldquo;Background IP&rdquo;</span> means all intellectual property owned or licensed by us before a Proposal or developed independently of it, including our libraries, firmware frameworks, board templates, tools, scripts, methods and know-how, and any general improvements to them.</p>
+<p class="cl sub"><span class="n">(c)</span><span class="term">&ldquo;Business Day&rdquo;</span> means a day other than a Saturday, Sunday or public holiday in Lahore, Pakistan or in the place where the Client is established.</p>
+<p class="cl sub"><span class="n">(d)</span><span class="term">&ldquo;Change Request&rdquo;</span> means a request by either party to change the scope, Deliverables, timeline, acceptance criteria or fees of a Proposal.</p>
+<p class="cl sub"><span class="n">(e)</span><span class="term">&ldquo;Client Materials&rdquo;</span> means everything you or your contractors provide to us, including data, source code, documentation, designs, specifications, credentials, equipment, test hardware and site access.</p>
+<p class="cl sub"><span class="n">(f)</span><span class="term">&ldquo;Deliverables&rdquo;</span> means the software, firmware, hardware designs, documents, reports and other outputs we are to provide under a Proposal.</p>
+<p class="cl sub"><span class="n">(g)</span><span class="term">&ldquo;Hardware&rdquo;</span> means physical goods we supply under a Proposal, including printed circuit boards, assembled devices, enclosures, sensors, modules and purchased components.</p>
+<p class="cl sub"><span class="n">(h)</span><span class="term">&ldquo;Milestone&rdquo;</span> means a defined stage of work named in a Proposal, usually linked to a payment.</p>
+<p class="cl sub"><span class="n">(i)</span><span class="term">&ldquo;Portal&rdquo;</span> means our online client portal, through which Proposals are viewed and accepted, tickets and Change Requests are raised, and invoices, reports and files are shared.</p>
+<p class="cl sub"><span class="n">(j)</span><span class="term">&ldquo;Proposal&rdquo;</span> means a statement of work issued by us, identified by a proposal ID and version, describing the services, Deliverables, Milestones, acceptance criteria, timeline and fees.</p>
+<p class="cl"><span class="n">2.2</span>&ldquo;Including&rdquo; means including without limitation. &ldquo;In writing&rdquo; includes email and messages or approvals recorded in the Portal. Headings are for convenience only.</p>
+
+<h1 class="section">3. Proposals and Electronic Acceptance</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">3.1</span>A Proposal is an offer open for the period stated in it (or 30 days if none is stated). Once issued, a Proposal version is frozen; any change produces a new version and withdraws the earlier one.</p>
+<p class="cl"><span class="n">3.2</span>You accept a Proposal in the Portal by typing the full name of the person accepting and entering the 6-digit code we email to the addressee of the Proposal. You agree that this process is a binding electronic signature on your behalf, with the same effect as a handwritten signature, and that the person accepting has authority to bind you.</p>
+<p class="cl"><span class="n">3.3</span>On acceptance we keep a record containing: the typed name; the email address the code was sent to; the date and time in UTC; the IP address and browser user agent; the proposal ID and version; the terms version; and a SHA-256 hash of the exact Proposal version together with the terms version. The record is shown in Schedule A. Both parties agree that this record is admissible evidence of acceptance and of the exact documents accepted. The IP address is kept only as evidence of the contract and is not used for analytics or marketing.</p>
+<p class="cl"><span class="n">3.4</span>If you prefer, a Proposal may instead be signed by hand or by a recognised e-signature service using the signature block in Schedule A. A Proposal may be signed in any number of counterparts, each of which is an original and which together form one document.</p>
+<p class="cl"><span class="n">3.5</span>We may publish new versions of this Agreement. A new version applies only to Proposals that state it; it never changes the terms of a Proposal you have already accepted.</p>
+
+<h1 class="section">4. Scope and Change Requests</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">4.1</span>We will perform the services described in each Proposal with reasonable skill and care and in line with good industry practice. Anything not described in the Proposal is outside its scope.</p>
+<p class="cl"><span class="n">4.2</span>Either party may raise a Change Request. You raise one by opening a ticket in the Portal. We will respond with a written quote setting out the effect on fees, timeline and any other terms before any change work begins.</p>
+<p class="cl"><span class="n">4.3</span>A Change Request takes effect only once both parties confirm it in writing; approval of the quote in the Portal counts. We will not start work on a change until it is approved, and we will not charge for unapproved work.</p>
+<p class="cl"><span class="n">4.4</span>Small clarifications that do not affect fees, timeline or acceptance criteria may be agreed in a Portal ticket without a formal quote.</p>
+
+<h1 class="section">5. Client Responsibilities</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">5.1</span>You will, in good time and at your own cost:</p>
+<p class="cl sub"><span class="n">(a)</span>give us the access, credentials, information and documentation we reasonably need, and make sure it is accurate;</p>
+<p class="cl sub"><span class="n">(b)</span>provide any test hardware, equipment, environments and site access set out in the Proposal, and keep site visits safe, including inductions, permits and supervision required at your premises;</p>
+<p class="cl sub"><span class="n">(c)</span>name a contact with authority to make decisions, and make decisions and give approvals promptly; and</p>
+<p class="cl sub"><span class="n">(d)</span>ensure you have the rights to provide the Client Materials and for us to use them for the services.</p>
+<p class="cl"><span class="n">5.2</span>You remain responsible for the safe operation of your plant, machines, vehicles and systems, including isolation and lock-out before we connect to equipment, and for the backup of your own data and systems.</p>
+<p class="cl"><span class="n">5.3</span>If you or your contractors delay us or do not meet these responsibilities, the affected dates move by a reasonable period. We will tell you promptly. Where the delay causes us extra cost or idle time, such as rebooked travel or reserved engineering time that cannot be reassigned, we may charge it at the rates in the Proposal after telling you in writing.</p>
+
+<h1 class="section">6. Fees and Payment</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">6.1</span><span class="term">Schedule.</span> Unless the Proposal states otherwise, fixed fees are invoiced 40% on acceptance of the Proposal, 40% on completion of the Milestone named in the Proposal, and 20% on final Acceptance. An example is set out in Schedule B. Work begins once the first invoice is paid.</p>
+<p class="cl"><span class="n">6.2</span><span class="term">Due date and method.</span> Invoices are due within 14 days of the invoice date. Fees are in the currency stated in the Proposal, or US dollars if none is stated. Payment is by bank transfer or Wise to the account shown on the invoice. We will never ask you to change payment details by email alone; confirm any change with us by phone or in the Portal before paying.</p>
+<p class="cl"><span class="n">6.3</span><span class="term">Bank charges.</span> You bear your own bank and transfer charges, so that we receive the full invoiced amount. Intermediary charges are shared where your bank&rsquo;s system allows that option.</p>
+<p class="cl"><span class="n">6.4</span><span class="term">Late payment.</span> If an undisputed invoice is more than 7 days overdue, we may pause work after giving you written notice, and dates move by the length of the pause. We may also charge interest on overdue amounts at 1% per month (or, if lower, the maximum rate permitted by law), from the due date until payment. If you dispute an invoice in good faith, tell us within the payment period, pay the undisputed part, and we will resolve the rest under clause 21.</p>
+<p class="cl"><span class="n">6.5</span><span class="term">Taxes.</span> Fees exclude VAT, sales tax, goods and services tax and similar taxes, which are added where applicable. If you are required by law to withhold or deduct tax from a payment, you will pay such additional amount that we receive the full sum we would have received without the withholding, unless the Proposal states otherwise. You will give us the official receipt or certificate for any amount withheld.</p>
+
+<div class="callout note">
+  <span class="label">Drafting note &mdash; founder to confirm</span>
+  <p>[Confirm the withholding-tax gross-up as the default. Some larger clients will not gross up; the alternative is to price the expected withholding into the Proposal and state &ldquo;no gross-up&rdquo; there. Also confirm that 1% per month is acceptable across target markets; the &ldquo;maximum permitted by law&rdquo; fallback protects enforceability.]</p>
+</div>
+
+<p class="cl"><span class="n">6.6</span><span class="term">Retainers.</span> Where a Proposal is a retainer:</p>
+<p class="cl sub"><span class="n">(a)</span>it covers the number of engineering hours per month stated in the Proposal and is invoiced monthly in advance;</p>
+<p class="cl sub"><span class="n">(b)</span>unused hours do not roll over to the next month unless the Proposal states otherwise;</p>
+<p class="cl sub"><span class="n">(c)</span>hours beyond the monthly allowance are charged at the overage rate in the Proposal and invoiced with the next monthly invoice; we will tell you before you reach the allowance; and</p>
+<p class="cl sub"><span class="n">(d)</span>we record time against tickets in the Portal so you can see how the hours were used.</p>
+<p class="cl"><span class="n">6.7</span><span class="term">Expenses.</span> Travel and other expenses are charged only where the Proposal provides for them or you approve them in advance, and at cost.</p>
+
+<h1 class="section">7. Hardware and Third-Party Components</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">7.1</span><span class="term">Pricing.</span> Bill-of-materials, component, fabrication and assembly costs are passed through either at the price stated in the Proposal or at our cost plus the margin stated in the Proposal. Where component prices or exchange rates move materially before we order, we will tell you and agree the change before ordering.</p>
+<p class="cl"><span class="n">7.2</span><span class="term">Title and risk.</span> Title to Hardware passes to you when we have received full payment for that Hardware. Risk of loss or damage passes to you on delivery to the address in the Proposal, or on handover at your site where we install it. Until title passes, you will keep the Hardware identifiable and insured.</p>
+<p class="cl"><span class="n">7.3</span><span class="term">Lead times.</span> Component lead times, allocation, shortages, courier and customs delays are outside our control. Delivery dates for Hardware are estimates; we will keep you informed, propose alternatives where a part is unavailable, and agree substitutes with you before using them where they could affect form, fit or function.</p>
+<p class="cl"><span class="n">7.4</span><span class="term">Manufacturer warranties.</span> Third-party components and purchased equipment carry their manufacturers&rsquo; warranties, which we pass through to you to the extent we are able. Our own warranty in clause 9 covers our workmanship and designs, not defects in third-party parts.</p>
+<p class="cl"><span class="n">7.5</span><span class="term">Certification.</span> Regulatory testing and certification (such as CE, FCC, UKCA, IC or RCM marking, safety, EMC or radio approvals) is included only if the Proposal lists it. Unless so listed, Hardware is supplied as engineering prototypes or pilot units for evaluation and controlled use, and you are responsible for any certification needed before wider sale or deployment.</p>
+<p class="cl"><span class="n">7.6</span><span class="term">Import.</span> Unless the Proposal states otherwise, you act as importer of record and are responsible for import duties, taxes and clearance in your country.</p>
+
+<h1 class="section">8. Acceptance</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">8.1</span>When a Deliverable or Milestone is ready, we will notify you in the Portal and test it, or help you test it, against the acceptance criteria in the Proposal. Where the Proposal has no specific criteria, the test is whether the Deliverable materially conforms to its description in the Proposal.</p>
+<p class="cl"><span class="n">8.2</span>Within 5 Business Days of notification you will either accept or give us a written list of material defects, meaning failures to meet the acceptance criteria, with enough detail for us to reproduce them.</p>
+<p class="cl"><span class="n">8.3</span>The Deliverable or Milestone is treated as Accepted if (a) you do not respond within that period, or (b) you use it in production or for commercial purposes, other than for testing under this clause.</p>
+<p class="cl"><span class="n">8.4</span>We will fix listed material defects within a reasonable time and re-submit for testing under this clause, limited to the defects listed. Minor issues that do not prevent use against the acceptance criteria do not hold up Acceptance; we will fix them under clause 9.</p>
+
+<h1 class="section">9. Warranty</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">9.1</span>For 30 days after Acceptance of a Deliverable, we will fix at no charge any reproducible defect that causes it not to conform to the specification agreed in the Proposal, provided you report it in writing within that period.</p>
+<p class="cl"><span class="n">9.2</span>The warranty does not cover defects caused by: misuse, accident or use contrary to our documentation; changes made by anyone other than us; operation in environments, hardware, operating systems or versions not listed as supported in the Proposal; Client Materials; or third-party products and services, which are covered by clause 7.4.</p>
+<p class="cl"><span class="n">9.3</span>Fixing defects under clause 9.1 is our sole obligation under this warranty. Support after the warranty period is available under a retainer or a new Proposal.</p>
+<p class="cl"><span class="n">9.4</span>Except as expressly set out in this Agreement or a Proposal, and to the fullest extent the law allows, all other warranties, conditions and terms, whether express or implied by statute, common law or otherwise, including as to satisfactory quality, merchantability and fitness for a particular purpose, are excluded. We do not warrant that software or Hardware will be error-free or operate without interruption.</p>
+
+<h1 class="section">10. Intellectual Property</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">10.1</span><span class="term">Deliverables.</span> On our receipt of full payment of the fees under a Proposal, we assign to you all intellectual property rights in the Deliverables created specifically for you under that Proposal, excluding Background IP and open-source components. Until then, you have a licence to use the Deliverables for evaluation and for the purposes of the Proposal.</p>
+<p class="cl"><span class="n">10.2</span><span class="term">Background IP.</span> We keep ownership of our Background IP and tools. Where Background IP is built into a Deliverable, we grant you a perpetual, irrevocable, worldwide, royalty-free, non-exclusive licence to use, copy, modify and maintain it as part of that Deliverable, and to let your contractors do so for you. This licence becomes irrevocable on full payment and is transferable with the Deliverable. You may not sell or license our Background IP separately from the Deliverable.</p>
+<p class="cl"><span class="n">10.3</span><span class="term">Open source.</span> Open-source components remain under their own licences, which take precedence for those components. We will list the significant open-source components and their licences in the handover documentation, and we will not, without your agreement, include components whose licence would require you to publish your own source code.</p>
+<p class="cl"><span class="n">10.4</span><span class="term">Know-how.</span> Each of us may use the general skills, knowledge and experience gained during the work, provided we do not disclose the other&rsquo;s Confidential Information or infringe its intellectual property.</p>
+<p class="cl"><span class="n">10.5</span><span class="term">Client Materials.</span> You keep all rights in Client Materials and grant us a non-exclusive licence to use them only to perform the services.</p>
+
+<div class="callout note">
+  <span class="label">Drafting note &mdash; founder to confirm</span>
+  <p>[Decide whether to offer an intellectual-property infringement indemnity for Deliverables (common in US/UK enterprise procurement). If offered, it should be capped and exclude Client Materials, open-source components and client modifications.]</p>
+</div>
+
+<h1 class="section">11. Confidentiality</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">11.1</span><span class="term">&ldquo;Confidential Information&rdquo;</span> means non-public information disclosed by one party to the other in connection with this Agreement that is marked confidential or that a reasonable person would understand to be confidential, including source code, designs, protocols, pricing, customer data and business plans.</p>
+<p class="cl"><span class="n">11.2</span>Each party will use the other&rsquo;s Confidential Information only for the purposes of this Agreement, protect it with at least reasonable care, and disclose it only to its personnel, subcontractors and professional advisers who need to know it and are bound by equivalent obligations.</p>
+<p class="cl"><span class="n">11.3</span>These obligations do not apply to information that is or becomes public without breach, was already known to the recipient, is independently developed, or is lawfully received from a third party. A party may disclose information where required by law or a regulator, giving the other party notice where lawful.</p>
+<p class="cl"><span class="n">11.4</span>These obligations last for 3 years after termination or expiry of the last Proposal, and for trade secrets for as long as they remain trade secrets.</p>
+
+<h1 class="section">12. Data Protection</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">12.1</span>Each party will comply with the data protection laws that apply to it, including the EU General Data Protection Regulation and the UK GDPR and Data Protection Act 2018 where relevant.</p>
+<p class="cl"><span class="n">12.2</span>Where we process personal data on your behalf, we do so only on your documented instructions and only to deliver the services; we will not sell it or use it for any other purpose. We will keep it confidential, protect it with appropriate technical and organisational measures, notify you without undue delay of any personal data breach affecting it, and delete or return it at the end of the services unless the law requires us to keep it.</p>
+<p class="cl"><span class="n">12.3</span>A data processing agreement, including the transfer mechanism needed for data sent to Pakistan, is available on request and, once signed, forms part of this Agreement.</p>
+<p class="cl"><span class="n">12.4</span>Credentials and access you give us are stored in an encrypted password manager, used with least privilege, never shared by plain email or chat, and revoked or returned at the end of the Proposal. We ask you to rotate any credentials you shared with us once the work is complete.</p>
+
+<div class="callout note">
+  <span class="label">Drafting note &mdash; founder to confirm</span>
+  <p>[Prepare the DPA before the first EU/UK client: Pakistan has no adequacy decision, so transfers need the EU Standard Contractual Clauses and the UK Addendum. The DPA should list sub-processors (hosting, email, AI providers) and say whether clients get prior notice of new ones.]</p>
+</div>
+
+<h1 class="section">13. Security, AI and Tooling</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">13.1</span>We use AI-assisted engineering tools, including AI agents that can draft code changes, plans and documents. We want to be open about how.</p>
+<p class="cl sub"><span class="n">(a)</span>These tools work under our supervision. An agent cannot push code to your repositories, deploy to your systems or change anything in production on its own: every change runs in an isolated working copy and is reviewed and approved by an Epsilon Labs engineer before it is delivered to you.</p>
+<p class="cl sub"><span class="n">(b)</span>We use only AI services whose terms prohibit using our inputs to train their models. Your confidential code and data are never used to train third-party models.</p>
+<p class="cl sub"><span class="n">(c)</span>We remain fully responsible for all Deliverables, however they were produced, under the same warranty and terms as any other work.</p>
+<p class="cl sub"><span class="n">(d)</span>On request, we will tell you which AI services are used on your project.</p>
+<p class="cl"><span class="n">13.2</span>We protect our own systems with multi-factor authentication, encrypted storage and access logging. Every approval, acceptance and release in the Portal is recorded in an audit log.</p>
+<p class="cl"><span class="n">13.3</span>Security testing services (such as penetration tests and device security reviews) are carried out only within the scope, systems and time window authorised in writing in the Proposal. You confirm you own or are authorised to permit testing of every system in scope.</p>
+
+<div class="callout note">
+  <span class="label">Drafting note &mdash; founder to confirm</span>
+  <p>[Decide whether clients may opt out of AI-assisted tooling for a Proposal, and if so whether that changes price or timeline. Confirm the AI providers used are on terms that exclude training on inputs before relying on clause 13.1(b).]</p>
+</div>
+
+<h1 class="section">14. Publicity</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">14.1</span>We will not use your name, logo or trade marks, or describe the work we did for you, in marketing or case studies without your prior written consent; consent given in the Portal counts. You may withdraw consent for future use at any time.</p>
+<p class="cl"><span class="n">14.2</span>You may choose to give us a testimonial. Any testimonial is entirely optional, will be published only in the form you approve, and is not a condition of any discount or service unless the Proposal says so.</p>
+
+<h1 class="section">15. Liability</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">15.1</span>Nothing in this Agreement limits or excludes liability for death or personal injury caused by negligence, for fraud or fraudulent misrepresentation, or for any other liability that cannot be limited or excluded by law.</p>
+<p class="cl"><span class="n">15.2</span>Subject to clause 15.1, neither party is liable for any indirect, special or consequential loss, or for any loss of profits, revenue, business, goodwill, anticipated savings, or loss or corruption of data, however arising.</p>
+<p class="cl"><span class="n">15.3</span>Subject to clause 15.1, each party&rsquo;s total liability arising out of or in connection with a Proposal, whether in contract, tort (including negligence), breach of statutory duty or otherwise, is limited to the fees paid under that Proposal in the 12 months before the event giving rise to the claim.</p>
+<p class="cl"><span class="n">15.4</span>The limits in clauses 15.2 and 15.3 do not apply to your obligation to pay fees due.</p>
+
+<div class="callout note">
+  <span class="label">Drafting note &mdash; founder to confirm</span>
+  <p>[Confirm the cap. Options: as drafted (fees paid in the prior 12 months); or the total fees payable under the Proposal, which is friendlier early in a project when little has been paid. Also decide whether breach of confidentiality or data protection should sit under a higher, separate cap, as many enterprise clients will ask.]</p>
+</div>
+
+<h1 class="section">16. Term and Termination</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">16.1</span>This Agreement applies from acceptance of the first Proposal until the last Proposal has ended. Each Proposal runs until its services are complete, unless terminated earlier under this clause.</p>
+<p class="cl"><span class="n">16.2</span><span class="term">Convenience.</span> Either party may terminate a Proposal on 14 days&rsquo; written notice. You will pay for work done up to the termination date, at the rates in the Proposal or pro rata to the Milestone, and for non-cancellable commitments made for you, such as components ordered or fabrication runs started. Any amount you have paid in advance for work not done is refunded.</p>
+<p class="cl"><span class="n">16.3</span><span class="term">Breach.</span> Either party may terminate a Proposal immediately by written notice if the other commits a material breach and does not cure it within 14 days of written notice describing it.</p>
+<p class="cl"><span class="n">16.4</span><span class="term">Insolvency.</span> Either party may terminate immediately by written notice if the other becomes insolvent, enters administration, liquidation or any arrangement with its creditors, or ceases to carry on business, or anything equivalent happens in any jurisdiction.</p>
+<p class="cl"><span class="n">16.5</span><span class="term">Effects.</span> On termination: (a) we will hand over all work in progress, Deliverables and Hardware you have paid for, and clause 10 applies to them; (b) each party will return or destroy the other&rsquo;s Confidential Information, except copies it must keep by law or that sit in routine backups, which remain protected under clause 11; (c) we will revoke our access to your systems; and (d) accrued rights and remedies are not affected.</p>
+
+<h1 class="section">17. Non-Solicitation</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">17.1</span>During a Proposal and for 12 months after it ends, you will not directly or indirectly employ or engage any of our employees or subcontractors who worked on that Proposal, or solicit them to leave us, without our written consent.</p>
+<p class="cl"><span class="n">17.2</span>This does not stop you hiring someone who responds to a general advertisement not targeted at our people.</p>
+<p class="cl"><span class="n">17.3</span>If you do hire or engage such a person, then as an alternative to any other remedy you will pay us a fee equal to 25% of that person&rsquo;s first-year salary or annualised fees with you. The parties agree this is a reasonable estimate of our recruitment and replacement costs.</p>
+
+<h1 class="section">18. Independent Contractor and Subcontractors</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">18.1</span>We act as an independent contractor. Nothing in this Agreement creates employment, partnership, agency or a joint venture, and neither party may bind the other.</p>
+<p class="cl"><span class="n">18.2</span>We may use vetted subcontractors, including fabrication houses, assembly partners and specialist engineers. Each is bound by confidentiality and intellectual-property terms at least as protective as this Agreement. We remain responsible for their work as if it were our own.</p>
+
+<h1 class="section">19. Force Majeure</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">19.1</span>Neither party is liable for delay or failure to perform caused by events beyond its reasonable control, including natural disasters, epidemics, war, terrorism, civil unrest, government action, sanctions, power or internet outages affecting a region, failures of carriers or customs, and component shortages affecting the market generally. This clause does not excuse payment of amounts due.</p>
+<p class="cl"><span class="n">19.2</span>The affected party will notify the other promptly, take reasonable steps to limit the effect, and resume performance as soon as possible. If the event continues for more than 60 days, either party may terminate the affected Proposal by written notice, and clause 16.2 applies to payment for work done.</p>
+
+<h1 class="section">20. Notices</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">20.1</span>Notices under this Agreement are given by email to the addresses stated in the Proposal or recorded in the Portal, or by a message in the Portal. Our address for notices is er@epsilon-labs.co.</p>
+<p class="cl"><span class="n">20.2</span>A notice is received when sent, if sent before 17:00 on a Business Day in the recipient&rsquo;s time zone, and otherwise at 09:00 on the next Business Day, unless the sender receives an automated message that it was not delivered. Notices of breach or termination must also be sent by email, not only in the Portal.</p>
+<p class="cl"><span class="n">20.3</span>Each party will keep its notice address up to date in the Portal.</p>
+
+<h1 class="section">21. Governing Law and Disputes</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">21.1</span><span class="term">Escalation.</span> If a dispute arises, either party may give written notice of it. Senior representatives of both parties will then meet (in person or by video) and try in good faith to resolve it within 30 days of the notice.</p>
+<p class="cl"><span class="n">21.2</span><span class="term">Arbitration.</span> Any dispute not resolved under clause 21.1 shall be referred to and finally resolved by arbitration administered by the Singapore International Arbitration Centre in accordance with the Arbitration Rules of the Singapore International Arbitration Centre for the time being in force. The seat of the arbitration shall be Singapore. The tribunal shall consist of one arbitrator. The language of the arbitration shall be English.</p>
+<p class="cl"><span class="n">21.3</span><span class="term">Governing law.</span> This Agreement, each Proposal and any non-contractual obligations arising out of or in connection with them are governed by the laws of England and Wales.</p>
+<p class="cl"><span class="n">21.4</span>Nothing in this clause prevents either party from seeking urgent injunctive or interim relief from any competent court, or us from bringing proceedings for an undisputed debt in the courts of the place where you are established.</p>
+
+<div class="callout note">
+  <span class="label">Drafting note &mdash; founder to confirm</span>
+  <p>[Founder to confirm: governing law/seat chosen for international neutrality; alternative: laws of Pakistan with Lahore courts.]</p>
+</div>
+
+<h1 class="section">22. General</h1>
+<hr class="section-rule">
+
+<p class="cl"><span class="n">22.1</span><span class="term">Entire agreement.</span> This Agreement and each accepted Proposal form the entire agreement between the parties about their subject matter and replace all earlier proposals, discussions and understandings about it. Each party confirms it has not relied on any statement not set out in them, but nothing limits liability for fraud.</p>
+<p class="cl"><span class="n">22.2</span><span class="term">Amendment.</span> A change to this Agreement or a Proposal is effective only if made in writing and agreed by both parties. Acceptance of a revised Proposal or an approved Change Request in the Portal counts as written agreement.</p>
+<p class="cl"><span class="n">22.3</span><span class="term">Assignment.</span> Neither party may assign or transfer its rights or obligations without the other&rsquo;s written consent, which will not be unreasonably withheld, except that either party may assign to a successor in a merger or sale of all or substantially all of its relevant business on written notice.</p>
+<p class="cl"><span class="n">22.4</span><span class="term">Severability.</span> If any provision is found invalid or unenforceable, it is modified to the minimum extent needed to make it enforceable, and the rest of the Agreement is unaffected.</p>
+<p class="cl"><span class="n">22.5</span><span class="term">No waiver.</span> A failure or delay in exercising a right is not a waiver of it, and a single or partial exercise does not prevent its further exercise.</p>
+<p class="cl"><span class="n">22.6</span><span class="term">Third parties.</span> No one other than the parties has any right to enforce any term of this Agreement, including under the Contracts (Rights of Third Parties) Act 1999.</p>
+<p class="cl"><span class="n">22.7</span><span class="term">Survival.</span> Clauses 6 (for amounts due), 7.2, 9.4, 10, 11, 12, 15, 16.5, 17, 21 and 22, and any other provision that by its nature is intended to survive, continue after termination or expiry.</p>
+
+
+<!-- ===================== SCHEDULE A ===================== -->
+
+<div class="page-break"></div>
+
+<h1 class="section">Schedule A</h1>
+<hr class="section-rule">
+<p class="doc-sub" style="margin-top:-12px; margin-bottom:22px;">Proposal Acceptance and Signature Record</p>
+
+<h3>A1. Portal acceptance record</h3>
+<p>
+  When a Proposal is accepted in the Portal, the record below is created and shown on the
+  accepted Proposal. It cannot be edited afterwards. The values shown are an illustrative
+  example only.
+</p>
+
+<table class="record">
+  <tr><th>Field</th><th>Example value</th></tr>
+  <tr><td class="k">Name typed by the person accepting</td><td>Jane Example</td></tr>
+  <tr><td class="k">Email the 6-digit code was sent to</td><td>jane@client.example</td></tr>
+  <tr><td class="k">Code verified</td><td>Yes</td></tr>
+  <tr><td class="k">Timestamp (UTC)</td><td class="v">2026-10-20T09:42:17Z</td></tr>
+  <tr><td class="k">IP address</td><td class="v">203.0.113.42</td></tr>
+  <tr><td class="k">Browser user agent</td><td class="v">Mozilla/5.0 (Macintosh; Intel Mac OS X 14_6) &hellip;</td></tr>
+  <tr><td class="k">Proposal ID and version</td><td class="v">EL-P-2026-0014 &middot; v2</td></tr>
+  <tr><td class="k">Terms version</td><td class="v">T-2026-1</td></tr>
+  <tr><td class="k">SHA-256 of Proposal version + terms version</td><td class="v">b28abe010f00855cf5ccc56db204a2e1600739ddef420081a8f26dd6246c74b0</td></tr>
+</table>
+
+<div class="callout">
+  <span class="label">What the hash proves</span>
+  <p>
+    The SHA-256 value is a fingerprint of the exact Proposal text and the terms version
+    accepted. Changing a single character in either produces a completely different value, so
+    either party can later show precisely which documents were agreed.
+  </p>
+</div>
+
+<h3>A2. Signature block (wet ink or e-signature)</h3>
+<p>
+  For clients who prefer to sign, the Proposal identified below is accepted on the terms of the
+  Epsilon Labs Services Agreement, terms version T-2026-1.
+</p>
+<p>Proposal ID and version: ________________________________</p>
+
+<div class="sig">
+  <div>
+    <h4>For the Client</h4>
+    <div class="line"></div><p class="cap">Signature</p>
+    <div class="line"></div><p class="cap">Name</p>
+    <div class="line"></div><p class="cap">Title</p>
+    <div class="line"></div><p class="cap">Organisation</p>
+    <div class="line"></div><p class="cap">Date</p>
+  </div>
+  <div>
+    <h4>For Epsilon Labs</h4>
+    <div class="line"></div><p class="cap">Signature</p>
+    <div class="line"></div><p class="cap">Name</p>
+    <div class="line"></div><p class="cap">Title</p>
+    <div class="line"></div><p class="cap"><span class="ph">[LEGAL ENTITY NAME]</span></p>
+    <div class="line"></div><p class="cap">Date</p>
+  </div>
+</div>
+
+
+<!-- ===================== SCHEDULE B ===================== -->
+
+<div class="page-break"></div>
+
+<h1 class="section">Schedule B</h1>
+<hr class="section-rule">
+<p class="doc-sub" style="margin-top:-12px; margin-bottom:22px;">Payment Schedule Example</p>
+
+<p>
+  An illustration of the default 40/40/20 schedule in clause 6.1, using a Plant Visibility
+  Pilot at a fixed fee of US$18,000 for one site of 5&ndash;10 monitored machines over six
+  weeks. The actual Milestone and amounts are always those stated in the Proposal.
+</p>
+
+<table>
+  <tr><th style="white-space:nowrap">Instalment</th><th>Trigger</th><th class="num">Share</th><th class="num">Amount (USD)</th></tr>
+  <tr><td>1. Deposit</td><td>Acceptance of the Proposal in the Portal; invoice issued automatically. Work starts once paid.</td><td class="num">40%</td><td class="num">7,200</td></tr>
+  <tr><td style="white-space:nowrap">2. Milestone</td><td>The Milestone named in the Proposal: for example, monitoring nodes installed and commissioned, with the in-scope machines live on the dashboard (around week 4).</td><td class="num">40%</td><td class="num">7,200</td></tr>
+  <tr><td>3. Final</td><td>Final Acceptance under clause 8, after alerts, training and handover (around week 6).</td><td class="num">20%</td><td class="num">3,600</td></tr>
+  <tr><td><strong>Total</strong></td><td></td><td class="num"><strong>100%</strong></td><td class="num"><strong>18,000</strong></td></tr>
+</table>
+
+<p>
+  Each invoice is due within 14 days of its date (clause 6.2). Hardware is priced as set out in
+  the Proposal under clause 7.1. Taxes, if any, are added under clause 6.5.
+</p>
+
+<p class="footer-note">
+  Epsilon Labs &middot; Services Agreement &middot; Terms version T-2026-1 &middot; October 2026<br>
+  er@epsilon-labs.co &middot; epsilon-labs.co
+</p>
