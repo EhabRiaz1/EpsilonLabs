@@ -116,95 +116,67 @@ def compute_diff(original: str, final: str) -> dict:
 
 # ------------------------------------------------------------------ actions
 
+def _rpc_args(qid: str, now: datetime | None, **kw) -> dict:
+    """RPC arguments. `now` is passed only when a caller pins the clock (tests); the server clock decides otherwise."""
+    args = {"p_id": qid, **kw}
+    if now is not None:
+        args["p_now"] = _iso(now)
+    return args
+
+
+def _rpc(db: DB, fn: str, args: dict) -> dict:
+    res = db.rpc(fn, args)
+    if not isinstance(res, dict) or "ok" not in res:
+        raise TypeError(f"{fn}: unexpected result")
+    return res
+
+
+# The Deck rulebook lives in Postgres (migration 011, EN5/OV1): approve_draft, edit_and_approve_draft, undo_decision,
+# reject_draft, hold_draft, release_held_draft. 8787 and admin.* call the same functions. Lint and the edit diff stay in
+# Python: the Mac computes them here and passes them in (only the service role may), so an edit made on 8787 is
+# approved straight away, while the same edit made on admin.* waits as edited_pending_lint for the outbox to lint it.
+
 def approve(db: DB, qid: str, final_text: str | None = None, confirm_lint: bool = False,
             now: datetime | None = None) -> dict:
-    now = now or _now()
     row = _get(db, qid)
     if not row:
         return fail("not_found", "Draft not found.")
-    if row["status"] != "pending":
-        return fail("not_pending", f"Already {row['status']}.")
-    if row.get("held"):
-        return fail("held", "This draft is held. Release it to the deck first.")
     base = row.get("draft") or ""
     edited = final_text is not None and _norm(final_text) != _norm(base)
-    text = final_text.strip() if edited else None
-    effective = text if edited else base
-    if not effective.strip():
-        return fail("empty", "Draft is empty. Write something before sending.")
     if edited:
+        text = final_text.strip()
+        hits = lint.lint(text, {"recipient": row.get("to_email") or ""}) if text else []
+        diff = compute_diff(base, text) if text else None
+        return _rpc(db, "edit_and_approve_draft", _rpc_args(qid, now, p_body=text, p_confirm_lint=bool(confirm_lint),
+                                                             p_lint=hits, p_diff=diff))
+    # a stored edit (an admin.* edit that lint held back) is what a plain approve sends; "edited back" to the draft
+    # text sends the draft
+    effective = base if final_text is not None else (row.get("final_text") or base)
+    hits = row.get("lint")
+    if hits is None and effective.strip():
         hits = lint.lint(effective, {"recipient": row.get("to_email") or ""})
-    else:
-        hits = row.get("lint")
-        if hits is None:
-            hits = lint.lint(effective, {"recipient": row.get("to_email") or ""})
-    if hits and not confirm_lint:
-        return fail("lint_confirm_required", "Draft has lint warnings. Confirm to send anyway.", lint=hits)
-    diff = compute_diff(base, text) if edited else None
-    values = {
-        "status": "edited_approved" if edited else "approved", "decided_at": _iso(now),
-        "final_text": text if edited else None, "diff": diff,
-        "material_edit": bool(diff["material"]) if edited else False,
-    }
-    if edited:
-        values["lint"] = hits
-    updated = db.update("approval_queue", values, id=qid, status="pending", held="eq.false")
-    if not updated:
-        return fail("not_pending", "This draft changed while you were looking at it.")
-    _log(db, "approve", qid, {"edited": edited, "lint_hits": len(hits), "confirmed_lint": bool(hits),
-                              "material_edit": values["material_edit"]})
-    return ok(status=values["status"], edited=edited, diff=diff, decided_at=values["decided_at"],
-              undo_seconds=config.UNDO_SECONDS)
+    args = _rpc_args(qid, now, p_confirm_lint=bool(confirm_lint), p_lint=hits)
+    if final_text is not None:  # "edited" back to the draft itself: the RPC drops any stored edit
+        return _rpc(db, "edit_and_approve_draft", {**args, "p_body": final_text, "p_diff": None})
+    return _rpc(db, "approve_draft", args)
 
 
 def undo(db: DB, qid: str, now: datetime | None = None) -> dict:
     """approved/edited_approved -> pending, only inside the undo window and before the outbox claims it."""
-    now = now or _now()
-    cutoff = _iso(now - timedelta(seconds=config.UNDO_SECONDS))
-    back = db.update("approval_queue",
-                     {"status": "pending", "decided_at": None, "final_text": None, "diff": None,
-                      "material_edit": None},
-                     id=qid, status=APPROVED, decided_at=f"gte.{cutoff}")
-    if back:
-        _log(db, "undo", qid)
-        return ok()
-    row = _get(db, qid)
-    if not row:
-        return fail("not_found", "Draft not found.")
-    if row["status"] == "pending":
-        return ok(already=True)
-    return fail("too_late", "Too late, already sending.")
+    return _rpc(db, "undo_decision", _rpc_args(qid, now))
 
 
 def reject(db: DB, qid: str, reason: str | None = None, now: datetime | None = None) -> dict:
-    now = now or _now()
-    row = _get(db, qid)
-    if not row:
-        return fail("not_found", "Draft not found.")
-    done = db.update("approval_queue", {"status": "rejected", "decided_at": _iso(now)}, id=qid, status="pending")
-    if not done:
-        return fail("not_pending", f"Already {row['status']}.")
-    _log(db, "reject", qid, {"reason": (reason or "").strip()[:300] or None})
-    return ok()
+    return _rpc(db, "reject_draft", _rpc_args(qid, now, p_reason=reason))
 
 
 def later(db: DB, qid: str, now: datetime | None = None) -> dict:
-    """No column for ordering, so the audit row IS the state: deck order puts 'later' items last."""
-    row = _get(db, qid)
-    if not row:
-        return fail("not_found", "Draft not found.")
-    if row["status"] != "pending":
-        return fail("not_pending", f"Already {row['status']}.")
-    _log(db, "later", qid, strict=True)
-    return ok()
+    """No column for ordering, so the audit row IS the state: deck order puts 'later' items last (hold_draft)."""
+    return _rpc(db, "hold_draft", _rpc_args(qid, now))
 
 
 def release_held(db: DB, qid: str) -> dict:
-    done = db.update("approval_queue", {"held": False}, id=qid, status="pending", held="eq.true")
-    if not done:
-        return fail("not_held", "Not a held draft.")
-    _log(db, "release_held", qid, {"was": done[0].get("held_reason")})
-    return ok()
+    return _rpc(db, "release_held_draft", {"p_id": qid})
 
 
 def suppress_sender(db: DB, qid: str, now: datetime | None = None) -> dict:

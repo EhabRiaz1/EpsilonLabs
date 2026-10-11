@@ -2,7 +2,7 @@
 # Print launchd state and the last log line for each Epsilon OS job.
 DOMAIN="gui/$(id -u)"
 LOG_DIR="$HOME/Library/Logs/epsilon-os"
-for j in dashboard inbox outbox brief backup prospector outreach tenders scheduler keepawake; do
+for j in dashboard inbox outbox brief backup prospector outreach tenders scheduler worker keepawake; do
   l="co.epsilon-labs.os.$j"
   echo "== $j"
   if out=$(launchctl print "$DOMAIN/$l" 2>/dev/null); then

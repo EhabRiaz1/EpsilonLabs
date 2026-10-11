@@ -99,7 +99,7 @@ def enrich(db, rows: list[dict], now: datetime) -> list[dict]:
             "created": created, "age": ago(created, now), "late": late, "late_age": ago(created, now),
             "wedge": WEDGE_LABEL.get(wedge, ""), "channel": d.get("source_channel") or "",
             "step": step, "ours": ours,
-            "they_wrote": t.get("body_excerpt") or ("" if step else (co.get("notes") or "" if r.get("kind") == "outbound" else "")), "draft": r.get("draft") or "",
+            "they_wrote": t.get("body_excerpt") or ("" if step else (co.get("notes") or "" if r.get("kind") == "outbound" else "")), "draft": (r.get("final_text") if r.get("status") == "pending" else None) or r.get("draft") or "",
             "classifier": (f"{label} {int(round(conf * 100))}%" if label and isinstance(conf, (int, float))
                            else (label or "—")),
             "lint": r.get("lint") or [], "held": bool(r.get("held")), "held_reason": r.get("held_reason") or "",
@@ -515,6 +515,8 @@ AGENT_CATALOG = [
         ("scheduler", "Scheduler", "Every 5 min, starts any daily job whose time has passed but has not run yet.",
          "scheduler", "scheduler", 2 * 3600),
         ("watchdog", "Watchdog", "Pings healthchecks.io so you are emailed if the system stops.", None, "watchdog", 3600),
+        ("worker", "Worker", "Every minute: starts Run-now requests from admin.epsilon-labs.co and delivers phone push.",
+         "worker", "worker", 5 * 60),
     ]),
     ("Always on", [
         ("dashboard", "Dashboard", "This cockpit at 127.0.0.1:8787.", "dashboard", None, 0),

@@ -2,12 +2,16 @@
 
 approved/edited_approved -> (atomic claim, Message-ID stored in the same PATCH) -> sending -> sent | failed.
 A row stuck in `sending` is resolved by looking the stored Message-ID up in the IMAP Sent folder.
+
+edited_pending_lint (a draft approved or edited on admin.*, migration 011) is never claimed. Each run first lints
+it here (core.lint, the same rules as at draft time) and hands the result to complete_draft_lint: clean ->
+approved / edited_approved (claimable from then on), hits -> back to the Deck, held with the lint reasons.
 """
 import smtplib
 import sys
 from datetime import datetime, timedelta, timezone
 
-from core import config, ledger, mail
+from core import config, ledger, lint, mail
 from core.db import DB
 
 AGENT = "outbox"
@@ -68,6 +72,24 @@ def _resolve_stale(db, run_id, mail_mod, now, c, kind="neq.outbound", agent=AGEN
             _log(db, run_id, "stale_resolved_failed", row["id"], {"message_id": mid}, agent)
 
 
+def lint_pending(db, run_id, c) -> None:
+    """Lint every edited_pending_lint row and record the outcome through the rulebook RPC (service role)."""
+    from dashboard.actions import compute_diff  # the same diff 8787 stores for an edit made on the Mac
+    for row in db.select("approval_queue", status="edited_pending_lint", order="decided_at.asc", limit=200):
+        try:
+            edited = row.get("final_text") is not None
+            text = row.get("final_text") if edited else (row.get("draft") or "")
+            hits = lint.lint(text, {"recipient": row.get("to_email") or ""})
+            diff = compute_diff(row.get("draft") or "", text) if edited else None
+            res = db.rpc("complete_draft_lint", {"p_id": row["id"], "p_lint": hits, "p_diff": diff})
+            if isinstance(res, dict) and res.get("ok"):
+                c["linted"] += 1
+                c["lint_held"] += 1 if res.get("status") == "held" else 0
+        except Exception as e:
+            c["errors"] += 1
+            _log(db, run_id, "lint_error", row.get("id"), {"error": _err(e)})
+
+
 def _send_one(db, run_id, mail_mod, row: dict, now: datetime, c) -> None:
     mid = mail.new_message_id()
     claimed = db.claim("approval_queue", row["id"], APPROVED, "sending",
@@ -110,7 +132,12 @@ def run(db: DB | None = None, mail_mod=mail, now: datetime | None = None) -> dic
     now = now or datetime.now(timezone.utc)
     run_id = ledger.new_run_id()
     c = dict.fromkeys(("candidates", "sent", "failed", "ambiguous", "lost_claim", "refused_outbound",
-                       "suppressed", "stale_sent", "stale_failed", "stale_unchecked", "errors"), 0)
+                       "suppressed", "stale_sent", "stale_failed", "stale_unchecked", "linted", "lint_held", "errors"), 0)
+    try:
+        lint_pending(db, run_id, c)
+    except Exception as e:
+        c["errors"] += 1
+        _log(db, run_id, "lint_scan_error", detail={"error": _err(e)})
     try:
         _resolve_stale(db, run_id, mail_mod, now, c)
     except Exception as e:

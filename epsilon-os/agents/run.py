@@ -1,4 +1,4 @@
-"""Single launchd entrypoint: python -m agents.run <inbox|outbox|brief|backup|prospector|outreach|followups|tenders|scheduler>.
+"""Single launchd entrypoint: python -m agents.run <inbox|outbox|brief|backup|prospector|outreach|followups|tenders|scheduler|worker>.
 
 Process lock so a slow run is never overlapped by the next tick; any exception becomes a
 heartbeat status=error (exception type only, never the message) and a non-zero exit.
@@ -12,7 +12,9 @@ from pathlib import Path
 from core import ledger, watchdog
 from core.db import DB
 
-JOBS = ("inbox", "outbox", "brief", "backup", "prospector", "outreach", "followups", "tenders", "scheduler")
+JOBS = ("inbox", "outbox", "brief", "backup", "prospector", "outreach", "followups", "tenders", "scheduler", "worker")
+# The outbox already pings the watchdog every minute; the every-minute worker would only double the pings.
+NO_PING = {"worker"}
 LOCK_NAME = {"followups": "outreach"}  # a manual follow-up run must not overlap the outreach job that also runs it
 LOCK_DIR = Path.home() / "Library" / "Application Support" / "EpsilonOS" / "locks"
 
@@ -81,6 +83,8 @@ def main(argv: list[str] | None = None, jobs: dict | None = None, db_factory=DB,
 
 
 def _ping(ping, name, ok, db) -> None:
+    if name in NO_PING:
+        return
     try:
         ping(name, ok=ok, db=db)
     except Exception:
