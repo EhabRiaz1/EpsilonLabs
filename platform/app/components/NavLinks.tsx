@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Icon } from "./Icon";
 import type { IconName } from "./icons";
 
-export type NavItem = { href: string; label: string; icon: IconName; count?: number };
+export type NavItem = { href: string; label: string; icon: IconName; count?: number; hot?: boolean };
 
 /** Sidebar links; the current one is the longest href that prefixes the path. */
 export function NavLinks({ items }: { items: NavItem[] }) {
@@ -20,7 +20,7 @@ export function NavLinks({ items }: { items: NavItem[] }) {
         <Link key={n.href} className="nav-item" href={n.href} aria-current={n.href === current ? "page" : undefined}>
           <Icon name={n.icon} />
           {n.label}
-          {n.count !== undefined && <span className="count">{n.count}</span>}
+          {n.count !== undefined && <span className={n.hot ? "count hot" : "count"}>{n.count}</span>}
         </Link>
       ))}
     </>

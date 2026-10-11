@@ -14,6 +14,8 @@ export function Shell(props: {
   searchLabel: string;
   nav: NavItem[];
   status?: ReactNode;
+  /** admin: the Mac worker chip above the theme row */
+  worker?: ReactNode;
   user: { name: string; detail: string; initials: string };
   children: ReactNode;
 }) {
@@ -33,6 +35,7 @@ export function Shell(props: {
         <SearchButton label={props.searchLabel} />
         <NavLinks items={props.nav} />
         <div className="sb-foot">
+          {props.worker}
           <div className="row between" style={{ padding: "0 6px" }}>
             <ThemePill />
             {props.status}
