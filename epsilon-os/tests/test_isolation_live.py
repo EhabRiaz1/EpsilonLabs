@@ -1,7 +1,7 @@
 """Isolation suite against the LIVE Supabase project (client-platform.md "Tests", F14, OV3).
 
 Run only on purpose:  EOS_LIVE_TESTS=1 .venv/bin/python -m pytest -q -m live tests/test_isolation_live.py
-Needs migrations 008-010 applied and the service-role key in the keychain (core.config.secret).
+Needs migrations 008-012 applied and the service-role key in the keychain (core.config.secret).
 
 It creates two is_test orgs, two client users, a test-scope staff user and one non-test org (so "test staff can't
 see real orgs" is checked against a real row), signs everyone in with a password to get real JWTs, checks every
@@ -33,6 +33,7 @@ URL = config.SUPABASE_URL
 TABLES = ["organizations", "staff", "memberships", "invites", "projects", "tickets", "ticket_events", "jobs"]
 OLD_TABLES = ["companies", "contacts", "deals", "approval_queue", "actions", "settings"]
 NEW_010 = ["intake", "intake_rate", "files", "notifications"]   # needs migration 010 applied
+NEW_012 = ["profiles", "email_digests", "updates", "reports", "testimonials", "retainers", "time_entries"]   # migration 012
 ENV_EXAMPLE = Path(__file__).resolve().parents[2] / "platform" / ".env.example"
 
 
@@ -263,6 +264,53 @@ def test_isolation_live():
                                        "p_token_hash": tok_hash}).status_code >= 400
         assert a.rpc("create_invite", {"p_org_id": org_a, "p_email": f"z-{tag}@test.epsilon-labs.co", "p_role": "owner",
                                        "p_token_hash": tok_hash}).status_code >= 400
+
+        # ---- migration 012: updates, reports, testimonials, retainers, time, profiles, the mailer ----
+        ok(svc.insert("updates", {"org_id": org_b, "project_id": p_b, "title": "B weekly", "body_md": "b", "status": "published",
+                                  "published_at": "2026-10-01T00:00:00Z"}))
+        ok(svc.insert("updates", {"org_id": org_a, "project_id": p_a, "title": "A draft", "body_md": "a"}))
+        ok(svc.insert("reports", {"org_id": org_b, "project_id": p_b, "title": "B report", "content": {}}))
+        ok(svc.insert("testimonials", {"org_id": org_b, "quote": "", "status": "requested"}))
+        ok(svc.insert("retainers", {"org_id": org_b, "tier": "r20", "hours_included": 20, "starts_on": "2026-01-01"}))
+        ok(svc.insert("time_entries", {"org_id": org_b, "minutes": 30, "ticket_id": t_b["id"]}))
+        for t in NEW_012:
+            assert denied(anon.select(t)), f"anon can read {t}"
+        for t in ("updates", "reports", "testimonials", "retainers", "time_entries"):
+            assert denied(a.select(t, org_id=f"eq.{org_b}")), f"client A sees org B rows in {t}"
+        assert ok(a.select("updates")) == []                        # A's own draft is staff-only until published
+        assert [u["title"] for u in ok(b.select("updates"))] == ["B weekly"]
+        assert ok(b.select("reports")) == []                        # drafts are never visible to clients
+        assert [r["minutes"] for r in ok(b.select("time_entries"))] == [30]
+        assert ok(a.select("email_digests")) == [] and ok(a.select("profiles")) == []
+        for t, row in (("updates", {"org_id": org_a, "project_id": p_a, "title": "x"}),
+                       ("testimonials", {"org_id": org_a, "quote": "x"}),
+                       ("retainers", {"org_id": org_a, "tier": "r10", "hours_included": 10, "starts_on": "2026-01-01"}),
+                       ("time_entries", {"org_id": org_a, "minutes": 5}),
+                       ("profiles", {"user_id": a_id})):
+            assert denied(a.insert(t, row)), f"client insert into {t} was allowed"
+            assert denied(anon.insert(t, row)), f"anon insert into {t} was allowed"
+        assert ok(a.rpc("save_my_prefs", {"p_timezone": "Asia/Karachi", "p_email_pref": "off"})) == {"timezone": "Asia/Karachi", "email_pref": "off"}
+        assert [p["email_pref"] for p in ok(a.select("profiles"))] == ["off"] and ok(b.select("profiles")) == []
+        assert a.rpc("retainer_usage", {"p_org_id": org_b, "p_months": 3, "p_today": None}).status_code >= 400
+        assert ok(b.rpc("retainer_usage", {"p_org_id": org_b, "p_months": 3, "p_today": None}))["upsell"] is None
+        assert a.rpc("submit_testimonial", {"p_id": None, "p_org_id": org_b, "p_quote": "Not my organisation at all.",
+                                            "p_author_name": "A", "p_author_role": ""}).status_code >= 400
+        upd_b = ok(svc.select("updates", org_id=f"eq.{org_b}"))[0]["id"]
+        for fn, args in (("publish_update", {"p_id": upd_b}), ("skip_update", {"p_id": upd_b, "p_reason": None}),
+                         ("queue_weekly_update", {"p_project_id": p_b, "p_notes": None}),
+                         ("log_time", {"p_org_id": org_b, "p_ticket_id": None, "p_minutes": 5, "p_note": "", "p_billable": True, "p_worked_on": None}),
+                         ("create_invoice_draft", {"p_org_id": org_b, "p_bill_company": "x", "p_bill_contact": "", "p_project_label": "",
+                                                   "p_lines": [{"title": "x", "amount": "1"}], "p_tax_label": None, "p_tax_rate": 0,
+                                                   "p_currency": "USD", "p_due_date": None}),
+                         ("claim_email_batch", {"p_now": None, "p_limit": 1}), ("queue_weekly_updates", {"p_week_of": None})):
+            assert a.rpc(fn, args).status_code >= 400, f"client can call {fn}"
+            assert anon.rpc(fn, args).status_code >= 400, f"anon can call {fn}"
+        assert s2.rpc("claim_email_batch", {"p_now": None, "p_limit": 1}).status_code >= 400   # staff is not the sender
+        # test-scope staff works on is_test orgs only
+        assert s2.rpc("save_report_draft", {"p_id": None, "p_project_id": p_real, "p_title": "x", "p_period_label": "",
+                                            "p_content": {}}).status_code >= 400
+        rid = ok(s2.rpc("save_report_draft", {"p_id": None, "p_project_id": p_a, "p_title": "Iso", "p_period_label": "", "p_content": {}}))
+        assert ok(a.select("reports", id=f"eq.{rid}")) == []
     finally:
         if uploaded:                       # Storage objects do not cascade with the org
             svc.c.request("DELETE", "/storage/v1/object/client-files", json={"prefixes": uploaded})
