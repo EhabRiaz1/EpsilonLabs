@@ -276,6 +276,11 @@ def save_settings(db: DB, p: dict) -> dict:
     strat_clean, strat_errors = cfg.strategy_form(p, per_day)  # Strategies fieldset: quotas, pins, auto-rebalance
     clean.update(strat_clean)
     errors.update(strat_errors)
+    if "mix" in p:  # software share (S11-S13); a client without the field leaves it alone
+        try:
+            clean["prospector.mix"] = cfg.validate("prospector.mix", str(p.get("mix", "")).strip())
+        except cfg.SettingsError as ex:
+            errors["mix"] = str(ex)
     if not cfg.outreach_address(db):  # once set, the address is read-only here
         try:
             addr = cfg.validate("outreach.address", p.get("address", ""))

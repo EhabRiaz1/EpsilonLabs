@@ -14,15 +14,21 @@ SEGMENTS = ("industrial", "oem_hardware", "smb_software")
 SEGMENT_LABEL = {"industrial": "Industrial operations", "oem_hardware": "OEMs and hardware startups",
                  "smb_software": "SMBs needing software"}
 DEFAULT_RAMP = {"start": 5, "step": 5, "every_days": 3}
-# Strategies S2-S5 (prompts/strategies.py holds the content; ids and labels live here so core never imports prompts).
+# Strategies S2-S13 (prompts/strategies.py holds the content; ids and labels live here so core never imports prompts).
 STRATEGY_IDS = ("s2_trigger", "s3_regulation", "s4_partner", "s5_intent", "s7_orphaned", "s8_tradeshow",
-                "s9_crowdfund", "s10_accelerator")
+                "s9_crowdfund", "s10_accelerator", "s11_software", "s12_devpartner", "s13_hn")
 STRATEGY_LABEL = {"s2_trigger": "Trigger events", "s3_regulation": "Regulation", "s4_partner": "Partners",
                   "s5_intent": "Outsourcing intent", "s7_orphaned": "Orphaned devices",
                   "s8_tradeshow": "Trade-show exhibitors", "s9_crowdfund": "Crowdfunded hardware",
-                  "s10_accelerator": "Accelerators and spinouts"}
-DEFAULT_QUOTAS = {"s2_trigger": 6, "s3_regulation": 4, "s4_partner": 6, "s5_intent": 5, "s7_orphaned": 6,
-                  "s8_tradeshow": 5, "s9_crowdfund": 4, "s10_accelerator": 4}   # total 40 = default prospector.per_day
+                  "s10_accelerator": "Accelerators and spinouts", "s11_software": "Software triggers",
+                  "s12_devpartner": "Seeking a dev partner", "s13_hn": "Hacker News Seeking Freelancer"}
+# prospector.mix splits the daily total between these two groups; quotas weigh strategies inside their group.
+SOFTWARE_STRATEGIES = ("s11_software", "s12_devpartner", "s13_hn")
+HARDWARE_STRATEGIES = tuple(s for s in STRATEGY_IDS if s not in SOFTWARE_STRATEGIES)
+DEFAULT_MIX = 40   # percent of the daily quota that goes to the software strategies
+DEFAULT_QUOTAS = {"s2_trigger": 4, "s3_regulation": 2, "s4_partner": 4, "s5_intent": 3, "s7_orphaned": 4,
+                  "s8_tradeshow": 3, "s9_crowdfund": 2, "s10_accelerator": 2,     # hardware 24 = 60% of 40
+                  "s11_software": 7, "s12_devpartner": 5, "s13_hn": 4}            # software 16 = 40% of 40
 # Markets (ISO codes) where a client can pay a Pakistan firm (Wise, Payoneer, bank transfer) and budgets reach $10k+.
 # India is left out for now. ALWAYS_EXCLUDED wins over anything added in /settings: Pakistan is the founder's own
 # network, the rest are sanctioned.
@@ -34,6 +40,7 @@ DEFAULTS = {
     "prospector.markets": list(DEFAULT_MARKETS),
     "prospector.segments": list(SEGMENTS),
     "prospector.paused": False,
+    "prospector.mix": DEFAULT_MIX,
     "llm.daily_budget": config.DAILY_LLM_CALL_BUDGET,
     "outreach.daily_cap": 50,
     "outreach.ramp": DEFAULT_RAMP,
@@ -43,7 +50,8 @@ DEFAULTS = {
     "strategy.auto_rebalance": True,
     "strategy.pinned": [],
 }
-BOUNDS = {"prospector.per_day": (0, 80), "llm.daily_budget": (50, 1000), "outreach.daily_cap": (0, 100)}
+BOUNDS = {"prospector.per_day": (0, 80), "llm.daily_budget": (50, 1000), "outreach.daily_cap": (0, 100),
+          "prospector.mix": (0, 100)}
 _ADDR = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
 
@@ -277,6 +285,11 @@ def paused(db) -> bool:
     return get(db, "prospector.paused")
 
 
+def mix(db) -> int:
+    """Percent of the daily prospect total that goes to the software strategies (S11-S13)."""
+    return get(db, "prospector.mix")
+
+
 def daily_budget(db) -> int:
     return get(db, "llm.daily_budget")
 
@@ -342,6 +355,9 @@ class Settings:
     def paused(self) -> bool:
         return paused(self.db)
 
+    def mix(self) -> int:
+        return mix(self.db)
+
     def daily_budget(self) -> int:
         return daily_budget(self.db)
 
@@ -353,12 +369,13 @@ class Settings:
 
 
 # ---------------------------------------------------------------- tenders (S1, agents/tenders.py)
-TENDER_LIVE = ("ted", "uk_fts", "uk_cf", "canadabuys", "austender", "ungm", "samgov", "worldbank", "ebrd")
+TENDER_LIVE = ("ted", "uk_fts", "uk_cf", "canadabuys", "austender", "ungm", "samgov", "worldbank", "ebrd", "ppra_epms")
 TENDER_DISABLED = ("adb", "afdb", "isdb", "aiib", "etimad", "dubai", "monaqasat", "oman", "bahrain", "kuwait")
 TENDER_SOURCES = TENDER_LIVE + TENDER_DISABLED
 TENDER_SOURCE_LABEL = {"ted": "EU TED", "uk_fts": "UK Find a Tender", "uk_cf": "UK Contracts Finder",
                        "canadabuys": "CanadaBuys", "austender": "AusTender", "ungm": "UNGM",
-                       "samgov": "SAM.gov", "worldbank": "World Bank", "ebrd": "EBRD", "adb": "ADB (disabled)",
+                       "samgov": "SAM.gov", "worldbank": "World Bank", "ebrd": "EBRD", "ppra_epms": "Pakistan PPRA (EPMS)",
+                       "adb": "ADB (disabled)",
                        "afdb": "AfDB (disabled)", "isdb": "IsDB (disabled)", "aiib": "AIIB (disabled)",
                        "etimad": "Saudi Etimad (disabled)", "dubai": "Dubai eSupply (disabled)",
                        "monaqasat": "Qatar Monaqasat (disabled)", "oman": "Oman Tender Board (disabled)",

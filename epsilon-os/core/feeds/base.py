@@ -198,7 +198,8 @@ def country_code(v) -> str:
 # A drifted rate moves a borderline tender by a few percent; unknown currencies are treated as "value unknown".
 FX_USD = {"USD": 1.0, "EUR": 1.08, "GBP": 1.27, "CAD": 0.73, "AUD": 0.65, "NZD": 0.60, "CHF": 1.12, "SEK": 0.095,
           "NOK": 0.092, "DKK": 0.145, "PLN": 0.25, "CZK": 0.043, "HUF": 0.0027, "RON": 0.22, "BGN": 0.55,
-          "ISK": 0.0072, "JPY": 0.0067, "SGD": 0.75, "AED": 0.272, "SAR": 0.267, "INR": 0.012, "TRY": 0.024}
+          "ISK": 0.0072, "JPY": 0.0067, "SGD": 0.75, "AED": 0.272, "SAR": 0.267, "INR": 0.012, "TRY": 0.024,
+          "PKR": 0.0036}
 
 
 def to_usd(amount: float | None, currency: str | None) -> float | None:

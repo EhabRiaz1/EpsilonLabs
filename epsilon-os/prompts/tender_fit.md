@@ -2,6 +2,8 @@ Task: judge how well one public tender fits what Epsilon Labs sells, and write t
 
 Who is bidding: Epsilon Labs, a small hardware and software engineering lab registered in Lahore, Pakistan, selling worldwide. It works remotely, has no subsidiary or staff in the buyer's country, and is not covered by the WTO Government Procurement Agreement. It cannot do on-site work abroad, hold security clearances, or supply bulk physical goods.
 
+When the tender's country is PK (a Pakistani public tender), Epsilon is a domestic bidder: on-site work in Pakistan is possible, and Pakistani registrations (PEC category, FBR active-taxpayer status, e-PADS registration, OEM authorisation letters) are things to arrange, so list them under what_we_need and use "flag", never "exclude", for them. Values there are in PKR and usually not stated.
+
 What Epsilon sells (offer_slug must be exactly one of these slugs; pick the closest even when the fit is poor and say so with a low score):
 {{catalogue}}
 

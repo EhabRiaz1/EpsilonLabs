@@ -79,6 +79,55 @@ NATIONALITY = re.compile(r"national (?:competitive|open) bidding|\bNCB\b|local c
                          r"only .{0,40}(?:national|citizen)s? (?:of|from)", R)
 
 
+# Domestic Pakistani tenders (ppra_epms). Epsilon is a Pakistan-registered firm in Lahore, so residency and on-site
+# rules do not exclude it there; what does matter are Pakistani registrations, read from the notice text.
+DOMESTIC = "PK"
+_PEC = re.compile(r"\bPEC\b|Pakistan Engineering Council", R)
+_PEC_CAT = re.compile(r"\b(?:PEC|Pakistan Engineering Council)\b[^;\n]{0,80}?\b(?:category|cat\.?)?\s*\(?\b(C-?\s?(?:[1-6]|A|B))\b", R)
+_PEC_SPEC = re.compile(r"\b((?:CE|EE|ME|EL|EC)-?\s?\d{1,2})\b")
+_FBR = re.compile(r"\bFBR\b|active tax ?payers?|\bATL\b|sales tax registration|\bSTRN\b|\bNTN\b", R)
+_OEM = re.compile(r"\bOEM\b.{0,40}?(?:authori[sz]ation|letter|certificate)|manufacturer'?s? authori[sz]ation|"
+                  r"authori[sz]ed (?:dealer|distributor|partner|reseller)", R)
+PEC_NOTE = "Pakistan Engineering Council contractor registration"
+
+
+def pk_flags(text: str) -> list[str]:
+    """Short eligibility flags for a Pakistani notice, e.g. ["PEC C-6", "PEC specialisation CE-10", "FBR active taxpayer"].
+    Code reads them from the buyer's text; ppra_epms stores them in raw["eligibility_flags"]."""
+    out: list[str] = []
+    pec = _PEC.search(text or "")
+    if pec:
+        cat = _PEC_CAT.search(text)
+        out.append("PEC C-" + re.sub(r"[\s-]", "", cat.group(1))[1:].upper() if cat else "PEC")
+        spec = _PEC_SPEC.search(text[pec.start():])
+        if spec:
+            code = re.sub(r"[\s-]", "", spec.group(1))
+            out.append(f"PEC specialisation {code[:2]}-{code[2:]}")
+    if _FBR.search(text or ""):
+        out.append("FBR active taxpayer")
+    if _OEM.search(text or ""):
+        out.append("OEM authorisation letter")
+    return out
+
+
+def pk_notes(flags: list[str]) -> list[str]:
+    """The founder-facing notes for pk_flags, first in the eligibility notes so the Opportunities list shows them."""
+    notes = []
+    for f in flags:
+        if f.startswith("PEC specialisation"):
+            continue
+        if f.startswith("PEC"):
+            spec = next((x.split()[-1] for x in flags if x.startswith("PEC specialisation")), "")
+            cat = f[4:] if f != "PEC" else ""
+            notes.append(f"Needs {f} ({PEC_NOTE}" + (f", category {cat} or above" if cat else "")
+                         + (f", specialisation {spec}" if spec else "") + ")")
+        elif f.startswith("FBR"):
+            notes.append("Needs FBR active-taxpayer (ATL) status")
+        elif f.startswith("OEM"):
+            notes.append("Needs an OEM authorisation letter from the manufacturer")
+    return notes
+
+
 def _text(opp: Opp) -> str:
     raw = opp.raw or {}
     extra = " ".join(str(raw.get(k) or "") for k in ("set_aside", "set_aside_description", "trade_agreements",
@@ -88,17 +137,21 @@ def _text(opp: Opp) -> str:
 
 def assess(opp: Opp) -> dict:
     text = _text(opp)
+    domestic = opp.country == DOMESTIC
     excl: list[str] = [label for label, rx in EXCLUDE if rx.search(text)]
     reg = _REG_HARD.search(text)
-    if (reg and not _PORTAL.search(reg.group(1))) or _REG_SOFT.search(text):
+    if not domestic and ((reg and not _PORTAL.search(reg.group(1))) or _REG_SOFT.search(text)):
         excl.append(REG_LABEL)
     raw_set_aside = str((opp.raw or {}).get("set_aside") or "").strip().upper()
     if raw_set_aside and raw_set_aside not in ("NONE", "N/A") and not any(x.startswith("Set-aside") for x in excl):
         excl.append(f"Set-aside for small or disadvantaged US businesses (SAM.gov code {raw_set_aside})")
-    flags = [label for label, rx in FLAGS if rx.search(text)]
+    flags = [label for label, rx in FLAGS if rx.search(text) and not (domestic and label == FLAGS[0][0])]
+    if domestic:
+        raw_flags = (opp.raw or {}).get("eligibility_flags")
+        flags = pk_notes(raw_flags if isinstance(raw_flags, list) else pk_flags(text)) + flags
     if opp.raw.get("non_english") and FLAGS[3][0] not in flags:
         flags.append(FLAGS[3][0])
-    if ONSITE.search(text):
+    if ONSITE.search(text) and not domestic:   # on-site in Pakistan is possible for a Lahore firm
         if REMOTE.search(text):
             flags.append("On-site presence is mentioned alongside remote work: confirm how much can be remote")
         else:

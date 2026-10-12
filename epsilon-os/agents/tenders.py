@@ -15,8 +15,9 @@ import argparse
 import json
 import sys
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
-from core import ledger, llm as llm_mod, settings as settings_mod
+from core import config, ledger, llm as llm_mod, settings as settings_mod
 from core import feeds
 from core.db import DB, DBError
 from core.feeds import eligibility, filters
@@ -119,6 +120,19 @@ def pick(pending: list[tuple[Opp, dict]], want: int) -> list[tuple[Opp, dict]]:
     return taken
 
 
+DAILY_ACTION = "feed_daily_fetched"
+
+
+def fetched_today(db, source: str, now: datetime) -> bool:
+    """A feed marked ONCE_A_DAY (a big crawl, e.g. ppra_epms) already ran successfully since PKT midnight."""
+    start = now.astimezone(ZoneInfo(config.TZ)).replace(hour=0, minute=0, second=0, microsecond=0)
+    try:
+        return bool(db.select("actions", agent=AGENT, action=DAILY_ACTION, target_id=source,
+                              at=f"gte.{start.isoformat()}", limit=1))
+    except DBError:
+        return False
+
+
 def expire_old(db, now: datetime) -> int:
     try:
         return len(db.update("opportunities", {"status": "expired"}, status="new", deadline_at=f"lt.{now.isoformat()}"))
@@ -151,7 +165,17 @@ def run(db: DB | None = None, llm=llm_mod, now: datetime | None = None, *, fetch
         return beat("ok", state="idle", **c)
 
     since = now.date() - timedelta(days=LOOKBACK_DAYS)
-    opps, report = feeds.collect(enabled, since, fetchers)
+    daily = [s for s in enabled if s in feeds.SOURCES and getattr(feeds.module(s), "ONCE_A_DAY", False)]
+    skipped = [s for s in daily if not dry and fetched_today(db, s, now)]
+    opps, report = feeds.collect([s for s in enabled if s not in skipped], since, fetchers)
+    for s in daily:
+        if s in skipped:
+            report[s] = {"ok": True, "n": 0, "error": "", "skipped": "already read today"}
+        elif not dry and report.get(s, {}).get("ok"):
+            try:
+                ledger.action(db, AGENT, run_id, DAILY_ACTION, None, s, {"n": report[s]["n"]})
+            except Exception:
+                pass  # a missing marker only means one extra polite crawl
     c["fetched"] = len(opps)
     seen_ids: set[tuple[str, str]] = set()
     keep: list[Opp] = []
@@ -219,7 +243,7 @@ def run(db: DB | None = None, llm=llm_mod, now: datetime | None = None, *, fetch
                  eligibility=(row["fit"] or {}).get("eligibility", {}).get("status"))
     failed = [s for s, r in report.items() if not r["ok"] and not r.get("disabled")]
     status = "warn" if (budget_hit or failed or c["score_failed"]) else "ok"
-    detail = {"feeds": {s: (r["n"] if r["ok"] else ("disabled" if r.get("disabled") else "failed: " + r["error"]))
+    detail = {"feeds": {s: (r.get("skipped") or r["n"] if r["ok"] else ("disabled" if r.get("disabled") else "failed: " + r["error"]))
                         for s, r in report.items()},
               "budget_exceeded": budget_hit, **c}
     if dry:

@@ -9,9 +9,12 @@ writes. A budget stop or a failed dossier therefore never leaves a half-made com
 
     python -m agents.prospector --dry-run --strategy s2_trigger --n 3
 
-Strategies S2-S5 (prompts/strategies.py) replace the old three-segment search. Each strategy has a daily quota
-(Settings strategy.quotas). S6, the learning loop, moves quota toward the strategy with the best positive-reply rate,
-weekly and within bounds, and never touches a pinned strategy.
+Strategies S2-S13 (prompts/strategies.py) replace the old three-segment search. Settings prospector.mix splits the
+daily total between the software strategies (S11-S13) and the hardware ones (S2-S10); inside each group the quotas
+(Settings strategy.quotas) weigh the strategies. S6, the learning loop, moves quota toward the strategy with the best
+positive-reply rate inside the same group (the mix governs the split between groups), weekly and within bounds, and
+never touches a pinned strategy. S13 reads the Hacker News freelancer thread in code (core/feeds/hn_freelancer.py);
+a tool-less model only scores those posts.
 """
 import argparse
 import json
@@ -24,6 +27,7 @@ from zoneinfo import ZoneInfo
 from agents.inbox import first_name
 from core import config, ledger, lint, llm as llm_mod, settings as settings_mod
 from core.db import DB
+from core.feeds import hn_freelancer
 from prompts import loader, schemas, strategies as strat
 
 AGENT = "prospector"
@@ -62,6 +66,8 @@ NOT_A_COMPANY = {"linkedin.com", "indeed.com", "glassdoor.com", "reddit.com", "f
                  "kickstarter.com", "indiegogo.com", "crowdsupply.com", "github.com", "stackoverflow.com", "stackexchange.com", "youtube.com", "medium.com", "upwork.com",
                  "fiverr.com", "freelancer.com", "wikipedia.org", "google.com", "naukri.com", "rozee.pk"}
 CONTACT_BATCH = 8
+HN_STRATEGY = "s13_hn"
+HN_BATCH = 15               # posts per tool-less scoring call
 HIRING_INBOXES = {"careers", "career", "jobs", "job", "hr", "recruiting", "recruitment", "recruiter", "talent", "hiring",
                   "apply", "applications", "people"}
 # Inboxes that exist for something other than a business conversation; writing a pitch there looks careless.
@@ -214,6 +220,8 @@ def validate(raw: dict, strategy: str, slugs: set[str], today: date | None = Non
         return None, "outside target markets"
     ttype = raw.get("trigger_type") if raw.get("trigger_type") in strat.TRIGGER_TYPES else "other"
     headcount, post_age = _int(raw.get("headcount")), _int(raw.get("post_age_days"))
+    if st.max_headcount is not None and headcount > st.max_headcount:
+        return None, f"{headcount} staff (limit {st.max_headcount})"
     last_resort = False
     if strategy == "s5_intent" and is_fulltime_post(raw, quote, obs):
         if not (0 < headcount < SMALL_COMPANY and post_age > STALE_POST_DAYS):
@@ -269,13 +277,36 @@ def finish_draft(body: str) -> tuple[str, list[str]]:
 
 # ---------------------------------------------------------------- S6: quotas, stats, rebalance
 
-def effective_quotas(quotas: dict, per_day: int) -> dict:
-    """Quotas as set, trimmed in strategy order if their total exceeds prospector.per_day (the form prevents it)."""
-    left, out = per_day, {}
-    for sid in settings_mod.STRATEGY_IDS:
-        out[sid] = max(min(int(quotas.get(sid, 0)), left), 0)
-        left -= out[sid]
+def apportion(budget: int, weights: dict) -> dict:
+    """Split `budget` whole units across `weights` in proportion (largest remainder; ties go to the earlier key).
+    Every key keeps a share of 0 when the weights are all 0."""
+    total = sum(weights.values())
+    if budget <= 0 or total <= 0:
+        return dict.fromkeys(weights, 0)
+    exact = {k: budget * w / total for k, w in weights.items()}
+    out = {k: int(v) for k, v in exact.items()}
+    order = sorted(weights, key=lambda k: -(exact[k] - out[k]))   # sorted() is stable: ties keep strategy order
+    for k in order[: budget - sum(out.values())]:
+        out[k] += 1
     return out
+
+
+def effective_quotas(quotas: dict, per_day: int, mix: int = settings_mod.DEFAULT_MIX) -> dict:
+    """Today's per-strategy targets. The total is the quotas' sum, capped at prospector.per_day. `mix` percent of it
+    goes to the software strategies and the rest to the hardware ones; inside each group the quotas are weights.
+    A group whose quotas are all 0 is switched off and the other group takes the whole total."""
+    q = {sid: max(int(quotas.get(sid, 0)), 0) for sid in settings_mod.STRATEGY_IDS}
+    total = max(min(sum(q.values()), per_day), 0)
+    soft = {s: q[s] for s in settings_mod.SOFTWARE_STRATEGIES}
+    hard = {s: q[s] for s in settings_mod.HARDWARE_STRATEGIES}
+    if not sum(soft.values()):
+        soft_total = 0
+    elif not sum(hard.values()):
+        soft_total = total
+    else:
+        soft_total = int(total * min(max(mix, 0), 100) / 100 + 0.5)
+    out = apportion(total - soft_total, hard) | apportion(soft_total, soft)
+    return {sid: out[sid] for sid in settings_mod.STRATEGY_IDS}
 
 
 def _ts(v) -> datetime | None:
@@ -343,12 +374,25 @@ def strategy_stats(db, now: datetime, windows: tuple = (30, 90)) -> dict:
 
 def rebalance(quotas: dict, stats30: dict, pinned, *, min_sends: int = MIN_SENDS, step: int = REBALANCE_STEP,
               floor: int = REBALANCE_FLOOR) -> dict | None:
-    """Weekly S6 move. Only strategies with at least `min_sends` sends in 30 days, a quota above 0 (0 means switched off)
+    """Weekly S6 move, inside one group only: software (S11-S13) or hardware (S2-S10). prospector.mix sets the split
+    between the groups, so moving quota across them would only be undone by the mix. Each group is judged on its
+    own (see _rebalance_group); when both have a move, the one with the larger rate gap wins. One move a week."""
+    best = None
+    for group in (settings_mod.HARDWARE_STRATEGIES, settings_mod.SOFTWARE_STRATEGIES):
+        mv = _rebalance_group(group, quotas, stats30, pinned, min_sends=min_sends, step=step, floor=floor)
+        if mv and (best is None or mv["rates"][mv["to"]] - mv["rates"][mv["from"]]
+                   > best["rates"][best["to"]] - best["rates"][best["from"]]):
+            best = mv
+    return best
+
+
+def _rebalance_group(group, quotas: dict, stats30: dict, pinned, *, min_sends: int, step: int, floor: int) -> dict | None:
+    """Only strategies with at least `min_sends` sends in 30 days, a quota above 0 (0 means switched off)
     and not pinned take part, and at least two must qualify. Up to `step` quota units move from the lowest
     positive-reply-rate strategy that is still above `floor` to the highest-rate one; nothing moves unless the
     recipient's rate is strictly higher. Total quota is conserved. Returns the change or None."""
     rate = {}
-    for sid in settings_mod.STRATEGY_IDS:
+    for sid in group:
         m = stats30.get(sid) or {}
         if sid not in pinned and quotas.get(sid, 0) > 0 and m.get("sent", 0) >= min_sends:
             rate[sid] = m["positive"] / m["sent"]
@@ -419,6 +463,7 @@ class State:
         self.today_date: date | None = None
         self.segments: list[str] | None = None
         self.markets: list[str] | None = None
+        self.hn_fetch = hn_freelancer.fetch_candidates
         self.by = {sid: dict.fromkeys(("research_calls", "returned", "invalid", "created", "drafts", "no_contact"), 0)
                    for sid in settings_mod.STRATEGY_IDS}
         self.c = dict.fromkeys(("research_calls", "returned", "invalid", "dup", "suppressed", "existing", "created",
@@ -606,7 +651,91 @@ def _preferred_offers(st, slugs: list[str]) -> str:
     return ", ".join(o for o in st.offers if o in slugs) or ", ".join(slugs)
 
 
+def hn_raw(c: dict, r: dict, sid: str, today: date) -> tuple[dict | None, str]:
+    """S13: one scored post -> the raw dict validate() takes. Code supplies the evidence (post URL, quote, date) and
+    holds the model to the domains and emails code itself extracted from the post."""
+    if not r.get("keep"):
+        return None, "model: " + (_one_line(r.get("reason"), 160) or "not kept")
+    domain = clean_domain(str(r.get("domain") or ""))
+    if not domain or domain not in c["domains"]:
+        return None, "domain not among the post's own links"
+    email = next((e for e in c["emails"] if e.split("@", 1)[1] == domain or e.split("@", 1)[1].endswith("." + domain)), None)
+    posted = _day(c["posted_on"])
+    return {"name": r.get("name"), "domain": domain, "country": r.get("country"), "sector": r.get("sector"),
+            "strategy": sid, "segment": r.get("segment"), "evidence_url": c["url"],
+            "evidence_quote": _one_line(c["text"], 240), "evidence_date": c["posted_on"],
+            "trigger": r.get("trigger") or "Posted SEEKING FREELANCER in the Hacker News freelancer thread.",
+            "trigger_type": "rfq", "headcount": 0, "post_age_days": (today - posted).days if posted else 0,
+            "observation": r.get("observation"), "suggested_offer_slug": r.get("suggested_offer_slug"),
+            "contact": {"email": email, "name": "", "role": "", "source_url": c["url"]} if email else None,
+            "confidence": r.get("confidence")}, ""
+
+
+def _hn_strategy(S, sid: str, target: int, slugs: list[str]) -> None:
+    """S13: code reads the thread; a tool-less model (post text inside <untrusted>) scores batches of posts."""
+    st, mine = strat.get(sid), S.by[sid]
+    try:
+        found = S.hn_fetch()
+    except Exception as e:  # a broken feed is a failed research step, never a dead run
+        S.c["research_failed"] += 1
+        _log(S, "research_failed", detail={"strategy": sid, "error": f"{type(e).__name__}: {str(e)[:200]}"})
+        return
+    fresh = [c for c in found if any(d not in S.known for d in c["domains"])]
+    S.c["returned"] += len(fresh)
+    mine["returned"] += len(fresh)
+    _log(S, "research_done", detail={"strategy": sid, "returned": len(fresh), "posts_matched": len(found)})
+    schema = schemas.hn_score(slugs)
+    for i in range(0, len(fresh), HN_BATCH):
+        if mine["created"] >= target or S.budget_hit:
+            return
+        batch = fresh[i:i + HN_BATCH]
+        system = loader.compose("hn_score", {
+            "today": S.today, "strategy": sid, "strategy_name": st.name, "buyer_rules": st.buyer_rules,
+            "preferred_offers": _preferred_offers(st, slugs), "slugs": ", ".join(slugs),
+            "markets": ", ".join(S.markets or sorted(TARGET_MARKETS))})
+        posts = json.dumps([{k: c[k] for k in ("post_id", "posted_on", "text", "domains", "emails")} for c in batch],
+                           ensure_ascii=False)
+        S.c["research_calls"] += 1
+        mine["research_calls"] += 1
+        try:
+            data, _ = S.llm.ask(S.db, AGENT, S.run_id, system, posts, schema, model="haiku")
+        except llm_mod.BudgetExceeded:
+            S.budget_hit = True
+            return
+        except llm_mod.LLMError as e:
+            S.c["research_failed"] += 1
+            _log(S, "research_failed", detail={"strategy": sid, "error": str(e)[:200]})
+            return
+        if data.get("notes"):
+            S.notes.append(f"{sid}: {data['notes'][:300]}")
+        by_id = {c["post_id"]: c for c in batch}
+        valid = []
+        for r in data.get("posts") or []:
+            c = by_id.pop(str(r.get("post_id")), None)   # each post we sent is judged once; unknown ids are ignored
+            raw, why = (hn_raw(c, r, sid, S.today_date or datetime.now(timezone.utc).date()) if c else (None, "unknown post id"))
+            p = None
+            if raw is not None:
+                p, why = validate(raw, sid, set(slugs), S.today_date, S.segments, S.markets)
+            if p is None:
+                S.c["invalid"] += 1
+                mine["invalid"] += 1
+                _log(S, "prospect_dropped", detail={"strategy": sid, "reason": why, "post": (c or {}).get("url", "")})
+                continue
+            valid.append(p)
+        fill_contacts(S, valid)
+        for p in valid:
+            if mine["created"] >= target or S.budget_hit:
+                break
+            try:
+                _process(S, p)
+            except Exception as e:  # one bad prospect never kills the run
+                S.c["errors"] += 1
+                _log(S, "prospect_error", detail={"domain": p["domain"], "error": f"{type(e).__name__}: {str(e)[:200]}"})
+
+
 def _research_strategy(S, sid: str, target: int, slugs: list[str], schema: dict) -> None:
+    if sid == HN_STRATEGY:
+        return _hn_strategy(S, sid, target, slugs)
     st, mine = strat.get(sid), S.by[sid]
     for _ in range(CALLS_PER_STRATEGY):
         if mine["created"] >= target or S.budget_hit:
@@ -661,12 +790,14 @@ def _research_strategy(S, sid: str, target: int, slugs: list[str], schema: dict)
 
 
 def run(db: DB | None = None, llm=llm_mod, settings=None, now: datetime | None = None, *,
-        strategy: str | None = None, per_day: int | None = None, dry: bool = False) -> dict:
+        strategy: str | None = None, per_day: int | None = None, dry: bool = False, hn_fetch=None) -> dict:
     db = db or DB()
     settings = settings or settings_mod.Settings(db)
     now = now or datetime.now(timezone.utc)
     run_id = ledger.new_run_id()
     S = State(db, llm, run_id, dry)
+    if hn_fetch is not None:   # tests pass a recorded fixture; live runs read the HN API
+        S.hn_fetch = hn_fetch
 
     def beat(status: str, **detail) -> dict:
         out = {"run_id": run_id, **detail}
@@ -682,7 +813,8 @@ def run(db: DB | None = None, llm=llm_mod, settings=None, now: datetime | None =
         rebalance_note = maybe_rebalance(S, settings, now)
     except Exception as e:  # the weekly move must never stop the daily run
         _log(S, "quota_rebalance_failed", detail={"error": f"{type(e).__name__}: {str(e)[:200]}"})
-    quotas = effective_quotas(settings.get("strategy.quotas"), per_day if per_day is not None and not dry else settings.per_day())
+    quotas = effective_quotas(settings.get("strategy.quotas"), per_day if per_day is not None and not dry else settings.per_day(),
+                              settings.get("prospector.mix"))
     if dry:
         targets = {strategy: per_day if per_day is not None else 3}
     else:
@@ -724,6 +856,8 @@ class _DryAsk:
         self.real = real
 
     def ask(self, db, agent, run_id, system, untrusted, schema, model="haiku", timeout=120):
+        if "posts" in schema["properties"]:   # S13 scoring is the strategy's research step: real
+            return self.real.ask(db, agent, run_id, system, untrusted, schema, model=model, timeout=timeout)
         if "body_md" in schema["properties"]:
             return {"body_md": "(dry run: dossier not generated)"}, {}
         return {"subject": "(dry run)", "body": "(dry run: draft not generated)", "notes": ""}, {}

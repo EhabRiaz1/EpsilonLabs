@@ -25,7 +25,23 @@ KEYWORDS: tuple[tuple[str, int], ...] = (
     ("mobile app", 2), ("mobile application", 2), ("booking system", 2), ("inventory", 1), ("crm", 2),
     ("dashboard", 1), ("monitoring", 1), ("cyber security testing", 2), ("security testing", 2),
 )
-_KW = [(re.compile(r"(?<![a-z0-9])" + re.escape(k) + r"(?![a-z0-9])", re.I), k, w) for k, w in KEYWORDS]
+# Extra terms for one source only. Pakistani federal tenders name the kit (CCTV, biometric, RFID, smart meters, tank
+# gauging) where other feeds say "monitoring system"; the feed's own pre-filter (core/feeds/ppra_epms.py) has
+# already dropped supply and works lots, so these only rank what is left.
+SOURCE_KEYWORDS: dict[str, tuple[tuple[str, int], ...]] = {
+    "ppra_epms": (("cctv", 2), ("biometric", 2), ("rfid", 2), ("smart meter", 3), ("smart metering", 3),
+                  ("tank gauging", 3), ("automatic tank gauge", 3), ("vapt", 3), ("cybersecurity", 2),
+                  ("cyber security", 2), ("software", 1), ("automation", 1), ("artificial intelligence", 2),
+                  ("video surveillance", 2), ("web portal", 2), ("ami", 2)),
+}
+
+
+def _compile(pairs) -> list:
+    return [(re.compile(r"(?<![a-z0-9])" + re.escape(k) + r"(?![a-z0-9])", re.I), k, w) for k, w in pairs]
+
+
+_KW = _compile(KEYWORDS)
+_SOURCE_KW = {s: _compile(pairs) for s, pairs in SOURCE_KEYWORDS.items()}
 
 
 def keyword_hits(text: str) -> list[str]:
@@ -34,9 +50,10 @@ def keyword_hits(text: str) -> list[str]:
 
 def keyword_score(opp: Opp) -> int:
     text = f"{opp.title}\n{opp.summary}"
-    seen = {k: w for rx, k, w in _KW if rx.search(text)}
+    kws = _KW + _SOURCE_KW.get(opp.source, [])
+    seen = {k: w for rx, k, w in kws if rx.search(text)}
     # a title hit counts double: that is what the buyer says they are buying
-    title_bonus = sum(w for rx, k, w in _KW if rx.search(opp.title or ""))
+    title_bonus = sum(w for rx, k, w in kws if rx.search(opp.title or ""))
     return sum(seen.values()) + title_bonus
 
 

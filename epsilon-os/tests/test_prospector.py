@@ -73,8 +73,13 @@ class FakeLLM:
 
 
 def go(db, fake, **kw):
-    """Pins the strategy to S2 (co() fits itself to it) unless a test is about allocation and passes strategy=None."""
+    """Pins the strategy to S2 (co() fits itself to it) unless a test is about allocation and passes strategy=None.
+    A pinned strategy gets the whole daily total unless the test set quotas itself (since prospector.mix, quotas
+    are weights, so the default quotas would give S2 only its share). S13 never touches the network here."""
     kw.setdefault("strategy", "s2_trigger")
+    kw.setdefault("hn_fetch", lambda: [])
+    if kw["strategy"] and not kw.get("dry") and not db.rows("settings", key="strategy.quotas"):
+        settings.set(db, "strategy.quotas", only({kw["strategy"]: 50}))
     return prospector.run(db, fake, settings.Settings(db), kw.pop("now", NOW), **kw)
 
 
@@ -246,11 +251,12 @@ def _sid(call):
 def test_strategy_rotation_is_round_robin_by_day():
     ids = list(settings.STRATEGY_IDS)
     firsts = []
-    for d in range(8):
+    for d in range(len(ids)):
         db, fake = FakeDB(), FakeLLM()
         go(db, fake, now=NOW + timedelta(days=d), strategy=None)
         firsts.append(_sid(fake.research_calls[0]))
-    assert sorted(firsts) == sorted(ids) and len(set(firsts)) == 8
+    # S13 makes no web-research call (it reads HN in code), so on its day the next strategy makes the first call
+    assert set(firsts) == set(ids) - {"s13_hn"} and len(firsts) == 11
     # a strategy with quota 0 is never visited
     db, fake = FakeDB(), FakeLLM()
     settings.set(db, "strategy.quotas", only({"s2_trigger": 0, "s3_regulation": 0, "s4_partner": 5, "s5_intent": 0}))
@@ -262,7 +268,7 @@ def test_each_strategy_gets_its_own_quota_and_calls_are_capped():
     db = FakeDB()
     fake = FakeLLM()  # empty answers: one call per strategy, then the strategy ends
     r = go(db, fake, strategy=None)
-    assert r["research_calls"] == 8 and r["created"] == 0 and r["target"] == 40
+    assert r["research_calls"] == 10 and r["created"] == 0 and r["target"] == 40   # S13 found no posts: no call
     db = FakeDB()
     settings.set(db, "strategy.quotas", only({"s2_trigger": 20, "s3_regulation": 0, "s4_partner": 0, "s5_intent": 0}))
     settings.set(db, "prospector.per_day", 50)
@@ -289,6 +295,7 @@ def test_quota_per_strategy_is_filled_independently_and_counted_per_day():
 def test_stops_at_per_day_and_counts_what_was_made_today():
     db = FakeDB()
     settings.set(db, "prospector.per_day", 3)
+    settings.set(db, "strategy.quotas", only({"s2_trigger": 10}))
     r = go(db, FakeLLM([co(i) for i in range(5)]), strategy=None)
     assert r["created"] == 3 and len(db.rows("companies")) == 3
     # a second run the same day has nothing left to do and does no research
