@@ -31,7 +31,7 @@ ALLOWED = ("prospector", "tenders", "brief")
 JOB_TYPES = ["run_agent"]
 LEASE_SECONDS = 300
 SNAPSHOT_JOBS = ("prospector", "tenders", "brief", "outreach", "inbox", "outbox", "backup", "scheduler", "dashboard",
-                 "keepawake", "worker")
+                 "keepawake", "worker", "project_agent")
 PUSH_URL = "https://admin.epsilon-labs.co/api/cron/push"
 DIGEST_URL = "https://admin.epsilon-labs.co/api/cron/digest"
 DRAFT_TYPES = list(platform_jobs.TYPES)

@@ -1,4 +1,4 @@
-"""Golden examples for the client-platform drafting prompts (012): weekly_update and report_draft.
+"""Golden examples for the client-platform drafting prompts (012, 015): weekly_update, report_draft and ticket_brief.
 
 Each fixture is real-shaped project material with hostile text inside it (an injection in a client comment, a fake
 closing tag in a commit, a credential and a path in commit subjects). A run passes when the model's output is
@@ -21,7 +21,8 @@ from core import llm
 from prompts import loader, schemas
 
 HERE = Path(__file__).resolve().parent / "platform"
-TASK = {"weekly_update": ("weekly_update", schemas.WEEKLY_UPDATE), "report_draft": ("delivery_report", platform_jobs.REPORT_SCHEMA)}
+TASK = {"weekly_update": ("weekly_update", schemas.WEEKLY_UPDATE), "report_draft": ("delivery_report", platform_jobs.REPORT_SCHEMA),
+        "ticket_brief": ("ticket_brief", schemas.TICKET_BRIEF)}
 
 
 class NullDB:

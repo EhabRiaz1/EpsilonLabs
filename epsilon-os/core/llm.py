@@ -83,7 +83,8 @@ def _call(db: DB, agent: str, run_id: str, args: list[str], stdin: str, schema: 
         jsonschema.validate(data, schema)
     except jsonschema.ValidationError as e:
         raise LLMError(f"schema mismatch: {e.message[:200]}") from None
-    meta = {"cost_usd": out.get("total_cost_usd"), "model": model, "duration": out.get("duration_ms")}
+    meta = {"cost_usd": out.get("total_cost_usd"), "model": model, "duration": out.get("duration_ms"),
+            "usage": out.get("usage") if isinstance(out.get("usage"), dict) else None}
     ledger.action(db, agent, run_id, "llm_call", model=model, cost_usd=meta["cost_usd"],
                   detail={"duration_ms": meta["duration"]})
     return data, meta

@@ -227,3 +227,22 @@ REFERRAL_ASK = {
         "notes": {"type": "string", "maxLength": 300},
     },
 }
+
+
+# ---------------------------------------------------------------- project agent (015): the tool-less ticket brief
+
+_LINE = {"type": "string", "minLength": 1, "maxLength": 300}
+TICKET_BRIEF = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["title", "problem", "change", "not_in_scope", "acceptance", "questions_for_client", "notes"],
+    "properties": {
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "problem": {"type": "string", "minLength": 1, "maxLength": 1200},
+        "change": {"type": "array", "minItems": 1, "maxItems": 10, "items": _LINE},
+        "not_in_scope": {"type": "array", "maxItems": 8, "items": _LINE},
+        "acceptance": {"type": "array", "maxItems": 8, "items": _LINE},
+        "questions_for_client": {"type": "array", "maxItems": 5, "items": _LINE},
+        "notes": {"type": "string", "maxLength": 400},
+    },
+}

@@ -1,0 +1,16 @@
+{
+  "$comment": "Structured final report of the execute agent (agents/project_agent.py, --json-schema). The worker, not the agent, records the diff and the authoritative test result.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "files_changed", "tests_added", "tests_run", "stopped_early", "stop_reason", "questions_for_client", "notes"],
+  "properties": {
+    "summary": {"type": "string", "minLength": 1, "maxLength": 1500},
+    "files_changed": {"type": "array", "maxItems": 60, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
+    "tests_added": {"type": "array", "maxItems": 30, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
+    "tests_run": {"type": "boolean"},
+    "stopped_early": {"type": "boolean"},
+    "stop_reason": {"type": "string", "maxLength": 600},
+    "questions_for_client": {"type": "array", "maxItems": 5, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
+    "notes": {"type": "string", "maxLength": 800}
+  }
+}
