@@ -167,3 +167,30 @@ def tender_fit(slugs: list[str]) -> dict:
             "what_we_need": {"type": "array", "maxItems": 8, "items": short},
         },
     }
+
+
+# ---------------------------------------------------------------- client platform (012): weekly update, referral ask
+
+WEEKLY_UPDATE = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["title", "done", "next", "needs_input", "notes"],
+    "properties": {
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "done": {"type": "array", "maxItems": 12, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
+        "next": {"type": "array", "maxItems": 8, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
+        "needs_input": {"type": "array", "maxItems": 5, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
+        "notes": {"type": "string", "maxLength": 400},
+    },
+}
+
+REFERRAL_ASK = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["subject", "body", "notes"],
+    "properties": {
+        "subject": {"type": "string", "minLength": 1, "maxLength": 120},
+        "body": {"type": "string", "minLength": 1, "maxLength": 1500},
+        "notes": {"type": "string", "maxLength": 300},
+    },
+}

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import httpx
 
 from agents import run as runner, worker
-from tests.fakes import FakeDB
+from tests.fakes import FakeDB, FakePlatformAsk
 
 NOW = datetime(2026, 10, 12, 6, 0, tzinfo=timezone.utc)
 
@@ -21,8 +21,9 @@ def fake_next(job_, last, now):
     return (now + timedelta(hours=1), "daily 07:00")
 
 
-def go(db, kicks, push=lambda: {"state": "ok", "sent": 1}, ok=True):
-    return worker.run(db, now=NOW, kick=lambda a: kicks.append(a) or ok, state=fake_state, next_run=fake_next, push=push)
+def go(db, kicks, push=lambda: {"state": "ok", "sent": 1}, ok=True, digest=lambda: {"state": "ok"}, now=NOW, ask=None):
+    return worker.run(db, now=now, kick=lambda a: kicks.append(a) or ok, state=fake_state, next_run=fake_next, push=push,
+                      digest=digest, ask=ask or FakePlatformAsk(), git=lambda *a, **k: [])
 
 
 def test_allowed_agent_is_kicked_and_job_done():

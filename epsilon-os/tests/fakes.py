@@ -317,6 +317,58 @@ class FakeDB:
                  error=(p_error or None) and p_error[:1000])
         return True
 
+    # -- migration 012 (as the worker's service role calls them; the SQL is tested in test_comms_billing_migration.py)
+    def _rpc_save_update_draft(self, p_project_id, p_title, p_body_md, p_source="manual", p_week_of=None, p_inputs=None,
+                               p_lint=None, p_job_id=None):
+        proj = next((x for x in self.t.get("projects", []) if x["id"] == p_project_id), None)
+        if not proj:
+            raise DBError("POST /rpc/save_update_draft: HTTP 403 staff only")
+        ups = self.t.setdefault("updates", [])
+        if p_source == "weekly":
+            u = next((x for x in ups if x["project_id"] == p_project_id and x.get("week_of") == p_week_of
+                      and x["source"] == "weekly"), None)
+            if u:
+                if u["status"] == "draft" and not u.get("edited_at"):
+                    u.update(title=p_title, body_md=p_body_md, inputs=p_inputs, lint=p_lint, job_id=p_job_id or u.get("job_id"))
+                    return {"id": u["id"], "state": "refreshed"}
+                return {"id": u["id"], "state": "kept"}
+        u = self._defaults("updates", {"org_id": proj["org_id"], "project_id": p_project_id, "title": p_title,
+                                       "body_md": p_body_md, "source": p_source, "week_of": p_week_of, "inputs": p_inputs,
+                                       "lint": p_lint, "job_id": p_job_id, "status": "draft", "edited_at": None})
+        ups.append(u)
+        return {"id": u["id"], "state": "created"}
+
+    def _rpc_save_report_draft(self, p_id, p_project_id, p_title, p_period_label, p_content, p_job_id=None):
+        proj = next((x for x in self.t.get("projects", []) if x["id"] == p_project_id), None)
+        if not proj or p_id is not None:
+            raise DBError("POST /rpc/save_report_draft: HTTP 400")
+        r = self._defaults("reports", {"org_id": proj["org_id"], "project_id": p_project_id, "title": p_title,
+                                       "period_label": p_period_label, "content": p_content, "job_id": p_job_id,
+                                       "status": "draft"})
+        self.t.setdefault("reports", []).append(r)
+        return r["id"]
+
+    def _rpc_queue_weekly_updates(self, p_week_of=None):
+        n = 0
+        orgs = {o["id"]: o for o in self.t.get("organizations", [])}
+        for proj in self.t.get("projects", []):
+            o = orgs.get(proj["org_id"], {})
+            if proj.get("status", "active") != "active" or o.get("is_test") or o.get("is_demo") or o.get("status", "active") != "active":
+                continue
+            if any(j["type"] == "weekly_update" and j["params"].get("project_id") == proj["id"]
+                   and j["params"].get("week_of") == p_week_of for j in self.t.get("jobs", [])):
+                continue
+            self.t.setdefault("jobs", []).append(self._defaults("jobs", {"type": "weekly_update",
+                                                                         "params": {"project_id": proj["id"], "week_of": p_week_of}}))
+            n += 1
+        return n
+
+    def _rpc_org_team(self, p_org_id):
+        return {"can_manage": True, "invites": [],
+                "members": [{"user_id": m["user_id"], "email": m["email"], "name": m.get("name", ""), "role": m["role"],
+                             "joined_at": m.get("created_at", _now())}
+                            for m in self.t.get("memberships", []) if m["org_id"] == p_org_id]}
+
     def claim(self, table: str, id: str, from_statuses: list[str], to_status: str, extra: dict | None = None):
         with self.lock:  # atomic: exactly one concurrent claimer sees the row in a from-status
             rows = self.update(table, {**(extra or {}), "status": to_status},
@@ -393,3 +445,36 @@ class FakeAsk:
             return {**base, **spec}, {}
         body = self._draft(untrusted) if callable(self._draft) else self._draft
         return {"body": body, "notes": ""}, {}
+
+
+class FakePlatformAsk:
+    """Stands in for core.llm.ask in the 012 drafting jobs. Picks the reply by schema, validates it like the real call,
+    and records every call (system prompt and the untrusted text) so tests can check what reached the model."""
+
+    WEEKLY = {"title": "Week of 12 Oct 2026", "done": ["EL-7 sensor drift fixed on hall 2"], "next": ["EL-9 alarm thresholds"],
+              "needs_input": [], "notes": ""}
+    REPORT = {"title": "Plant dashboard", "subtitle": "Release 1 — Sensing and alarms", "summary": ["Release 1 delivered live sensing."],
+              "kpis": [{"value": "12", "label": "Machines live"}], "measures": [],
+              "sections": [{"title": "Sensing", "intro": "", "callout": None,
+                            "rows": [{"item": "Drift", "outcome": "Fixed on hall 2", "new": False}]}],
+              "verification": [{"claim": "Drift fixed", "proof": "Readings compared for a week"}],
+              "outstanding": [], "notes": "Check the machine count."}
+    REFERRAL = {"subject": "Thank you, and a small ask", "body": "Hi Ayesha,\n\nThank you for the work on the plant dashboard."
+                "\n\nIf anyone you know has the same problem, an introduction by email is all it takes. No obligation.\n\nEhab",
+                "notes": ""}
+
+    def __init__(self, weekly=None, report=None, referral=None, fail: Exception | None = None):
+        self.calls: list[dict] = []
+        self.replies = {"weekly": weekly or self.WEEKLY, "report": report or self.REPORT, "referral": referral or self.REFERRAL}
+        self.fail = fail
+
+    def __call__(self, db, agent, run_id, system, untrusted, schema, model="haiku", timeout=120):
+        import jsonschema
+        props = schema.get("properties", {})
+        kind = "weekly" if "needs_input" in props else "report" if "verification" in props else "referral"
+        self.calls.append({"kind": kind, "model": model, "system": system, "untrusted": untrusted})
+        if self.fail:
+            raise self.fail
+        out = copy.deepcopy(self.replies[kind])
+        jsonschema.validate(out, schema)
+        return out, {}
