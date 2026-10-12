@@ -37,6 +37,8 @@
   ],
   "exclude": [
     "node_modules",
-    "app/styles/motion.js"
+    "app/styles/motion.js",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }
