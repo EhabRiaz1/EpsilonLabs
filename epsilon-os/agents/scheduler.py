@@ -14,8 +14,10 @@ starts any clock-time job whose latest slot has passed but that has not run sinc
         │no
     launchctl kickstart  (the job's own process lock still prevents any overlap)
 
-Slots are read from the job plists (the single source of truth the dashboard also shows). It also prunes
-heartbeats older than 14 days once a day, to stay inside the free Supabase plan (F16).
+Slots are read from the job plists (the single source of truth the dashboard also shows). Once a day (03:00 PKT) it
+also prunes heartbeats older than 14 days and site analytics older than 180 days, to stay inside the free Supabase
+plan (F16), and re-seeds the demo portal (reset_demo, migration 016). pg_cron is not enabled on the project, so this
+is where those daily jobs run.
 """
 import os
 import subprocess
@@ -29,6 +31,7 @@ CLOCK_JOBS = ("tenders", "prospector", "brief", "backup")
 GRACE = {"backup": timedelta(days=3)}
 DEFAULT_GRACE = timedelta(hours=12)
 HEARTBEAT_KEEP = timedelta(days=14)
+DAILY_RPCS = ("prune_site_events", "reset_demo")   # migration 016; service role
 
 
 def last_slot(spec: dict, now: datetime) -> datetime | None:
@@ -82,6 +85,7 @@ def run(db, now: datetime | None = None, kick=_kick, running=sched.running, spec
         except Exception as e:  # one bad job must not stop the others
             errors.append(f"{job}:{type(e).__name__}")
     pruned = 0
+    daily: list[str] = []
     local = now.astimezone(sched.PKT)
     if local.hour == 3 and local.minute < 5:  # once a day, quietly
         cutoff = (now - HEARTBEAT_KEEP).isoformat()
@@ -89,8 +93,16 @@ def run(db, now: datetime | None = None, kick=_kick, running=sched.running, spec
             pruned = len(db.delete("agent_heartbeats", last_run=f"lt.{cutoff}"))
         except Exception as e:
             errors.append(f"prune:{type(e).__name__}")
+        for fn in DAILY_RPCS:  # each on its own: one failing must not skip the other
+            try:
+                db.rpc(fn)
+                daily.append(fn)
+            except Exception as e:
+                errors.append(f"{fn}:{type(e).__name__}")
     status = "warn" if errors else "ok"
     detail = {"started": started, "errors": errors, "pruned": pruned}
-    if started or errors or pruned or local.minute < 5:  # heartbeat on activity, plus once an hour
+    if daily:
+        detail["daily"] = daily
+    if started or errors or pruned or daily or local.minute < 5:  # heartbeat on activity, plus once an hour
         ledger.heartbeat(db, AGENT, status, detail)
     return detail

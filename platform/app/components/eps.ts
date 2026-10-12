@@ -21,6 +21,7 @@ type EpsApi = {
   toast(msg: string, opts?: ToastOpts): { close(): void };
   keys(map: Record<string, (e: KeyboardEvent) => void>): void;
   reduced(): boolean;
+  sparkline(el: HTMLElement, data: number[]): void;
   lines(el: HTMLElement, cfg: { labels: string[]; series: { name: string; color: string; data: number[] }[]; marker?: number; badge?: string; aria?: string; height?: number }): void;
 };
 

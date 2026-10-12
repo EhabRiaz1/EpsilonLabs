@@ -14,6 +14,7 @@ export const ADMIN_PAGES: { href: string; label: string; icon: IconName; seq: st
   { href: "/invoices", label: "Invoices", icon: "receipt", seq: "g v" },
   { href: "/reports", label: "Reports", icon: "chart", seq: "g e" },
   { href: "/testimonials", label: "Testimonials", icon: "sparkle", seq: "g l" },
+  { href: "/analytics", label: "Analytics", icon: "eye", seq: "g w" },
   { href: "/agents", label: "Agents", icon: "cpu", seq: "g n" },
   { href: "/health", label: "Health", icon: "activity", seq: "g y" },
   { href: "/settings", label: "Settings", icon: "settings", seq: "g s" },

@@ -3,7 +3,8 @@
 import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getSession, displayName } from "@/lib/session";
-import { myMemberships } from "@/lib/orgs";
+import { inDemo, myMemberships } from "@/lib/orgs";
+import { DEMO_READ_ONLY } from "@/lib/demo";
 import { ORG_COOKIE } from "@/lib/org-choice";
 import { composeBody, type Priority } from "@/lib/tickets";
 import { newInviteToken, inviteUrl } from "@/lib/invites";
@@ -28,6 +29,12 @@ async function session() {
   return { supabase: s.supabase, claims: s.claims };
 }
 
+/** session() for a write: null for the demo login, whose writes the database refuses anyway (migration 016). */
+async function writer() {
+  const s = await session();
+  return (await inDemo(s.supabase, s.claims.sub)) ? null : s;
+}
+
 export async function createTicket(input: {
   projectId: string;
   title: string;
@@ -36,7 +43,9 @@ export async function createTicket(input: {
   description: string;
   where: string;
 }): Promise<{ ok: true; id: string; ref: string } | { ok: false; error: string }> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return { ok: false, error: DEMO_READ_ONLY };
+  const { supabase } = w;
   const title = String(input.title ?? "").trim();
   if (!UUID.test(input.projectId)) return { ok: false, error: "Pick the project this is about." };
   if (!title) return { ok: false, error: "Give the request a one-line title." };
@@ -62,7 +71,9 @@ export async function createTicket(input: {
 }
 
 export async function addComment(ticketId: string, body: string): Promise<Result> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return { error: DEMO_READ_ONLY };
+  const { supabase } = w;
   const text = String(body ?? "").trim();
   if (!UUID.test(ticketId)) return { error: "Unknown ticket." };
   if (!text) return { error: "Write something first." };
@@ -77,7 +88,9 @@ export async function addComment(ticketId: string, body: string): Promise<Result
 }
 
 export async function markRead(ids: string[] | null): Promise<void> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return;
+  const { supabase } = w;
   const list = ids?.filter((x) => UUID.test(x)).slice(0, 100) ?? null;
   await supabase.rpc("mark_notifications_read", { p_ids: list });
   revalidatePath("/", "layout");
@@ -94,7 +107,9 @@ export async function switchOrg(orgId: string): Promise<Result> {
 }
 
 export async function updateName(_prev: Result, fd: FormData): Promise<Result> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return { error: DEMO_READ_ONLY };
+  const { supabase } = w;
   const name = String(fd.get("name") ?? "").replace(/\s+/g, " ").trim();
   if (name.length < 2 || name.length > 100) return { error: "Enter your name (2 to 100 characters)." };
   const { error } = await supabase.auth.updateUser({ data: { full_name: name } });
@@ -110,7 +125,9 @@ async function clientOriginNow(): Promise<string> {
 
 /** Owners invite colleagues as members (create_invite enforces owner + role). The link is emailed from notifications@. */
 export async function inviteMember(orgId: string, _prev: Result, fd: FormData): Promise<Result> {
-  const { supabase, claims } = await session();
+  const w = await writer();
+  if (!w) return { error: DEMO_READ_ONLY };
+  const { supabase, claims } = w;
   const email = String(fd.get("email") ?? "").trim().toLowerCase();
   if (!UUID.test(orgId)) return { error: "Unknown organisation." };
   if (!EMAIL.test(email) || email.length > 254) return { error: "Enter a valid email address." };
@@ -140,7 +157,9 @@ export async function inviteMember(orgId: string, _prev: Result, fd: FormData): 
 }
 
 export async function revokeInvite(inviteId: string): Promise<Result> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return { error: DEMO_READ_ONLY };
+  const { supabase } = w;
   if (!UUID.test(inviteId)) return { error: "Unknown invite." };
   const { error } = await supabase.rpc("revoke_invite", { p_id: inviteId });
   if (error) return { error: "We couldn't revoke that invite." };
@@ -149,7 +168,9 @@ export async function revokeInvite(inviteId: string): Promise<Result> {
 }
 
 export async function removeMember(orgId: string, userId: string): Promise<Result> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return { error: DEMO_READ_ONLY };
+  const { supabase } = w;
   if (!UUID.test(orgId) || !UUID.test(userId)) return { error: "Unknown member." };
   const { error } = await supabase.rpc("remove_member", { p_org_id: orgId, p_user_id: userId });
   if (error) return { error: /at least one owner/.test(error.message) ? "An organisation keeps at least one owner." : "We couldn't remove that person." };
@@ -162,7 +183,9 @@ export async function removeMember(orgId: string, userId: string): Promise<Resul
 const PREFS = new Set(["immediate", "daily", "off"]);
 
 export async function savePrefs(_prev: Result, fd: FormData): Promise<Result> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return { error: DEMO_READ_ONLY };
+  const { supabase } = w;
   const pref = String(fd.get("email_pref") ?? "");
   const tz = String(fd.get("timezone") ?? "").trim();
   if (!PREFS.has(pref)) return { error: "Pick how often we email you." };
@@ -176,7 +199,9 @@ export async function savePrefs(_prev: Result, fd: FormData): Promise<Result> {
 }
 
 export async function submitTestimonial(id: string | null, orgId: string, _prev: Result, fd: FormData): Promise<Result> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return { error: DEMO_READ_ONLY };
+  const { supabase } = w;
   if ((id && !UUID.test(id)) || !UUID.test(orgId)) return { error: "Unknown testimonial." };
   const quote = String(fd.get("quote") ?? "").replace(/\s+/g, " ").trim();
   const name = String(fd.get("author_name") ?? "").trim();
@@ -194,7 +219,9 @@ export async function submitTestimonial(id: string | null, orgId: string, _prev:
 }
 
 export async function withdrawTestimonial(id: string): Promise<Result> {
-  const { supabase } = await session();
+  const w = await writer();
+  if (!w) return { error: DEMO_READ_ONLY };
+  const { supabase } = w;
   if (!UUID.test(id)) return { error: "Unknown testimonial." };
   const { error } = await supabase.rpc("withdraw_testimonial", { p_id: id });
   if (error) return { error: "We couldn't withdraw it. Try again." };

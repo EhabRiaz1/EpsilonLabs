@@ -1,7 +1,7 @@
 {
   "name": "epsilon-labs-site",
   "private": true,
-  "description": "Static site. The only Node code is the Vercel function api/intake.js (the /start form).",
+  "description": "Static site. The only Node code is the Vercel functions api/intake.js (the /start form) and api/events.js (analytics).",
   "engines": {
     "node": ">=20"
   },

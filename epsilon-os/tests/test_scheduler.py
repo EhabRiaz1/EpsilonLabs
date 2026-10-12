@@ -41,3 +41,28 @@ def test_run_kicks_only_due_jobs_and_records_a_heartbeat():
     assert kicked == ["tenders", "brief"]          # prospector ran at 08:25 PKT and backup at 06:00 PKT, both after their slots
     assert out["started"] == ["tenders", "brief"]
     assert db.rows("agent_heartbeats", agent="scheduler")[0]["detail"]["started"] == ["tenders", "brief"]
+
+
+def test_daily_slot_prunes_and_resets_the_demo_once():
+    class DB(FakeDB):
+        def __init__(self, fail=()):
+            super().__init__()
+            self.calls, self.fail = [], fail
+
+        def rpc(self, fn, args=None):
+            self.calls.append(fn)
+            if fn in self.fail:
+                raise RuntimeError("boom")
+            return {}
+
+    quiet = dict(kick=lambda j: True, running=lambda j: False, spec=lambda j: None)
+    db = DB()
+    out = scheduler.run(db, now=utc("2026-10-11T22:02:00"), **quiet)      # 03:02 PKT
+    assert db.calls == ["prune_site_events", "reset_demo"] and out["daily"] == ["prune_site_events", "reset_demo"]
+    db = DB()
+    scheduler.run(db, now=utc("2026-10-11T22:12:00"), **quiet)            # 03:12 PKT: already done this morning
+    assert db.calls == []
+    db = DB(fail=("prune_site_events",))
+    out = scheduler.run(db, now=utc("2026-10-11T22:02:00"), **quiet)
+    assert db.calls == ["prune_site_events", "reset_demo"]               # one failure does not skip the other
+    assert out["daily"] == ["reset_demo"] and "prune_site_events:RuntimeError" in out["errors"]

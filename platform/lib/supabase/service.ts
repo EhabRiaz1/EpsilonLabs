@@ -5,7 +5,8 @@ import { createClient } from "@supabase/supabase-js";
  * Service-role client. A deliberate, documented narrowing of F11: the web app may hold the service role ONLY for
  * the public deal room (app/client/p/**: start/confirm acceptance, which must never be callable with the public
  * key), the portal invite landing (app/client/invite/**: peek/accept_invite and the Auth admin API that creates the
- * invited login and signs it in), the invoice PDF code (lib/invoice-pdf.ts: writes the private `invoices`
+ * invited login and signs it in), the demo portal's "View demo" (app/client/demo/actions.ts: demo_prepare and the
+ * Auth admin API that signs the read-only demo login in), the invoice PDF code (lib/invoice-pdf.ts: writes the private `invoices`
  * bucket), the report PDF code (lib/report-pdf.ts: writes the private `reports` bucket and calls mark_report_published),
  * the push sender (lib/push-send.ts: claim_push_batch / finish_push and every staff user's subscriptions, reached only
  * through the bearer-secret route /api/cron/push) and the portal mailer (lib/digest-send.ts: claim_email_batch /

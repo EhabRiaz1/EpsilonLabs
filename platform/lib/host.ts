@@ -48,8 +48,8 @@ export function internalPath(site: Site, pathname: string): string {
 
 /**
  * Paths reachable without a session. Everything else redirects to /login. On client.* the deal room (/p/<token>),
- * a portal invite (/invite/<token>; in both the token is the credential) and the published contract terms
- * (/legal/*.pdf) are public too. On admin.* the PWA shell (manifest, service worker, offline page, icons: static
+ * a portal invite (/invite/<token>; in both the token is the credential), the published contract terms
+ * (/legal/*.pdf) and the demo portal's "View demo" entry (/demo) are public too. On admin.* the PWA shell (manifest, service worker, offline page, icons: static
  * files with no data) the push sender (/api/cron/push) and the portal mailer (/api/cron/digest), which check their own bearer secret, are public.
  */
 export function isPublicPath(pathname: string, site?: Site): boolean {
@@ -61,7 +61,7 @@ export function isPublicPath(pathname: string, site?: Site): boolean {
   }
   return (
     site === "client" &&
-    (/^\/p\/[^/]+$/.test(pathname) || /^\/invite\/[^/]+$/.test(pathname) || /^\/legal\/[A-Za-z0-9._-]+\.pdf$/.test(pathname))
+    (pathname === "/demo" || /^\/p\/[^/]+$/.test(pathname) || /^\/invite\/[^/]+$/.test(pathname) || /^\/legal\/[A-Za-z0-9._-]+\.pdf$/.test(pathname))
   );
 }
 
