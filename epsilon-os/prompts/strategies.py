@@ -1,4 +1,8 @@
-"""Prospecting strategies S2-S5 as data (S1 tenders is code in agents/tenders.py; S6 is the quota loop in agents/prospector.py).
+"""Prospecting strategies S2-S13 as data (S1 tenders is code in agents/tenders.py; S6 is the quota loop in agents/prospector.py).
+
+S2-S10 hunt hardware and industrial buyers; S11-S13 hunt SMB software buyers (Settings prospector.mix splits the daily
+quota between the two groups). S13 is not web research: code reads the monthly Hacker News "Seeking freelancer" thread
+(core/feeds/hn_freelancer.py) and a tool-less model only scores what code found.
 
 Each strategy carries what the research prompt needs (brief, example queries, evidence rules, who counts as a buyer),
 what the pitch needs (default offer set, angle, which outbound prompt) and how code validates the answer
@@ -9,7 +13,7 @@ from dataclasses import dataclass
 from core.settings import STRATEGY_IDS, STRATEGY_LABEL
 
 TRIGGER_TYPES = ("funding", "expansion", "grant", "end_of_life", "regulation", "partner_page", "rfq", "fulltime_post",
-                 "orphaned", "tradeshow", "crowdfunding", "cohort", "other")
+                 "orphaned", "tradeshow", "crowdfunding", "cohort", "tooling_switch", "ops_hire", "other")
 
 
 @dataclass(frozen=True)
@@ -29,6 +33,7 @@ class Strategy:
     dated_types: tuple = ()           # trigger types for which an evidence_date is required
     trigger_types: tuple = ()         # trigger_type values code accepts for this strategy
     max_future_days: int = 2          # evidence_date may lie this far ahead (S8: shows are in the future)
+    max_headcount: int | None = None  # code rejects a stated headcount above this (S11: SMBs only)
 
 
 S2 = Strategy(
@@ -226,7 +231,90 @@ S10 = Strategy(
            "Frame it as extending the team, not as fixing anything."),
     max_age_days=460, trigger_types=("cohort", "other"))
 
-STRATEGIES = {s.id: s for s in (S2, S3, S4, S5, S7, S8, S9, S10)}
+S11 = Strategy(
+    id="s11_software", name="Software triggers", segment="smb_software",
+    brief=(
+        "Small and mid-sized businesses (about 10 to 300 people) whose operations run on people, spreadsheets and off-the-shelf tools, and that have just had "
+        "an event which implies a software build. Four kinds, each within the last 120 days:\n"
+        "1. FUNDING: raised a seed or Series A round and runs an operations-heavy model (logistics, field services, clinics, marketplaces, "
+        "property, retail chains, light manufacturing, booking-based services), so internal tools must scale with the money.\n"
+        "2. NEW LOCATIONS: opened new sites, branches, depots, clinics or stores (more locations mean scheduling, stock and reporting across sites).\n"
+        "3. TOOLING SWITCH: says publicly it is moving off spreadsheets, replacing or migrating its ERP or CRM, or digitising its operations.\n"
+        "4. OPS HIRE: publishes a job post for an internal-tools, operations-systems, business-systems or ops-automation role "
+        "(the work exists now; a fixed-scope build delivers while they hire).\n"
+        "The offer is software: an ops software build, dashboards, CRM, inventory, booking, mobile apps, an AI ops analyst, or a software penetration test."),
+    queries=(
+        "\"raises\" \"seed\" OR \"Series A\" logistics OR \"field service\" OR clinics OR marketplace OR \"multi-location\" <month> <year>; "
+        "\"opens new location\" OR \"new branch\" OR \"new clinic\" OR \"new depot\" small business <month> <year>; "
+        "\"moving off spreadsheets\" OR \"replaced our spreadsheets\" OR \"migrating to a new ERP\" OR \"new CRM\" company <year>; "
+        "\"internal tools\" OR \"business systems\" OR \"operations systems\" engineer OR manager job <month> <year> -agency."),
+    evidence_rules=(
+        "- evidence_url is the announcement, press release, company blog post or job post that shows the event. Open it and read it.\n"
+        "- evidence_date is the date of that page, YYYY-MM-DD, within the last 120 days. Always give it; undated pages do not count here.\n"
+        "- trigger is one plain sentence naming what happened (for example \"opened two new clinics in Leeds in September 2026\"). "
+        "trigger_type is funding, expansion (new locations), tooling_switch (off spreadsheets, ERP or CRM change) or ops_hire (internal-tools or ops-systems job post).\n"
+        "- headcount: the company's size if a reliable page states it; it must be 300 or fewer.\n"
+        "- The company must be the operating business itself, independent, and not a software vendor."),
+    buyer_rules=(
+        "Buyers are operating SMBs of roughly 10 to 300 people where a founder, COO, head of operations or CTO decides. Skip software agencies, "
+        "development shops and consultancies (competitors), SaaS and software vendors (they build their own tools), companies over 300 staff, "
+        "subsidiaries of listed groups, investors, recruiters and job boards."),
+    offers=("ops-software-build", "dashboards", "crm", "inventory", "bookings", "mobile-apps", "ops-analyst", "quote-engine",
+            "software-pentest", "authz-review"),
+    angle=("Pitch at the event in the first sentence: \"with the new round...\", \"with the new locations...\", \"moving off the spreadsheets...\", "
+           "\"I saw you are hiring for internal tools...\". Offer a fixed-scope build of the system the event calls for (one system the team actually uses), "
+           "with concrete deliverables. For a job post, frame it as delivering while they hire, never as replacing the hire."),
+    max_age_days=120, dated_types=("funding", "expansion", "tooling_switch", "ops_hire"),
+    trigger_types=("funding", "expansion", "tooling_switch", "ops_hire"), max_headcount=300)
+
+S12 = Strategy(
+    id="s12_devpartner", name="Seeking a dev partner", segment="smb_software",
+    brief=(
+        "Public posts by a NAMED company asking for an outside agency, studio or contractor to build software, an IoT product or embedded firmware: "
+        "\"looking for a development partner\", \"seeking an agency to build our app\", \"need a contractor for firmware\", \"partners wanted\" pages, "
+        "LinkedIn-style posts by a founder or manager on behalf of the company, and forum or community posts that name the company. "
+        "Posted in the last 90 days and still open."),
+    queries=(
+        "\"looking for a development partner\" OR \"looking for a dev agency\" OR \"seeking a software development partner\" <month> <year>; "
+        "\"looking for an agency to build\" app OR platform OR dashboard <year>; \"need a contractor\" OR \"seeking a contractor\" firmware OR IoT OR embedded <year>; "
+        "\"partners wanted\" OR \"become our development partner\" OR \"technology partner wanted\" company; site:linkedin.com/posts \"looking for\" \"development agency\"."),
+    evidence_rules=(
+        "- evidence_url is the post or page with the request. Open it. It must name the company (in the post, or the company the author posts for, or the page's own site) "
+        "and the company's own website must exist.\n"
+        "- evidence_quote is the sentence with the request. evidence_date is the posting date, YYYY-MM-DD, within the last 90 days. Undated posts do not count.\n"
+        "- trigger names what they asked for (for example \"asked for an agency to build a field-service app, 2026-09-20\"). trigger_type is rfq.\n"
+        "- Skip it if the post says the work is taken, closed or awarded."),
+    buyer_rules=(
+        "Buyers are the named companies (roughly 2 to 500 people) that posted the request, with a founder, product or engineering lead who decides. "
+        "Skip anonymous posts, individuals with personal projects, recruiters and staffing agencies, job boards, freelance marketplaces (Upwork, Fiverr, Toptal), "
+        "agencies looking for subcontractors, and public-sector buyers (tenders are handled elsewhere)."),
+    offers=("ops-software-build", "mobile-apps", "dashboards", "crm", "inventory", "bookings", "marketplace", "ops-analyst",
+            "firmware-rescue", "hardware-rescue", "protocol-decode", "board-to-fab"),
+    angle=("Answer their public request directly: say you saw they are looking for a partner for the named work and offer a fixed-scope engagement for it, "
+           "with the concrete deliverables of the focus offer. Short and specific; no sales language."),
+    max_age_days=90, dated_types=("rfq",), trigger_types=("rfq",))
+
+S13 = Strategy(
+    id="s13_hn", name="Hacker News Seeking Freelancer", segment="smb_software",
+    brief=(
+        "The monthly Hacker News thread \"Ask HN: Freelancer? Seeker of freelancer?\". Code reads it through the official HN Algolia API and keeps the "
+        "top-level comments that start with SEEKING FREELANCER and mention work Epsilon does (embedded, firmware, IoT, hardware, dashboards, apps, AI). "
+        "Each one is a company asking in public for outside help, so the post itself is the evidence."),
+    queries="(no web search: code reads the thread from https://hn.algolia.com/api/v1)",
+    evidence_rules=(
+        "- evidence_url is the HN comment; evidence_quote is the start of the comment; evidence_date is the comment date. Code sets all three.\n"
+        "- The post must name a company, and that company's own website must be one of the domains code found in the post.\n"
+        "- trigger_type is rfq."),
+    buyer_rules=(
+        "Buyers are named companies with their own website in an allowed market. Skip individuals with no company, recruiters, staffing firms, agencies looking "
+        "for subcontractors, and posts that only link a job board or freelance marketplace."),
+    offers=("ops-software-build", "dashboards", "mobile-apps", "ops-analyst", "crm", "firmware-rescue", "hardware-rescue",
+            "protocol-decode", "board-to-fab", "sensing", "software-pentest"),
+    angle=("Reply to their Seeking Freelancer post: say you saw their post in this month's Hacker News freelancer thread, name the work they asked for in a few words, "
+           "and offer a fixed-scope engagement with concrete deliverables. Keep it peer-to-peer and short."),
+    max_age_days=45, dated_types=("rfq",), trigger_types=("rfq",))
+
+STRATEGIES = {s.id: s for s in (S2, S3, S4, S5, S7, S8, S9, S10, S11, S12, S13)}
 ORDER = tuple(STRATEGIES)
 assert ORDER == STRATEGY_IDS and all(STRATEGY_LABEL[i] == s.name for i, s in STRATEGIES.items())
 

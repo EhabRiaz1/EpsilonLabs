@@ -244,7 +244,8 @@ def test_settings_form_has_tenders_fieldset(live):
     assert ">Tenders<" in body
     for name in ("tenders_per_day", "tenders_value_min", "tenders_value_max", "tenders_paused"):
         assert f'name="{name}"' in body
-    assert body.count('name="tenders_sources"') == 9 and "Shipped disabled" in body
+    from core import settings as cfg
+    assert body.count('name="tenders_sources"') == len(cfg.TENDER_LIVE) == 10 and "Shipped disabled" in body
     assert 'name="tenders_per_day" type="number"' in body or 'name="tenders_per_day"' in body
 
 

@@ -17,7 +17,7 @@ const CHANNELS = ["referral", "inbound", "outbound", "dream25", "pre_existing"];
 const CH_LABEL: Record<string, string> = { referral: "Referral", inbound: "Inbound", outbound: "Outbound", dream25: "Dream 25", pre_existing: "Existing" };
 const STRATEGY_TAG: Record<string, string> = {
   s2_trigger: "S2", s3_regulation: "S3", s4_partner: "S4", s5_intent: "S5", s7_orphaned: "S7", s8_tradeshow: "S8", s9_crowdfund: "S9",
-  s10_accelerator: "S10", legacy: "LEGACY",
+  s10_accelerator: "S10", s11_software: "S11", s12_devpartner: "S12", s13_hn: "S13", legacy: "LEGACY",
 };
 const UUID = /^[0-9a-f-]{36}$/i;
 

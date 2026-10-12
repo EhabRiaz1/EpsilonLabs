@@ -9,13 +9,15 @@ export const SEGMENTS: [string, string][] = [
 export const STRATEGIES: [string, string][] = [
   ["s2_trigger", "Trigger events"], ["s3_regulation", "Regulation"], ["s4_partner", "Partners"], ["s5_intent", "Outsourcing intent"],
   ["s7_orphaned", "Orphaned devices"], ["s8_tradeshow", "Trade-show exhibitors"], ["s9_crowdfund", "Crowdfunded hardware"],
-  ["s10_accelerator", "Accelerators and spinouts"],
+  ["s10_accelerator", "Accelerators and spinouts"], ["s11_software", "Software triggers"],
+  ["s12_devpartner", "Seeking a dev partner"], ["s13_hn", "Hacker News Seeking Freelancer"],
 ];
-export const TENDER_LIVE = ["ted", "uk_fts", "uk_cf", "canadabuys", "austender", "ungm", "samgov", "worldbank", "ebrd"];
+export const TENDER_LIVE = ["ted", "uk_fts", "uk_cf", "canadabuys", "austender", "ungm", "samgov", "worldbank", "ebrd", "ppra_epms"];
 export const TENDER_DISABLED = ["adb", "afdb", "isdb", "aiib", "etimad", "dubai", "monaqasat", "oman", "bahrain", "kuwait"];
 export const TENDER_SOURCE_LABEL: Record<string, string> = {
   ted: "EU TED", uk_fts: "UK Find a Tender", uk_cf: "UK Contracts Finder", canadabuys: "CanadaBuys", austender: "AusTender",
-  ungm: "UNGM", samgov: "SAM.gov", worldbank: "World Bank", ebrd: "EBRD", adb: "ADB (disabled)", afdb: "AfDB (disabled)",
+  ungm: "UNGM", samgov: "SAM.gov", worldbank: "World Bank", ebrd: "EBRD", ppra_epms: "Pakistan PPRA (EPMS)",
+  adb: "ADB (disabled)", afdb: "AfDB (disabled)",
   isdb: "IsDB (disabled)", aiib: "AIIB (disabled)", etimad: "Saudi Etimad (disabled)", dubai: "Dubai eSupply (disabled)",
   monaqasat: "Qatar Monaqasat (disabled)", oman: "Oman Tender Board (disabled)", bahrain: "Bahrain Tender Board (disabled)",
   kuwait: "Kuwait CTC (disabled)",

@@ -19,7 +19,7 @@ STAGES = [("lead", "Lead"), ("conversation", "Conversation"), ("scoping_call", "
 CHANNELS = ["referral", "inbound", "outbound", "dream25", "pre_existing"]
 WEDGE_LABEL = {"fuel_retail": "W1", "industrial_monitoring": "W2", "protocol_decode": "W3", "other": "OTHER"}
 STRATEGY_TAG = {"s2_trigger": "S2", "s3_regulation": "S3", "s4_partner": "S4", "s5_intent": "S5", "s7_orphaned": "S7", "s8_tradeshow": "S8", "s9_crowdfund": "S9",
-                "s10_accelerator": "S10", "legacy": "LEGACY"}
+                "s10_accelerator": "S10", "s11_software": "S11", "s12_devpartner": "S12", "s13_hn": "S13", "legacy": "LEGACY"}
 KIND_LABEL = {"ack": "ACK", "reply": "REPLY", "outbound": "OUTBOUND", "quote": "QUOTE", "optout_confirm": "OPT-OUT"}
 
 
@@ -331,13 +331,15 @@ def strategies_block(db, now: datetime) -> dict:
     """Health page 'Strategies': 30-day numbers per strategy (prospector.strategy_stats), the quota, and the rebalance note."""
     stats = prospector.strategy_stats(db, now, (30,))
     quotas, pinned, auto = cfg.quotas(db), cfg.pinned(db), cfg.auto_rebalance(db)
+    mix = cfg.mix(db)
+    today = prospector.effective_quotas(quotas, cfg.per_day(db), mix)   # what the prospector will aim for
     rows = []
     for sid in list(cfg.STRATEGY_IDS) + [prospector.LEGACY]:
         m = stats[sid][30]
         if sid == prospector.LEGACY and not (m["created"] or m["sent"] or m["replies"]):
             continue
         rows.append({"id": sid, "name": cfg.STRATEGY_LABEL.get(sid, "Legacy (segment search)"), "tag": STRATEGY_TAG[sid],
-                     "quota": quotas.get(sid), "pinned": sid in pinned, **m})
+                     "quota": today.get(sid), "pinned": sid in pinned, **m})
     eligible = sum(1 for sid in cfg.STRATEGY_IDS if stats[sid][30]["sent"] >= prospector.MIN_SENDS)
     _, last = prospector.rebalance_actions(db, now)
     start = pkt_midnight(now)
@@ -348,8 +350,9 @@ def strategies_block(db, now: datetime) -> dict:
     else:
         nxt = prospector.next_rebalance(now, checked)
         note = (f"Next rebalance: {nxt.strftime('%a %d %b')}. It moves up to {prospector.REBALANCE_STEP} quota a week toward the best "
-                f"positive-reply rate, once at least two strategies have {prospector.MIN_SENDS} sends in 30 days "
-                f"({eligible} of {len(cfg.STRATEGY_IDS)} there now).")
+                f"positive-reply rate inside the software or the hardware group, once at least two strategies there have "
+                f"{prospector.MIN_SENDS} sends in 30 days ({eligible} of {len(cfg.STRATEGY_IDS)} there now).")
+    note = f"Software share {mix}% (S11-S13), hardware {100 - mix}% (S2-S10). " + note
     if moved:
         dt = moved[0].get("detail") or {}
         note += (f" Last change {ago(actions.parse_ts(moved[0]['at']), now)} ago: {dt.get('moved')} from "
@@ -366,6 +369,7 @@ def settings_view(db, now: datetime) -> dict:
         "outreach": outreach.status(db, now), "calls": calls_today(db, now)[0],
         "prospected": prospected_today(db, now),
         "markets": cfg.markets(db), "quotas": cfg.quotas(db), "auto_rebalance": cfg.auto_rebalance(db), "pinned": cfg.pinned(db),
+        "mix": cfg.mix(db),
     }
 
 

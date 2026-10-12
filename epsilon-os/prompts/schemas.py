@@ -114,9 +114,9 @@ CONTACTS = {
 # ---------------------------------------------------------------- strategy research (S2-S5, migration 007)
 
 STRATEGY_IDS = ["s2_trigger", "s3_regulation", "s4_partner", "s5_intent", "s7_orphaned", "s8_tradeshow", "s9_crowdfund",
-                "s10_accelerator"]
+                "s10_accelerator", "s11_software", "s12_devpartner", "s13_hn"]
 TRIGGER_TYPES = ["funding", "expansion", "grant", "end_of_life", "regulation", "partner_page", "rfq", "fulltime_post",
-                 "orphaned", "tradeshow", "crowdfunding", "cohort", "other"]
+                 "orphaned", "tradeshow", "crowdfunding", "cohort", "tooling_switch", "ops_hire", "other"]
 
 
 def research_strategy(slugs: list[str], strategy: str) -> dict:
@@ -136,6 +136,39 @@ def research_strategy(slugs: list[str], strategy: str) -> dict:
     company["required"] = sorted(set(company["required"]) | set(props))
     items = {**base["properties"]["companies"], "items": company}
     return {**base, "properties": {**base["properties"], "companies": items}}
+
+def hn_score(slugs: list[str]) -> dict:
+    """S13: the tool-less model scores Hacker News 'SEEKING FREELANCER' posts that code already found and parsed.
+    Code keeps the post id, URL, date and quote; the model only names the company, picks one of the domains code
+    extracted, and judges the fit. Code re-checks every field against the candidate it sent."""
+    item = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["post_id", "keep", "name", "domain", "country", "sector", "segment", "trigger", "observation",
+                     "suggested_offer_slug", "confidence", "reason"],
+        "properties": {
+            "post_id": {"type": "string", "pattern": "^[0-9]{1,12}$"},
+            "keep": {"type": "boolean"},
+            "name": {"type": "string", "maxLength": 160},
+            "domain": {"type": "string", "maxLength": 120},
+            "country": {"type": "string", "pattern": "^([A-Z]{2})?$"},
+            "sector": {"type": "string", "maxLength": 80},
+            "segment": {"type": "string", "enum": PROSPECT_SEGMENTS},
+            "trigger": {"type": "string", "maxLength": 200},
+            "observation": {"type": "string", "maxLength": 400},
+            "suggested_offer_slug": {"type": "string", "enum": list(slugs)},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "reason": {"type": "string", "maxLength": 240},
+        },
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["posts", "notes"],
+        "properties": {"posts": {"type": "array", "maxItems": 20, "items": item},
+                       "notes": {"type": "string", "maxLength": 400}},
+    }
+
 
 # ---------------------------------------------------------------- tenders (S1)
 

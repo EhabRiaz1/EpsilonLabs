@@ -8,7 +8,7 @@ import sys
 from datetime import date
 
 # Working feeds first, then the ones that ship disabled (see each module's docstring for why).
-LIVE = ("ted", "uk_fts", "uk_cf", "canadabuys", "austender", "ungm", "samgov", "worldbank", "ebrd")
+LIVE = ("ted", "uk_fts", "uk_cf", "canadabuys", "austender", "ungm", "samgov", "worldbank", "ebrd", "ppra_epms")
 DISABLED = ("adb", "afdb", "isdb", "aiib", "etimad", "dubai", "monaqasat", "oman", "bahrain", "kuwait")
 SOURCES = LIVE + DISABLED
 

@@ -17,11 +17,14 @@ from tests.fakes import FakeDB
 from tests.test_intake_portal_migration import EXTRA_STUB, FILES, ROOT, sh
 from tests.test_deal_room_migration import STORAGE_STUB
 from tests.test_platform_migration import AUTH_STUB
+from core.settings import STRATEGY_IDS
 from tests import test_intake_portal_migration as base
 
 DB = "eos_test_011"
 pytestmark = base.pytestmark
-ALL = FILES + ["migrations/011_rulebook_push.sql"]
+# 013 replaces settings_defaults() / save_settings() (new strategies, prospector.mix, ppra_epms): the parity tests
+# below run against the rulebook as it now stands, 011 plus 013.
+ALL = FILES + ["migrations/011_rulebook_push.sql", "migrations/013_research_sources.sql"]
 NOW = datetime(2026, 10, 10, 9, 0, tzinfo=timezone.utc)
 DRAFT = ("Hi Sana,\n\nThanks for the detail. We can start with current sensing on the generators.\n\n"
          "Could we do a call on Thursday at 3pm?\n\nI will bring a quote for 40 motors.\n\n"
@@ -122,8 +125,9 @@ def audit(qid, action) -> list[dict]:
 # ------------------------------------------------------------------ schema
 
 def test_reapply_is_idempotent(db):
-    r = psql((ROOT / "migrations/011_rulebook_push.sql").read_text(), check=False)
-    assert r.returncode == 0, r.stderr
+    for f in ("migrations/011_rulebook_push.sql", "migrations/013_research_sources.sql"):
+        r = psql((ROOT / f).read_text(), check=False)
+        assert r.returncode == 0, r.stderr
     assert q("select count(*) from pg_enum where enumlabel = 'edited_pending_lint'") == "1"
 
 
@@ -362,18 +366,14 @@ FORMS = [
     {"per_day": "20", "daily_budget": "250", "daily_cap": "50", "segments": "smb_software", "address": "Me@Out.Example"},
     {"per_day": "20", "daily_budget": "250", "daily_cap": "50", "segments": ["industrial"], "address": "not-an-email"},
     {"per_day": "10", "daily_budget": "250", "daily_cap": "50", "segments": ["industrial"],
-     **{f"quota_{s}": "2" for s in ("s2_trigger", "s3_regulation", "s4_partner", "s5_intent", "s7_orphaned",
-                                    "s8_tradeshow", "s9_crowdfund", "s10_accelerator")}},
+     **{f"quota_{s}": "2" for s in STRATEGY_IDS}},
     {"per_day": "40", "daily_budget": "250", "daily_cap": "50", "segments": ["industrial"], "auto_rebalance": "on",
      "pin_s4_partner": "on", "markets": "us, gb;de pk XX1",
-     **{f"quota_{s}": "5" for s in ("s2_trigger", "s3_regulation", "s4_partner", "s5_intent", "s7_orphaned",
-                                    "s8_tradeshow", "s9_crowdfund", "s10_accelerator")}},
+     **{f"quota_{s}": "3" for s in STRATEGY_IDS}, "mix": " 55 "},
     {"per_day": "40", "daily_budget": "250", "daily_cap": "50", "segments": ["industrial"], "markets": "us, gb;de pk ir",
-     **{f"quota_{s}": "5" for s in ("s2_trigger", "s3_regulation", "s4_partner", "s5_intent", "s7_orphaned",
-                                    "s8_tradeshow", "s9_crowdfund", "s10_accelerator")}, "quota_s2_trigger": "51"},
+     **{f"quota_{s}": "3" for s in STRATEGY_IDS}, "quota_s2_trigger": "51", "mix": "101"},
     {"per_day": "40", "daily_budget": "250", "daily_cap": "50", "segments": ["industrial"], "markets": "pk ir",
-     **{f"quota_{s}": "5" for s in ("s2_trigger", "s3_regulation", "s4_partner", "s5_intent", "s7_orphaned",
-                                    "s8_tradeshow", "s9_crowdfund", "s10_accelerator")}},
+     **{f"quota_{s}": "3" for s in STRATEGY_IDS}},
     {"per_day": "20", "daily_budget": "250", "daily_cap": "50", "segments": ["industrial"], "tenders_per_day": "51",
      "tenders_value_min": "5", "tenders_value_max": "-1", "tenders_sources": ["ted", "bogus"]},
     {"per_day": "20", "daily_budget": "250", "daily_cap": "50", "segments": ["industrial"], "tenders_per_day": "10",

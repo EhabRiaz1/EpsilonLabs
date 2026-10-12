@@ -24,7 +24,7 @@ What counts as a prospect, in every strategy. All of these must hold:
 - The need looks unmet. Skip it if the page or the company's site says a named integrator or big vendor already owns it (Siemens, Rockwell, ABB, Schneider, Honeywell, Emerson, Yokogawa, Accenture, Deloitte, Capgemini, TCS, Infosys or similar) for this exact work.
 - Never list an individual. A forum or Q&A post only counts when it makes the employing company identifiable on its own website.
 - The signal maps onto one Epsilon offer. If none fits honestly, skip the company. When a package fits (plant-visibility-pilot for multi-machine monitoring, hardware-rescue for a hardware product in development or in the field that needs firmware and board work, ops-software-build for inventory, CRM and dashboards together), prefer the package slug over a single smaller offer.
-- A full-time job post is NOT a signal in this strategy unless the strategy text above says it is (only the last-resort case in Outsourcing intent).
+- A full-time job post is NOT a signal in this strategy unless the strategy text above says it is (only the last-resort case in Outsourcing intent, and the internal-tools or ops-systems role in Software triggers).
 
 Fields, per company:
 - name: the company's own name.
@@ -37,7 +37,7 @@ Fields, per company:
 - evidence_quote: words copied from that page, at most 240 characters.
 - evidence_date: the date of the announcement or post as YYYY-MM-DD, or an empty string if the page has none.
 - trigger: one plain sentence naming the event or signal (at most 200 characters).
-- trigger_type: one of funding, expansion, grant, end_of_life, regulation, partner_page, rfq, fulltime_post, other.
+- trigger_type: the type the strategy's evidence rules name (one of funding, expansion, grant, end_of_life, regulation, partner_page, rfq, fulltime_post, orphaned, tradeshow, crowdfunding, cohort, tooling_switch, ops_hire, other).
 - headcount: the company's employee count if you found it on a reliable page, else 0.
 - post_age_days: for a job or request post, how many days old it is today, else 0.
 - observation: one or two plain sentences stating what the page shows, using only facts on the page. No flattery, no guessing about their business beyond the page.

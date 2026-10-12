@@ -34,7 +34,7 @@ def test_strategy_ids_and_labels_agree_everywhere():
         assert st.segment in schemas.PROSPECT_SEGMENTS and st.trigger_types
 
 
-@pytest.mark.parametrize("sid", IDS)
+@pytest.mark.parametrize("sid", [s for s in IDS if s != "s13_hn"])
 def test_each_strategy_prompt_composes_with_its_own_brief(sid):
     db, fake = FakeDB(), FakeLLM()
     settings.set(db, "strategy.quotas", {s: (3 if s == sid else 0) for s in IDS})
@@ -232,8 +232,11 @@ def test_dry_run_with_strategy_writes_nothing_and_counts_only_that_strategy():
 
 # ---------------------------------------------------------------- S6: quotas and rebalance
 
-DEFAULT = {"s2_trigger": 6, "s3_regulation": 4, "s4_partner": 6, "s5_intent": 5, "s7_orphaned": 6, "s8_tradeshow": 5,
-           "s9_crowdfund": 4, "s10_accelerator": 4}
+DEFAULT = {"s2_trigger": 4, "s3_regulation": 2, "s4_partner": 4, "s5_intent": 3, "s7_orphaned": 4, "s8_tradeshow": 3,
+           "s9_crowdfund": 2, "s10_accelerator": 2, "s11_software": 7, "s12_devpartner": 5, "s13_hn": 4}
+# The pre-mix hardware quotas: plain inputs for the pure rebalance tests (missing strategies count as quota 0).
+HW = {"s2_trigger": 6, "s3_regulation": 4, "s4_partner": 6, "s5_intent": 5, "s7_orphaned": 6, "s8_tradeshow": 5,
+      "s9_crowdfund": 4, "s10_accelerator": 4}
 
 
 def st30(**sid_sent_pos):
@@ -262,47 +265,74 @@ def test_default_quotas_and_settings_validation():
 
 
 def test_effective_quotas_trim_to_per_day():
-    assert P.effective_quotas(DEFAULT, 40) == DEFAULT
-    assert P.effective_quotas(DEFAULT, 8) == only({"s2_trigger": 6, "s3_regulation": 2})
+    assert P.effective_quotas(DEFAULT, 40) == DEFAULT          # defaults are already 60/40
+    small = P.effective_quotas(DEFAULT, 10)                     # 10 a day: 4 software, 6 hardware, by weight
+    assert sum(small.values()) == 10 and sum(small[s] for s in settings.SOFTWARE_STRATEGIES) == 4
+    assert small["s11_software"] == 2 and small["s2_trigger"] == 1
+    assert P.effective_quotas(DEFAULT, 0) == only({})
+
+
+def test_mix_splits_the_daily_total_between_software_and_hardware():
+    soft = lambda q: sum(q[s] for s in settings.SOFTWARE_STRATEGIES)
+    for mix, want in ((0, 0), (25, 10), (40, 16), (50, 20), (100, 40)):
+        q = P.effective_quotas(DEFAULT, 40, mix)
+        assert sum(q.values()) == 40 and soft(q) == want, mix
+    q = P.effective_quotas(DEFAULT, 40, 50)                     # inside a group the quotas are weights (7:5:4 of 20)
+    assert (q["s11_software"], q["s12_devpartner"], q["s13_hn"]) == (9, 6, 5)
+    assert P.effective_quotas(HW, 40, 40) == only(HW)          # all software quotas 0: hardware takes the whole total
+    assert soft(P.effective_quotas(only({"s11_software": 10}), 40, 40)) == 10   # no hardware: software takes it all
+    assert sum(P.effective_quotas({**DEFAULT, "s2_trigger": 50}, 40, 40).values()) == 40   # never above per_day
+    with pytest.raises(settings.SettingsError):
+        settings.validate("prospector.mix", 101)
+    assert settings.validate("prospector.mix", " 35 ") == 35 and settings.mix(FakeDB()) == 40
+
+
+def test_rebalance_stays_inside_the_software_or_hardware_group():
+    q = dict(DEFAULT, s2_trigger=6, s11_software=7)
+    # the best rate is software, the worst hardware: no move across the groups
+    assert P.rebalance(q, st30(s2_trigger=(40, 0), s11_software=(40, 20)), []) is None
+    mv = P.rebalance(q, st30(s11_software=(40, 20), s12_devpartner=(40, 1), s2_trigger=(40, 1), s4_partner=(40, 2)), [])
+    assert (mv["from"], mv["to"]) == ("s12_devpartner", "s11_software")   # the larger rate gap wins (47.5 vs 2.5 points)
+    assert set(mv["rates"]) == {"s11_software", "s12_devpartner"}
 
 
 def test_rebalance_waits_for_40_sends_in_two_strategies():
-    assert P.rebalance(DEFAULT, st30(s2_trigger=(39, 9), s3_regulation=(100, 1)), []) is None   # only one has enough sends
-    assert P.rebalance(DEFAULT, st30(s2_trigger=(40, 8), s3_regulation=(39, 0)), []) is None
-    mv = P.rebalance(DEFAULT, st30(s2_trigger=(40, 8), s3_regulation=(40, 1)), [])
+    assert P.rebalance(HW, st30(s2_trigger=(39, 9), s3_regulation=(100, 1)), []) is None   # only one has enough sends
+    assert P.rebalance(HW, st30(s2_trigger=(40, 8), s3_regulation=(39, 0)), []) is None
+    mv = P.rebalance(HW, st30(s2_trigger=(40, 8), s3_regulation=(40, 1)), [])
     assert mv["from"] == "s3_regulation" and mv["to"] == "s2_trigger" and mv["moved"] == 2
-    assert mv["quotas"] == {**DEFAULT, "s2_trigger": 8, "s3_regulation": 2}
-    assert sum(mv["quotas"].values()) == sum(DEFAULT.values())
+    assert mv["quotas"] == {**HW, "s2_trigger": 8, "s3_regulation": 2}
+    assert sum(mv["quotas"].values()) == sum(HW.values())
 
 
 def test_rebalance_moves_from_lowest_rate_to_highest_rate():
     s = st30(s2_trigger=(50, 5), s3_regulation=(50, 10), s4_partner=(60, 3), s5_intent=(45, 9))
-    mv = P.rebalance(DEFAULT, s, [])
+    mv = P.rebalance(HW, s, [])
     assert (mv["from"], mv["to"]) == ("s4_partner", "s3_regulation")   # 5% lowest, 20% highest
 
 
 def test_rebalance_cap_is_two_and_floor_is_two():
-    mv = P.rebalance({**DEFAULT, "s3_regulation": 3}, st30(s2_trigger=(40, 20), s3_regulation=(40, 0)), [])
+    mv = P.rebalance({**HW, "s3_regulation": 3}, st30(s2_trigger=(40, 20), s3_regulation=(40, 0)), [])
     assert mv["moved"] == 1 and mv["quotas"]["s3_regulation"] == 2          # only 1 above the floor
-    assert P.rebalance({**DEFAULT, "s3_regulation": 2}, st30(s2_trigger=(40, 20), s3_regulation=(40, 0)), []) is None
+    assert P.rebalance({**HW, "s3_regulation": 2}, st30(s2_trigger=(40, 20), s3_regulation=(40, 0)), []) is None
     big = P.rebalance(only({"s2_trigger": 10, "s3_regulation": 10}), st30(s2_trigger=(40, 20), s3_regulation=(40, 0)), [])
     assert big["moved"] == 2
 
 
 def test_rebalance_never_touches_pinned_or_switched_off_or_equal_rates():
     s = st30(s2_trigger=(40, 20), s3_regulation=(40, 0), s4_partner=(40, 8), s5_intent=(40, 4))
-    mv = P.rebalance(DEFAULT, s, ["s3_regulation"])      # lowest is pinned: next lowest donates
+    mv = P.rebalance(HW, s, ["s3_regulation"])      # lowest is pinned: next lowest donates
     assert mv["from"] == "s5_intent" and mv["to"] == "s2_trigger"
-    mv = P.rebalance(DEFAULT, s, ["s2_trigger"])         # highest is pinned: next highest receives
+    mv = P.rebalance(HW, s, ["s2_trigger"])         # highest is pinned: next highest receives
     assert (mv["from"], mv["to"]) == ("s3_regulation", "s4_partner")
-    assert P.rebalance(DEFAULT, s, ["s2_trigger", "s3_regulation", "s4_partner"]) is None   # one left: nothing to compare
-    assert P.rebalance({**DEFAULT, "s3_regulation": 0}, st30(s2_trigger=(40, 20), s3_regulation=(40, 0)), []) is None
-    assert P.rebalance(DEFAULT, st30(s2_trigger=(40, 4), s3_regulation=(40, 4)), []) is None   # equal rates
+    assert P.rebalance(HW, s, ["s2_trigger", "s3_regulation", "s4_partner"]) is None   # one left: nothing to compare
+    assert P.rebalance({**HW, "s3_regulation": 0}, st30(s2_trigger=(40, 20), s3_regulation=(40, 0)), []) is None
+    assert P.rebalance(HW, st30(s2_trigger=(40, 4), s3_regulation=(40, 4)), []) is None   # equal rates
 
 
 def _seed_week(db, now, sends=None):
     """Deals with strategies, plus sent touches and positive replies in the last 30 days."""
-    sends = sends or {"s2_trigger": (40, 8), "s3_regulation": (40, 1)}
+    sends = sends or {"s2_trigger": (40, 8), "s4_partner": (40, 1)}
     for sid, (n, pos) in sends.items():
         deal = db.insert("deals", {"company_id": "c", "title": sid, "source_channel": "outbound", "strategy": sid})[0]["id"]
         for i in range(n):
@@ -321,13 +351,13 @@ def test_run_rebalances_on_monday_only_once_and_logs_it():
     _seed_week(db, MONDAY)
     fake = FakeLLM()
     r = go(db, fake, now=MONDAY, strategy=None)
-    assert settings.quotas(db) == {**DEFAULT, "s2_trigger": 8, "s3_regulation": 2}
+    assert settings.quotas(db) == {**DEFAULT, "s2_trigger": 6, "s4_partner": 2}
     act = db.rows("actions", action="quota_rebalanced")
-    assert len(act) == 1 and act[0]["detail"]["from"] == "s3_regulation" and act[0]["detail"]["moved"] == 2
+    assert len(act) == 1 and act[0]["detail"]["from"] == "s4_partner" and act[0]["detail"]["moved"] == 2
     assert "Quota rebalanced" in r["rebalance"] and "Trigger events" in r["rebalance"]
     assert r["target"] == 40    # the run used the new quotas
     go(db, FakeLLM(), now=MONDAY + timedelta(hours=1), strategy=None)   # same Monday: no second move
-    assert settings.quotas(db)["s2_trigger"] == 8 and len(db.rows("actions", action="quota_rebalanced")) == 1
+    assert settings.quotas(db)["s2_trigger"] == 6 and len(db.rows("actions", action="quota_rebalanced")) == 1
 
 
 def test_no_rebalance_other_days_when_off_when_dry_or_before_the_threshold():
@@ -353,7 +383,7 @@ def test_no_rebalance_other_days_when_off_when_dry_or_before_the_threshold():
 def test_pinned_strategy_keeps_its_quota_through_a_monday_run():
     db = FakeDB()
     _seed_week(db, MONDAY)
-    settings.set(db, "strategy.pinned", ["s3_regulation"])
+    settings.set(db, "strategy.pinned", ["s4_partner"])
     go(db, FakeLLM(), now=MONDAY, strategy=None)
     assert settings.quotas(db) == DEFAULT
 
@@ -362,7 +392,7 @@ def test_rebalance_failure_never_stops_the_daily_run(monkeypatch):
     monkeypatch.setattr(P, "strategy_stats", lambda *a, **k: 1 / 0)
     db = FakeDB()
     r = go(db, FakeLLM(), now=MONDAY, strategy=None)
-    assert r["research_calls"] == 8 and db.rows("actions", action="quota_rebalance_failed")
+    assert r["research_calls"] == 10 and db.rows("actions", action="quota_rebalance_failed")   # S13: no posts, no call
 
 
 def test_next_rebalance_date():
@@ -443,8 +473,9 @@ def live():
 
 
 GOOD = {"per_day": "40", "segments": ["industrial", "smb_software"], "daily_budget": "300", "daily_cap": "25",
-        "quota_s2_trigger": "7", "quota_s3_regulation": "3", "quota_s4_partner": "6", "quota_s5_intent": "5", "quota_s7_orphaned": "6",
-        "quota_s8_tradeshow": "5", "quota_s9_crowdfund": "4", "quota_s10_accelerator": "4",
+        "quota_s2_trigger": "7", "quota_s3_regulation": "1", "quota_s4_partner": "4", "quota_s5_intent": "3", "quota_s7_orphaned": "3",
+        "quota_s8_tradeshow": "2", "quota_s9_crowdfund": "2", "quota_s10_accelerator": "2",
+        "quota_s11_software": "7", "quota_s12_devpartner": "5", "quota_s13_hn": "4",
         "pin_s4_partner": "1", "markets": "us, gb, de", "auto_rebalance": "1"}
 
 
@@ -461,7 +492,8 @@ def test_settings_page_has_the_strategies_fieldset(live):
     for sid in IDS:
         assert f'name="quota_{sid}"' in body and f'name="pin_{sid}"' in body
     assert 'name="auto_rebalance"' in body and re.search(r'name="auto_rebalance" value="1" checked', body)
-    assert 'name="quota_s2_trigger" type="number" inputmode="numeric" min="0" max="50" step="1" value="6"' in body
+    assert 'name="quota_s2_trigger" type="number" inputmode="numeric" min="0" max="50" step="1" value="4"' in body
+    assert 'name="mix" type="number" inputmode="numeric" min="0" max="100" step="1" value="40"' in body
 
 
 def test_saving_strategy_settings_and_total_over_per_day_is_refused(live):
@@ -502,7 +534,7 @@ def test_health_page_shows_the_strategies_block(live):
         assert col in sect
     assert "20%" in sect and "Next rebalance:" in sect and "2 from Regulation to Trigger events" in sect
     data_off = data.strategies_block(db, now)
-    assert [r["id"] for r in data_off["rows"]][:8] == IDS
+    assert [r["id"] for r in data_off["rows"]][:11] == IDS
 
 
 def test_health_block_auto_rebalance_off_and_pinned_tag():
@@ -510,9 +542,10 @@ def test_health_block_auto_rebalance_off_and_pinned_tag():
     settings.set(db, "strategy.auto_rebalance", False)
     settings.set(db, "strategy.pinned", ["s5_intent"])
     b = data.strategies_block(db, NOW)
-    assert "Auto-rebalance is off" in b["note"] and [r["pinned"] for r in b["rows"]] == [False, False, False, True, False, False, False, False]
+    assert "Auto-rebalance is off" in b["note"] and [r["pinned"] for r in b["rows"]] == [False, False, False, True] + [False] * 7
+    assert "Software share 40%" in b["note"] and [r["quota"] for r in b["rows"]] == list(DEFAULT.values())
     html = views.strategies_section(b)
-    assert "PINNED" in html and html.count("<tr>") == 9 and "legacy" not in html.lower()
+    assert "PINNED" in html and html.count("<tr>") == 12 and "legacy" not in html.lower()
 
 
 def test_pipeline_rows_carry_a_strategy_tag(live):
@@ -585,7 +618,7 @@ def test_settings_form_carries_markets(live):
 
 
 def test_niche_strategies_s7_to_s10():
-    assert IDS[4:] == ["s7_orphaned", "s8_tradeshow", "s9_crowdfund", "s10_accelerator"]
+    assert IDS[4:8] == ["s7_orphaned", "s8_tradeshow", "s9_crowdfund", "s10_accelerator"]
     assert settings.DEFAULT_QUOTAS == DEFAULT and sum(DEFAULT.values()) == settings.DEFAULTS["prospector.per_day"] == 40
     assert "shut" in strat.get("s7_orphaned").brief and "decode" in strat.get("s7_orphaned").angle
     assert "Embedded World" in strat.get("s8_tradeshow").brief and "GITEX" in strat.get("s8_tradeshow").brief and "show" in strat.get("s8_tradeshow").angle
@@ -627,7 +660,7 @@ def dossier_has(db, sid):
 
 
 def test_every_new_strategy_prompt_composes():
-    for sid in IDS[4:]:
+    for sid in IDS[4:10]:   # S13 has no research prompt (see test_s13_*)
         db, fake = FakeDB(), FakeLLM()
         settings.set(db, "strategy.quotas", only({sid: 3}))
         go(db, fake, strategy=None)

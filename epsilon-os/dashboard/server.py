@@ -328,7 +328,7 @@ def make_handler(app: App):
                 v.update(per_day=p.get("per_day", ""), daily_budget=p.get("daily_budget", ""),
                          daily_cap=p.get("daily_cap", ""), paused=p.get("paused") in ("1", "on", "true"),
                          segments=[segs] if isinstance(segs, str) else list(segs),
-                         address_draft=str(p.get("address") or ""),
+                         address_draft=str(p.get("address") or ""), mix=p.get("mix", v["mix"]),
                          strategy_draft={k: val for k, val in p.items() if k.startswith(("quota_", "pin_")) or k in ("auto_rebalance", "markets")}
                          if any(k.startswith("quota_") for k in p) else None,
                          tenders=data.tenders_form_draft(data.tenders_settings(db), p))

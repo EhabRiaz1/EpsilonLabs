@@ -513,10 +513,19 @@ def strategies_fieldset(v: dict, errors: dict) -> str:
                f'aria-describedby="h-markets{" e-markets" if mk_err else ""}"{" aria-invalid=true" if mk_err else ""}>'
                f'<p class="hint" id="h-markets">Two-letter country codes, comma separated: where a client can pay a Pakistan firm and budgets reach $10k+. '
                f'Pakistan and sanctioned markets (IR, KP, SY, CU, RU, BY) are always left out.</p>{mk_msg}</div>')
+    mix_err = errors.get("mix")
+    mix_ref = "h-mix" + (" e-mix" if mix_err else "")
+    mix_msg = f'<p class="fielderr" id="e-mix" role="alert">{e(mix_err)}</p>' if mix_err else ""
+    mix = (f'<div class="field mkt{" bad" if mix_err else ""}"><label for="f-mix" class="flab">Software share of the daily total (%)</label>'
+           f'<input class="inp num" id="f-mix" name="mix" type="number" inputmode="numeric" min="0" max="100" step="1" '
+           f'value="{e(str(v.get("mix", cfg.DEFAULT_MIX)))}" aria-describedby="{mix_ref}"{" aria-invalid=true" if mix_err else ""}>'
+           f'<p class="hint" id="h-mix">0 to 100. This share of each day\'s prospects goes to the software strategies '
+           f'({", ".join(cfg.STRATEGY_LABEL[s] for s in cfg.SOFTWARE_STRATEGIES)}); the rest to the hardware ones. '
+           f'Inside each group the quotas above set the split.</p>{mix_msg}</div>')
     return (f'<fieldset class="setcard wide strat-set" aria-describedby="h-quotas"><legend class="mono lbl">Strategies</legend>'
             f'<div class="quotas{" bad" if total_err else ""}">{rows}</div>'
             f'<p class="hint" id="h-quotas">Prospects to find per day for each strategy, 0 to switch one off. Pin keeps a quota fixed when it rebalances. '
-            f'The total (now {total}) cannot be more than Prospects per day.</p>{tmsg}'
+            f'The total (now {total}) cannot be more than Prospects per day.</p>{tmsg}{mix}'
             f'<label class="ck pick" for="f-auto_rebalance"><input type="checkbox" id="f-auto_rebalance" name="auto_rebalance" value="1"'
             f'{" checked" if auto else ""}> Rebalance quotas automatically</label>'
             f'<p class="hint">Mondays, once a strategy has {prospector.MIN_SENDS} sends in 30 days: up to {prospector.REBALANCE_STEP} quota a week moves '
