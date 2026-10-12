@@ -25,15 +25,17 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const { supabase } = await getSession();
   const { data: org } = await supabase.from("organizations").select("id, name, slug, domain, status, is_test, created_at, companies(name)").eq("id", id).maybeSingle();
   if (!org) notFound();
-  const [team, projects, tickets, usage] = await Promise.all([
+  const [team, projects, paths, tickets, usage] = await Promise.all([
     supabase.rpc("org_team", { p_org_id: id }),
-    // staff read repo_path through RLS (the column is not granted to clients)
-    supabase.from("projects").select("id, name, status, summary, repo_path, progress, next_milestone, next_milestone_on").eq("org_id", id).order("created_at"),
+    // repo_path is not granted to `authenticated` (clients must never see it); staff read it via staff_project_paths()
+    supabase.from("projects").select("id, name, status, summary, progress, next_milestone, next_milestone_on").eq("org_id", id).order("created_at"),
+    supabase.rpc("staff_project_paths", { p_org_id: id }),
     supabase.from("tickets").select("id, status").eq("org_id", id),
     supabase.rpc("retainer_usage", { p_org_id: id, p_months: 6, p_today: null }),
   ]);
   const t = (team.data ?? { members: [], invites: [] }) as Team;
-  const ps = (projects.data ?? []) as Project[];
+  const pathOf = new Map(((paths.data ?? []) as { id: string; repo_path: string | null }[]).map((r) => [r.id, r.repo_path]));
+  const ps = ((projects.data ?? []) as Omit<Project, "repo_path">[]).map((p) => ({ ...p, repo_path: pathOf.get(p.id) ?? null })) as Project[];
   const open = ((tickets.data ?? []) as { status: string }[]).filter((x) => isOpen(x.status)).length;
   const owners = t.members.filter((m) => m.role === "owner").length;
   const company = Array.isArray(org.companies) ? org.companies[0] : org.companies;
