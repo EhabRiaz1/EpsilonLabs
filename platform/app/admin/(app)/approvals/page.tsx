@@ -34,7 +34,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
   const now = new Date();
   const midnight = pktMidnight(now);
   const since14 = pktMidnight(now, 13);
-  const [q, later, decided, sentToday, spend, created14, decided14, upd, reps] = await Promise.all([
+  const [q, later, decided, sentToday, spend, created14, decided14, upd, reps, agentRuns] = await Promise.all([
     supabase
       .from("approval_queue")
       .select("id, agent, kind, status, held, held_reason, to_email, subject, draft, final_text, lint, deal_id, contact_id, in_reply_to_touch_id, sequence_step, sequence_parent, created_at")
@@ -49,6 +49,9 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
     supabase.from("approval_queue").select("decided_at").gte("decided_at", since14).limit(1000),
     supabase.from("updates").select("id, title, body_md, source, week_of, inputs, lint, created_at, projects(name), organizations(name)").eq("status", "draft").order("created_at").limit(100),
     supabase.from("reports").select("id, title, period_label, content, created_at, projects(name), organizations(name)").eq("status", "draft").order("created_at").limit(50),
+    // 015: briefs and plans waiting for the founder (staff-only RLS)
+    supabase.from("ticket_runs").select("id, stage, output, created_at, finished_at, ticket_id, tickets(ref, title, organizations(name), projects(name))")
+      .eq("status", "ready").in("stage", ["brief", "plan"]).order("created_at").limit(100),
   ]);
   const rows = (q.data ?? []) as Row[];
   const laterAt = new Map(((later.data ?? []) as { target_id: string; at: string }[]).map((a) => [a.target_id, a.at]));
@@ -117,7 +120,23 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
     thread: "", when: relativeDay(r.created_at, now), wedge: "", channel: "", theyWrote: "", ours: "",
     draft: (r.content?.summary ?? []).join("\n\n") || "(open the report to review it)", edited: false, lint: [], held: false, heldReason: "", classifier: "", agent: "worker",
   }));
-  const ready = [...deckOrder(rows.filter((r) => !r.held), laterAt).map(toCard), ...updateCards, ...reportCards];
+  type Ar = { id: string; stage: "brief" | "plan"; output: { title?: string; problem?: string; summary?: string; files?: unknown[]; screened?: string[] } | null; created_at: string; finished_at: string | null; ticket_id: string;
+    tickets: { ref: string; title: string; organizations: { name: string } | { name: string }[] | null; projects: { name: string } | { name: string }[] | null } | { ref: string; title: string; organizations: { name: string } | { name: string }[] | null; projects: { name: string } | { name: string }[] | null }[] | null };
+  const agentCards: Card[] = ((agentRuns.data ?? []) as unknown as Ar[]).map((r) => {
+    const tk = one(r.tickets);
+    const brief = r.stage === "brief";
+    const screened = r.output?.screened?.length ?? 0;
+    return {
+      id: r.id, kind: r.stage, source: r.stage, href: `/tickets/${r.ticket_id}`, label: brief ? "Ticket brief" : "Read-only plan",
+      who: one(tk?.organizations ?? null)?.name ?? "", company: one(tk?.projects ?? null)?.name ?? "",
+      to: "Internal: nothing reaches the client", subject: `${tk?.ref ?? ""} · ${tk?.title ?? ""}`, thread: "",
+      when: relativeDay(r.finished_at ?? r.created_at, now), wedge: "", channel: "", theyWrote: "", ours: "",
+      draft: String((brief ? r.output?.problem : r.output?.summary) ?? "(open the ticket to review it)"), edited: false,
+      lint: [], held: false, heldReason: "", agent: "project_agent",
+      classifier: brief ? (screened ? `${screened} line(s) removed by the screen` : "tool-less") : `${r.output?.files?.length ?? 0} files · read-only`,
+    };
+  });
+  const ready = [...deckOrder(rows.filter((r) => !r.held), laterAt).map(toCard), ...updateCards, ...reportCards, ...agentCards];
   const held = rows.filter((r) => r.held).map(toCard);
   const cost = ((spend.data ?? []) as { cost_usd: number | null }[]).reduce((s, a) => s + Number(a.cost_usd ?? 0), 0);
 

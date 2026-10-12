@@ -9,6 +9,7 @@ import { dayMonth, dayMonthYear } from "@/lib/dates";
 import { isOpen } from "@/lib/tickets";
 import { InviteForm, ProjectForm, RowAction } from "../ClientForms";
 import { RetainerPanel } from "../RetainerPanel";
+import { ProjectAgentForm } from "../ProjectAgentForm";
 import type { Usage } from "@/lib/retainers";
 
 export const metadata: Metadata = { title: "Client" };
@@ -25,14 +26,18 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const { supabase } = await getSession();
   const { data: org } = await supabase.from("organizations").select("id, name, slug, domain, status, is_test, created_at, companies(name)").eq("id", id).maybeSingle();
   if (!org) notFound();
-  const [team, projects, paths, tickets, usage] = await Promise.all([
+  const [team, projects, paths, tickets, usage, agentRows] = await Promise.all([
     supabase.rpc("org_team", { p_org_id: id }),
     // repo_path is not granted to `authenticated` (clients must never see it); staff read it via staff_project_paths()
     supabase.from("projects").select("id, name, status, summary, progress, next_milestone, next_milestone_on").eq("org_id", id).order("created_at"),
     supabase.rpc("staff_project_paths", { p_org_id: id }),
     supabase.from("tickets").select("id, status").eq("org_id", id),
     supabase.rpc("retainer_usage", { p_org_id: id, p_months: 6, p_today: null }),
+    // 015: test command / env file / branch / agent switch are staff-only columns, read through this function
+    supabase.rpc("staff_project_agent", { p_org_id: id }),
   ]);
+  type AgentRow = { id: string; test_command: string | null; test_env_file: string | null; default_branch: string | null; is_git: boolean | null; git_checked_at: string | null; agent_enabled: boolean };
+  const agentOf = new Map(((agentRows.data ?? []) as AgentRow[]).map((r) => [r.id, r]));
   const t = (team.data ?? { members: [], invites: [] }) as Team;
   const pathOf = new Map(((paths.data ?? []) as { id: string; repo_path: string | null }[]).map((r) => [r.id, r.repo_path]));
   const ps = ((projects.data ?? []) as Omit<Project, "repo_path">[]).map((p) => ({ ...p, repo_path: pathOf.get(p.id) ?? null })) as Project[];
@@ -88,6 +93,15 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
                   <ProjectForm
                     orgId={id}
                     p={{ id: p.id, name: p.name, status: p.status, summary: p.summary ?? "", repo_path: p.repo_path ?? "", progress: p.progress === null ? "" : String(p.progress), next_milestone: p.next_milestone ?? "", next_milestone_on: p.next_milestone_on ?? "" }}
+                  />
+                  <ProjectAgentForm
+                    orgId={id}
+                    projectId={p.id}
+                    v={{
+                      test_command: agentOf.get(p.id)?.test_command ?? "", test_env_file: agentOf.get(p.id)?.test_env_file ?? "",
+                      default_branch: agentOf.get(p.id)?.default_branch ?? "", agent_enabled: Boolean(agentOf.get(p.id)?.agent_enabled),
+                      is_git: agentOf.get(p.id)?.is_git ?? null, git_checked_at: agentOf.get(p.id)?.git_checked_at ?? null, has_repo: Boolean(p.repo_path),
+                    }}
                   />
                 </div>
               </details>

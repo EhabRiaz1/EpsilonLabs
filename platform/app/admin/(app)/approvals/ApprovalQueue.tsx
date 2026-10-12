@@ -16,14 +16,17 @@ export type Card = {
   id: string; kind: string; label: string; who: string; company: string; to: string; subject: string; thread: string;
   when: string; wedge: string; channel: string; theyWrote: string; ours: string; draft: string; edited: boolean;
   lint: { type: string; text: string }[]; held: boolean; heldReason: string; classifier: string; agent: string;
-  /** deck: an email in approval_queue (the Mac outbox sends it). update / report: client-portal drafts (012). */
-  source?: "deck" | "update" | "report"; href?: string;
+  /** deck: an email in approval_queue (the Mac outbox sends it). update / report: client-portal drafts (012).
+   *  brief / plan: project-agent steps waiting on the ticket page (015); like reports, they open their page. */
+  source?: "deck" | "update" | "report" | "brief" | "plan"; href?: string;
 };
 export type View = "all" | "cold" | "replies" | "held";
 const TABS: [View, string][] = [["all", "All"], ["cold", "Cold email"], ["replies", "Replies"], ["held", "Held"]];
 const UNDO_SECONDS = 10;
 
-const ICON: Record<string, IconName> = { outbound: "send", reply: "mail", ack: "check", quote: "receipt", optout_confirm: "x", referral: "users", update: "file", report: "chart" };
+const ICON: Record<string, IconName> = { outbound: "send", reply: "mail", ack: "check", quote: "receipt", optout_confirm: "x", referral: "users", update: "file", report: "chart", brief: "sparkle", plan: "cpu" };
+/** Cards approved on their own page (the queue only opens it). */
+const opens = (c: { source?: string }) => c.source === "report" || c.source === "brief" || c.source === "plan";
 const inView = (v: View, c: Card) => (v === "held" ? c.held : c.held ? false : v === "cold" ? c.kind === "outbound" : v === "replies" ? c.kind !== "outbound" : true);
 const SENT_MSG: Record<string, string> = {
   approved: "Approved · sends from the Mac outbox",
@@ -126,7 +129,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
   }
 
   async function approve(c: Card) {
-    if (c.source === "report") return router.push(c.href ?? "/reports");
+    if (opens(c)) return router.push(c.href ?? "/reports");
     if (c.source === "update") return commitLater(c, "Publishing to the client's portal", "check", "right", () => publishUpdateCard(c.id));
     if (c.held) return toast("This draft is held. Release it to the deck first.", { icon: "alert" });
     setBusy(true);
@@ -149,7 +152,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
   function reject(c: Card) {
     const why = reason;
     setReason("");
-    if (c.source === "report") return router.push(c.href ?? "/reports");
+    if (opens(c)) return router.push(c.href ?? "/reports");
     if (c.source === "update") return commitLater(c, "Skipped · nothing is sent", "x", "left", () => skipUpdateCard(c.id, why));
     setKs((s) => ({ ...s, editing: false }));
     leave(c.id, "left");
@@ -180,7 +183,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
   }
 
   function startEdit(c: Card) {
-    if (c.source === "report") return router.push(c.href ?? "/reports");
+    if (opens(c)) return router.push(c.href ?? "/reports");
     if (c.held) return toast("Release the draft first, then edit it.", { icon: "alert" });
     setText(c.draft);
     setKs((s) => ({ ...s, editing: true }));
@@ -259,7 +262,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     ) : (
       <>
         <button className="btn btn-primary" type="button" disabled={busy} onClick={() => run("approve", c)}>
-          {c.source === "report" ? "Open to review" : c.source === "update" ? "Publish" : confirm?.id === c.id ? "Send anyway" : "Approve"}
+          {opens(c) ? "Open to review" : c.source === "update" ? "Publish" : confirm?.id === c.id ? "Send anyway" : "Approve"}
           {withKeys && <span className="kbd">A</span>}
         </button>
         <button className="btn btn-secondary" type="button" disabled={busy} onClick={() => run("edit", c)}>
@@ -407,9 +410,9 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
                                   {(c.wedge || c.channel) && (<><dt>Deal</dt><dd>{[c.wedge, c.channel].filter(Boolean).join(" · ")}</dd></>)}
                                   <dt>Lint</dt><dd>{c.lint.length ? `${c.lint.length} warning${c.lint.length > 1 ? "s" : ""}` : "ok"}</dd>
                                   <dt>Drafted by</dt><dd>{c.agent}</dd>
-                                  <dt>{c.source && c.source !== "deck" ? "Goes to" : "Sends"}</dt><dd>{c.source === "update" ? `client portal + digest, ${UNDO_SECONDS} s undo` : c.source === "report" ? "client portal + PDF, from the report page" : `from the Mac outbox, ${UNDO_SECONDS} s undo`}</dd>
+                                  <dt>{c.source && c.source !== "deck" ? "Goes to" : "Sends"}</dt><dd>{c.source === "update" ? `client portal + digest, ${UNDO_SECONDS} s undo` : c.source === "report" ? "client portal + PDF, from the report page" : c.source === "brief" || c.source === "plan" ? "nothing reaches the client: approve on the ticket page" : `from the Mac outbox, ${UNDO_SECONDS} s undo`}</dd>
                                 </dl>
-                                {!ks.editing && c.source !== "report" && (
+                                {!ks.editing && !opens(c) && (
                                   <input
                                     className="input"
                                     type="text"

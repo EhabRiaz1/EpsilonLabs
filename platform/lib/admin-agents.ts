@@ -25,12 +25,12 @@ export const AGENT_CATALOG: [string, CatalogEntry[]][] = [
   ]],
   ["Always on", [
     { key: "worker", label: "Worker", what: "Every minute: starts Run-now requests from here, sends push notifications, reports this page's launchd state.", job: "worker", hb: "worker", stale: 5 * 60 },
+    { key: "project_agent", label: "Project agent", what: "Every minute: tool-less ticket briefs, read-only plans, approved agent runs in a git worktree, preview pushes you ask for, and the 10-minute commit scan for manual tickets.", job: "project_agent", hb: "project_agent", stale: 45 * 60 },
     { key: "dashboard", label: "Local cockpit", what: "The 8787 cockpit on the Mac (127.0.0.1:8787).", job: "dashboard", hb: null, stale: 0 },
     { key: "keepawake", label: "Keep-awake", what: "Stops the Mac from idle-sleeping so jobs keep running.", job: "keepawake", hb: null, stale: 0 },
   ]],
 ];
 export const PLANNED_AGENTS: [string, string][] = [
-  ["Project worker", "Turns client tickets into briefs and plans, and does approved work in a side copy."],
   ["Weekly updates", "Drafts each client's Friday update for your approval."],
   ["Proposal drafter", "Drafts deal-room proposals from your packages and call notes."],
   ["Invoice and report drafter", "Drafts invoices and R2-style delivery reports."],

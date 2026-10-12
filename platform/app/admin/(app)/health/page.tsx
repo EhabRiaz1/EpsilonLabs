@@ -5,12 +5,15 @@ import { getSession } from "@/lib/session";
 import { dayMonth } from "@/lib/dates";
 import { ago, fmtBytes, fmtDetail, pktDate, pktMidnight, usagePct, usageTone } from "@/lib/admin-ops";
 import { AGENT_CATALOG, type Beat } from "@/lib/admin-agents";
+import { fmtTokens } from "@/lib/pipeline";
+import { AgentBudgetForm } from "./AgentBudget";
 
 export const metadata: Metadata = { title: "Health" };
 
 type Act = { id: string; at: string; agent: string; action: string; target_table: string | null; target_id: string | null; cost_usd: number | null };
 type Usage = { db_bytes: number; db_cap: number; storage_bytes: number; storage_cap: number };
 type Push = { sent_at: string | null; error: string | null; claimed_at: string | null; kind: string };
+type AgentUsage = { budget: number; used_today: number; enabled: boolean; paused: boolean; days: { day: string; tokens: number; runs: number; cost_usd: number }[] };
 const BEAT_PILL: Record<string, string> = { ok: "pill-good", warn: "pill-warn", error: "pill-bad" };
 
 export default async function HealthPage() {
@@ -18,8 +21,9 @@ export default async function HealthPage() {
   const now = new Date();
   const names = [...new Set(AGENT_CATALOG.flatMap(([, a]) => a.map((x) => x.hb)).filter(Boolean))] as string[];
   const days = Array.from({ length: 14 }, (_, i) => 13 - i); // days back
-  const [usage, acts, push, ...rest] = await Promise.all([
+  const [usage, agentUse, acts, push, ...rest] = await Promise.all([
     supabase.rpc("platform_usage"),
+    supabase.rpc("agent_usage_daily", { p_days: 14 }),
     supabase.from("actions").select("id, at, agent, action, target_table, target_id, cost_usd").order("at", { ascending: false }).limit(50),
     supabase.from("push_queue").select("sent_at, error, claimed_at, kind").gte("created_at", new Date(now.getTime() - 86_400_000).toISOString()).limit(1000),
     ...days.map((b) =>
@@ -42,6 +46,8 @@ export default async function HealthPage() {
     pending: pushes.filter((p) => !p.sent_at && !p.error).length,
     failed: pushes.filter((p) => p.error).length,
   };
+  const au = agentUse.data as AgentUsage | null;
+  const auPct = au ? usagePct(au.used_today, au.budget) : 0;
   const labels = days.map((b, i) => (i === 13 ? "Today" : i === 0 || i === 7 ? dayMonth(pktDate(new Date(now.getTime() - b * 86_400_000))) : ""));
 
   return (
@@ -87,6 +93,34 @@ export default async function HealthPage() {
           <span className="c-3 t-12">{llm[13]} today</span>
         </div>
         <TrendChart labels={labels} series={[{ name: "Calls", data: llm }]} aria="LLM calls per day, last 14 days" />
+      </section>
+
+      <section className="panel chart-panel" style={{ marginTop: 14 }} aria-label="Project agent tokens per day">
+        <div className="row between wrap" style={{ gap: 10 }}>
+          <h2 className="t-16" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>Project agent · tokens per day</h2>
+          {au ? (
+            <span className={`pill ${au.paused ? "pill-warn" : "pill-good"}`}>
+              <span className="dot" />
+              {!au.enabled ? "off" : au.paused ? "paused: budget reached" : "running"} · {fmtTokens(au.used_today)} of {fmtTokens(au.budget)} today
+            </span>
+          ) : (
+            <span className="c-3 t-12">Couldn&apos;t read agent usage.</span>
+          )}
+        </div>
+        {au && (
+          <>
+            <div className="meter" data-tone={usageTone(auPct)} style={{ marginTop: 10 }}><span style={{ width: `${Math.min(100, auPct)}%` }} /></div>
+            <TrendChart
+              labels={au.days.map((d, i) => (i === au.days.length - 1 ? "Today" : i === 0 || i === 7 ? dayMonth(d.day) : ""))}
+              series={[{ name: "Tokens", data: au.days.map((d) => d.tokens) }]}
+              aria="Project agent tokens per day, last 14 days"
+            />
+            <div className="c-3 t-12" style={{ marginTop: 6 }}>
+              {au.days.reduce((s, d) => s + d.runs, 0)} runs · ${au.days.reduce((s, d) => s + Number(d.cost_usd || 0), 0).toFixed(2)} reported cost, last 14 days
+            </div>
+            <div style={{ marginTop: 14 }}><AgentBudgetForm budget={au.budget} enabled={au.enabled} /></div>
+          </>
+        )}
       </section>
 
       <div className="grid-main">

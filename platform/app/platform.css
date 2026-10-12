@@ -250,3 +250,33 @@
   .board { grid-template-columns: minmax(0, 1fr); }
   .quota-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- Project agent pipeline (ticket.html prototype, migration 015) ---------- */
+.pipe { padding: 20px 22px 14px; }
+.where { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.where > div { padding: 14px 22px; min-width: 0; }
+.where > div:nth-child(odd) { border-right: 1px solid var(--line); }
+.where > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+.where .k { font-size: var(--t-11); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+.where .v { font-size: var(--t-12); font-family: var(--font-mono); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tests .sum { display: flex; align-items: center; gap: 12px; padding: 16px 22px; flex-wrap: wrap; }
+.tests .sum .n { font-size: var(--t-36); color: var(--good); }
+.tests .sum .d { font-size: var(--t-12); color: var(--text-3); }
+.tests .sum .btn { margin-left: auto; }
+#action-card .actions { display: flex; align-items: center; gap: 8px; padding: 16px 22px; flex-wrap: wrap; }
+#action-card .actions .spacer { flex: 1; }
+#action-card .actions .note { font-size: var(--t-12); color: var(--text-3); flex-basis: 100%; }
+#action-card .preview { display: flex; padding: 12px 22px 16px; border-top: 1px solid var(--line); font-size: var(--t-13); gap: 10px; align-items: center; flex-wrap: wrap; }
+.brief-view { font-size: var(--t-13); line-height: 1.65; }
+.brief-view h4 { font-size: var(--t-11); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); margin: 14px 0 4px; }
+.brief-view h4:first-child { margin-top: 0; }
+.plan-list { margin: 0; padding-left: 18px; }
+.plan-files { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.plan-files div { display: flex; gap: 10px; align-items: center; font-size: var(--t-12); min-width: 0; }
+.plan-files .c-3 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.denied { margin-top: 6px; padding: 10px 14px; border-radius: 14px; background: var(--surface-2); font-family: var(--font-mono); font-size: var(--t-11); color: var(--text-2); line-height: 1.7; }
+.diff-path { padding: 0 18px 8px; overflow-wrap: anywhere; }
+@media (max-width: 960px) {
+  .where { grid-template-columns: 1fr; } .where > div { border-right: 0 !important; border-bottom: 1px solid var(--line); } .where > div:last-child { border-bottom: 0; }
+  #action-card .actions .btn { flex: 1 1 45%; } #action-card .actions .spacer { display: none; }
+}
