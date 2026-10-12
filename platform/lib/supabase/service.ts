@@ -6,8 +6,10 @@ import { createClient } from "@supabase/supabase-js";
  * the public deal room (app/client/p/**: start/confirm acceptance, which must never be callable with the public
  * key), the portal invite landing (app/client/invite/**: peek/accept_invite and the Auth admin API that creates the
  * invited login and signs it in), the invoice PDF code (lib/invoice-pdf.ts: writes the private `invoices`
- * bucket) and the push sender (lib/push-send.ts: claim_push_batch / finish_push and every staff user's subscriptions,
- * reached only through the bearer-secret route /api/cron/push). Admin pages and the portal still act as the signed-in user. eslint.config.mjs enforces where this module
+ * bucket), the report PDF code (lib/report-pdf.ts: writes the private `reports` bucket and calls mark_report_published),
+ * the push sender (lib/push-send.ts: claim_push_batch / finish_push and every staff user's subscriptions, reached only
+ * through the bearer-secret route /api/cron/push) and the portal mailer (lib/digest-send.ts: claim_email_batch /
+ * finish_email / mark_overdue_invoices, reached only through the bearer-secret route /api/cron/digest). Admin pages and the portal still act as the signed-in user. eslint.config.mjs enforces where this module
  * may be imported.
  */
 export function createServiceClient() {

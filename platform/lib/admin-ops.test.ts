@@ -84,6 +84,7 @@ describe("approval queue helpers", () => {
     expect(kindLabel("outbound", 2)).toBe("Follow-up 2");
     expect(kindLabel("reply", null)).toBe("Reply");
     expect(kindLabel("optout_confirm", null)).toBe("Opt-out confirmation");
+    expect(kindLabel("referral", null)).toBe("Referral ask");
   });
   it("deck order puts 'later' items last", () => {
     const rows = [

@@ -64,11 +64,11 @@ describe("isPublicPath", () => {
   });
 
   it("opens the admin PWA shell and the push sender on admin.* only", () => {
-    for (const p of ["/manifest.webmanifest", "/sw.js", "/offline.html", "/icons/icon-192.png", "/icons/maskable-512.png", "/api/cron/push"]) {
+    for (const p of ["/manifest.webmanifest", "/sw.js", "/offline.html", "/icons/icon-192.png", "/icons/maskable-512.png", "/api/cron/push", "/api/cron/digest"]) {
       expect(isPublicPath(p, "admin")).toBe(true);
       expect(isPublicPath(p, "client")).toBe(false);
     }
-    for (const p of ["/api/cron/push/x", "/api/cron", "/icons/../sw.js", "/icons/x.svg", "/icons/a/b.png", "/approvals", "/settings"]) {
+    for (const p of ["/api/cron/push/x", "/api/cron/digest/x", "/api/cron", "/icons/../sw.js", "/icons/x.svg", "/icons/a/b.png", "/approvals", "/settings"]) {
       expect(isPublicPath(p, "admin")).toBe(false);
     }
   });

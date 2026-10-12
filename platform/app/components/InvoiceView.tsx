@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Icon } from "./Icon";
 import { Money } from "./Money";
 import { StatusPill } from "./StatusPill";
@@ -9,7 +10,7 @@ import { dayMonthYear } from "@/lib/dates";
  * One invoice: the ported epsilon-invoice sheet in an isolated iframe (the same HTML the PDF is printed from)
  * plus status and the download. Used by admin.* and client.*.
  */
-export function InvoiceView({ inv, back, admin }: { inv: StoredInvoice; back: { href: string; label: string }; admin: boolean }) {
+export function InvoiceView({ inv, back, admin, children }: { inv: StoredInvoice; back: { href: string; label: string }; admin: boolean; children?: ReactNode }) {
   const { html, configured } = invoicePreviewHtml(inv);
   const issued = Boolean(inv.number);
   return (
@@ -50,6 +51,7 @@ export function InvoiceView({ inv, back, admin }: { inv: StoredInvoice; back: { 
           INVOICE_DETAILS_JSON isn&apos;t set, so the issuer address and payment details are missing below and no PDF can be stored.
         </p>
       )}
+      {children}
       <iframe className="sheet-frame" title={`Invoice ${inv.number ?? ""}`} srcDoc={html} sandbox="" />
     </>
   );

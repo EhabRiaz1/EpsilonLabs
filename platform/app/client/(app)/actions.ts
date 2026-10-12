@@ -156,3 +156,48 @@ export async function removeMember(orgId: string, userId: string): Promise<Resul
   revalidatePath("/account");
   return { ok: "Removed. They no longer see this organisation." };
 }
+
+// ---- 012: email preferences, testimonials ----------------------------------------------------------------------
+
+const PREFS = new Set(["immediate", "daily", "off"]);
+
+export async function savePrefs(_prev: Result, fd: FormData): Promise<Result> {
+  const { supabase } = await session();
+  const pref = String(fd.get("email_pref") ?? "");
+  const tz = String(fd.get("timezone") ?? "").trim();
+  if (!PREFS.has(pref)) return { error: "Pick how often we email you." };
+  if (!/^[A-Za-z_]+(\/[A-Za-z0-9_+-]+){0,2}$/.test(tz)) return { error: "Pick your timezone." };
+  const { error } = await supabase.rpc("save_my_prefs", { p_timezone: tz, p_email_pref: pref });
+  if (error) return { error: /timezone/.test(error.message) ? "We don't know that timezone. Pick one from the list." : "We couldn't save that. Try again." };
+  revalidatePath("/account");
+  return {
+    ok: pref === "off" ? "Saved. We won't email you; everything stays in the portal's bell." : pref === "immediate" ? "Saved. We email you as things happen." : "Saved. Urgent items arrive at once; the rest in one email a day at 10:00 your time.",
+  };
+}
+
+export async function submitTestimonial(id: string | null, orgId: string, _prev: Result, fd: FormData): Promise<Result> {
+  const { supabase } = await session();
+  if ((id && !UUID.test(id)) || !UUID.test(orgId)) return { error: "Unknown testimonial." };
+  const quote = String(fd.get("quote") ?? "").replace(/\s+/g, " ").trim();
+  const name = String(fd.get("author_name") ?? "").trim();
+  const role = String(fd.get("author_role") ?? "").trim();
+  if (fd.get("consent") !== "on") return { error: "Tick the box to let Epsilon Labs quote it." };
+  if (quote.length < 10 || quote.length > 1200) return { error: "Write 10 to 1,200 characters." };
+  if (name.length < 2 || name.length > 120 || role.length > 120) return { error: "Give your name (and optionally your role)." };
+  const { error } = await supabase.rpc("submit_testimonial", { p_id: id, p_org_id: orgId, p_quote: quote, p_author_name: name, p_author_role: role });
+  if (error) {
+    console.error("submit_testimonial failed:", error.message);
+    return { error: /no longer be changed/.test(error.message) ? "This one can no longer be changed." : /read-only/.test(error.message) ? "This organisation is read-only." : "We couldn't save it. Try again." };
+  }
+  revalidatePath("/testimonial");
+  return { ok: "Thank you. Ehab will be in touch before it appears anywhere." };
+}
+
+export async function withdrawTestimonial(id: string): Promise<Result> {
+  const { supabase } = await session();
+  if (!UUID.test(id)) return { error: "Unknown testimonial." };
+  const { error } = await supabase.rpc("withdraw_testimonial", { p_id: id });
+  if (error) return { error: "We couldn't withdraw it. Try again." };
+  revalidatePath("/testimonial");
+  return { ok: "Withdrawn. Ehab is told so it comes off the website." };
+}

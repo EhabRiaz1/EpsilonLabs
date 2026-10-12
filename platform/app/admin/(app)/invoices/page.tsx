@@ -41,6 +41,12 @@ export default async function InvoicesPage() {
             <div className="sub">Numbered EL-YYYY-NNN when issued. Issued invoices never change; corrections are credit notes.</div>
           </div>
         </div>
+        <div className="actions-bar">
+          <Link className="btn btn-primary" href="/invoices/new">
+            <Icon name="plus" className="i-sm" />
+            New invoice
+          </Link>
+        </div>
       </header>
       {error ? (
         <section className="panel panel-pad">
@@ -58,7 +64,7 @@ export default async function InvoicesPage() {
             </div>
             <h2 className="display">No invoices yet</h2>
             <p className="c-2" style={{ maxWidth: "40ch" }}>
-              The deposit invoice is issued automatically when a client accepts a proposal.
+              The deposit invoice is issued automatically when a client accepts a proposal. Milestone, final and ad-hoc invoices start from New invoice.
             </p>
           </div>
         </section>

@@ -39,6 +39,7 @@ export default async function ClientAppLayout({ children }: { children: ReactNod
   }
   const bells: Bell[] = notifications.map((n) => ({ id: n.id, kind: n.kind, title: n.title, link: n.link, urgent: n.urgent, unread: !n.read_at, when: relativeDay(n.created_at, now) }));
   const projectChoices = projects.map((p) => ({ id: p.id, name: p.name }));
+  const retainer = org ? (await supabase.from("retainers").select("id").eq("org_id", org.orgId).neq("status", "ended").limit(1)).data?.length : 0;
 
   return (
     <Shell
@@ -48,6 +49,9 @@ export default async function ClientAppLayout({ children }: { children: ReactNod
       nav={[
         { href: "/", label: "Home", icon: "home" },
         { href: "/tickets", label: "Tickets", icon: "ticket" },
+        { href: "/updates", label: "Updates", icon: "file" },
+        { href: "/reports", label: "Reports", icon: "chart" },
+        ...(retainer ? [{ href: "/retainer", label: "Retainer", icon: "clock" as const }] : []),
         { href: "/account", label: "Account & team", icon: "users" },
       ]}
       user={{

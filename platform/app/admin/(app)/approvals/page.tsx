@@ -34,7 +34,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
   const now = new Date();
   const midnight = pktMidnight(now);
   const since14 = pktMidnight(now, 13);
-  const [q, later, decided, sentToday, spend, created14, decided14] = await Promise.all([
+  const [q, later, decided, sentToday, spend, created14, decided14, upd, reps] = await Promise.all([
     supabase
       .from("approval_queue")
       .select("id, agent, kind, status, held, held_reason, to_email, subject, draft, final_text, lint, deal_id, contact_id, in_reply_to_touch_id, sequence_step, sequence_parent, created_at")
@@ -47,6 +47,8 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
     supabase.from("actions").select("cost_usd").eq("action", "llm_call").gte("at", midnight).limit(1000),
     supabase.from("approval_queue").select("created_at").gte("created_at", since14).limit(1000),
     supabase.from("approval_queue").select("decided_at").gte("decided_at", since14).limit(1000),
+    supabase.from("updates").select("id, title, body_md, source, week_of, inputs, lint, created_at, projects(name), organizations(name)").eq("status", "draft").order("created_at").limit(100),
+    supabase.from("reports").select("id, title, period_label, content, created_at, projects(name), organizations(name)").eq("status", "draft").order("created_at").limit(50),
   ]);
   const rows = (q.data ?? []) as Row[];
   const laterAt = new Map(((later.data ?? []) as { target_id: string; at: string }[]).map((a) => [a.target_id, a.at]));
@@ -98,7 +100,24 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
       agent: r.agent,
     };
   };
-  const ready = deckOrder(rows.filter((r) => !r.held), laterAt).map(toCard);
+  // 012: client-portal drafts in the same queue (weekly updates publish from here; reports open their page)
+  type U = { id: string; title: string; body_md: string; source: string; week_of: string | null; inputs: Record<string, unknown> | null; lint: { type: string; text: string }[] | null; created_at: string; projects: { name: string } | { name: string }[] | null; organizations: { name: string } | { name: string }[] | null };
+  type Rp = { id: string; title: string; period_label: string; content: { summary?: string[] } | null; created_at: string; projects: { name: string } | { name: string }[] | null; organizations: { name: string } | { name: string }[] | null };
+  const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
+  const updateCards: Card[] = ((upd.data ?? []) as unknown as U[]).map((u) => ({
+    id: u.id, kind: "update", source: "update", label: u.source === "weekly" ? "Weekly update" : "Update", who: one(u.organizations)?.name ?? "",
+    company: one(u.projects)?.name ?? "", to: `Publishes to the ${one(u.organizations)?.name ?? "client"} portal`, subject: u.title, thread: "",
+    when: relativeDay(u.created_at, now), wedge: "", channel: "", theyWrote: "", ours: "", draft: u.body_md, edited: false,
+    lint: Array.isArray(u.lint) ? u.lint : [], held: false, heldReason: "",
+    classifier: u.inputs ? `${u.inputs.tickets_done ?? 0} done · ${u.inputs.commits ?? 0} commits` : "", agent: u.source === "weekly" ? "worker" : "you",
+  }));
+  const reportCards: Card[] = ((reps.data ?? []) as unknown as Rp[]).map((r) => ({
+    id: r.id, kind: "report", source: "report", href: `/reports/${r.id}`, label: "Delivery report", who: one(r.organizations)?.name ?? "",
+    company: one(r.projects)?.name ?? "", to: `Publishes to the ${one(r.organizations)?.name ?? "client"} portal`, subject: `${r.title}${r.period_label ? ` · ${r.period_label}` : ""}`,
+    thread: "", when: relativeDay(r.created_at, now), wedge: "", channel: "", theyWrote: "", ours: "",
+    draft: (r.content?.summary ?? []).join("\n\n") || "(open the report to review it)", edited: false, lint: [], held: false, heldReason: "", classifier: "", agent: "worker",
+  }));
+  const ready = [...deckOrder(rows.filter((r) => !r.held), laterAt).map(toCard), ...updateCards, ...reportCards];
   const held = rows.filter((r) => r.held).map(toCard);
   const cost = ((spend.data ?? []) as { cost_usd: number | null }[]).reduce((s, a) => s + Number(a.cost_usd ?? 0), 0);
 

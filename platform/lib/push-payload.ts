@@ -12,7 +12,7 @@ export type PushRow = {
 
 export type PushPayload = { title: string; body?: string; url: string; tag: string };
 
-const KINDS = new Set(["draft", "reply", "intake", "ticket", "proposal", "invoice", "agent_error", "test"]);
+const KINDS = new Set(["draft", "reply", "intake", "ticket", "proposal", "invoice", "agent_error", "test", "testimonial"]);
 const PATH = /^\/[A-Za-z0-9/_.?=&-]*$/;
 
 function clip(s: string, n: number): string {

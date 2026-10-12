@@ -8,19 +8,22 @@ import { eps } from "@/app/components/eps";
 import { esc } from "@/lib/html";
 import { clampSel, initialQueueState, queueKey, type QueueCommand } from "@/lib/queue-keys";
 import {
-  approveDraft, editAndApproveDraft, holdDraft, rejectDraft, releaseHeldDraft, undoDecision, type DeckResult,
+  approveDraft, editAndApproveDraft, editPublishUpdateCard, holdDraft, publishUpdateCard, rejectDraft, releaseHeldDraft,
+  skipUpdateCard, undoDecision, type DeckResult,
 } from "./actions";
 
 export type Card = {
   id: string; kind: string; label: string; who: string; company: string; to: string; subject: string; thread: string;
   when: string; wedge: string; channel: string; theyWrote: string; ours: string; draft: string; edited: boolean;
   lint: { type: string; text: string }[]; held: boolean; heldReason: string; classifier: string; agent: string;
+  /** deck: an email in approval_queue (the Mac outbox sends it). update / report: client-portal drafts (012). */
+  source?: "deck" | "update" | "report"; href?: string;
 };
 export type View = "all" | "cold" | "replies" | "held";
 const TABS: [View, string][] = [["all", "All"], ["cold", "Cold email"], ["replies", "Replies"], ["held", "Held"]];
 const UNDO_SECONDS = 10;
 
-const ICON: Record<string, IconName> = { outbound: "send", reply: "mail", ack: "check", quote: "receipt", optout_confirm: "x" };
+const ICON: Record<string, IconName> = { outbound: "send", reply: "mail", ack: "check", quote: "receipt", optout_confirm: "x", referral: "users", update: "file", report: "chart" };
 const inView = (v: View, c: Card) => (v === "held" ? c.held : c.held ? false : v === "cold" ? c.kind === "outbound" : v === "replies" ? c.kind !== "outbound" : true);
 const SENT_MSG: Record<string, string> = {
   approved: "Approved · sends from the Mac outbox",
@@ -102,7 +105,29 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     });
   }
 
+  /** Client updates: publish (or skip) when the undo toast runs out; Undo never reaches the server. */
+  function commitLater(c: Card, msg: string, icon: "check" | "x", dir: "right" | "left", commit: () => Promise<DeckResult>) {
+    setKs((s) => ({ ...s, editing: false }));
+    leave(c.id, dir);
+    toast(msg, {
+      icon,
+      seconds: UNDO_SECONDS,
+      action: "Undo",
+      onUndo: () => unhide(c.id),
+      onCommit: async () => {
+        const r = await safe(commit());
+        if (!r.ok) {
+          unhide(c.id);
+          toast(r.message ?? "That didn't save.", { icon: "alert" });
+        }
+        router.refresh();
+      },
+    });
+  }
+
   async function approve(c: Card) {
+    if (c.source === "report") return router.push(c.href ?? "/reports");
+    if (c.source === "update") return commitLater(c, "Publishing to the client's portal", "check", "right", () => publishUpdateCard(c.id));
     if (c.held) return toast("This draft is held. Release it to the deck first.", { icon: "alert" });
     setBusy(true);
     const r = await safe(approveDraft(c.id, confirm?.id === c.id));
@@ -111,6 +136,10 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
   }
 
   async function save(c: Card) {
+    if (c.source === "update") {
+      const body = text;
+      return commitLater(c, "Edited · publishing to the client's portal", "check", "right", () => editPublishUpdateCard(c.id, c.subject, body));
+    }
     setBusy(true);
     const r = await safe(editAndApproveDraft(c.id, text, confirm?.id === c.id));
     setBusy(false);
@@ -120,6 +149,8 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
   function reject(c: Card) {
     const why = reason;
     setReason("");
+    if (c.source === "report") return router.push(c.href ?? "/reports");
+    if (c.source === "update") return commitLater(c, "Skipped · nothing is sent", "x", "left", () => skipUpdateCard(c.id, why));
     setKs((s) => ({ ...s, editing: false }));
     leave(c.id, "left");
     // committed only when the toast runs out; Undo never reaches the server
@@ -149,6 +180,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
   }
 
   function startEdit(c: Card) {
+    if (c.source === "report") return router.push(c.href ?? "/reports");
     if (c.held) return toast("Release the draft first, then edit it.", { icon: "alert" });
     setText(c.draft);
     setKs((s) => ({ ...s, editing: true }));
@@ -162,6 +194,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     else if (command === "save") void save(c);
     else if (command === "cancel") setKs((s) => ({ ...s, editing: false }));
     else if (command === "reject") reject(c);
+    else if (command === "hold" && c.source && c.source !== "deck") toast("Client updates aren't held: publish, edit or skip.", { icon: "alert" });
     else if (command === "hold") void (c.held ? simple(c, releaseHeldDraft, "Released to the deck") : simple(c, holdDraft, "Later · moved to the end of the queue"));
   }
 
@@ -216,7 +249,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     ) : ks.editing ? (
       <>
         <button className="btn btn-primary" type="button" disabled={busy} onClick={() => run("save", c)}>
-          {confirm?.id === c.id ? "Save and send anyway" : "Save and approve"}
+          {c.source === "update" ? "Save and publish" : confirm?.id === c.id ? "Save and send anyway" : "Save and approve"}
           {withKeys && <span className="kbd">⌘↵</span>}
         </button>
         <button className="btn btn-ghost" type="button" onClick={() => run("cancel", c)}>
@@ -226,16 +259,16 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     ) : (
       <>
         <button className="btn btn-primary" type="button" disabled={busy} onClick={() => run("approve", c)}>
-          {confirm?.id === c.id ? "Send anyway" : "Approve"}
+          {c.source === "report" ? "Open to review" : c.source === "update" ? "Publish" : confirm?.id === c.id ? "Send anyway" : "Approve"}
           {withKeys && <span className="kbd">A</span>}
         </button>
         <button className="btn btn-secondary" type="button" disabled={busy} onClick={() => run("edit", c)}>
           Edit{withKeys && <span className="kbd">E</span>}
         </button>
         <button className="btn btn-danger" type="button" disabled={busy} onClick={() => run("reject", c)}>
-          Reject{withKeys && <span className="kbd">R</span>}
+          {c.source === "update" ? "Skip" : "Reject"}{withKeys && <span className="kbd">R</span>}
         </button>
-        {withKeys && (
+        {withKeys && (!c.source || c.source === "deck") && (
           <button className="btn btn-ghost" type="button" disabled={busy} onClick={() => run("hold", c)}>
             Later<span className="kbd">L</span>
           </button>
@@ -340,7 +373,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
                                   </details>
                                 )}
                                 <div className="draft">
-                                  <div className="to"><Icon name="mail" className="i-sm" />To {c.to || "(no address)"}</div>
+                                  <div className="to"><Icon name={c.source && c.source !== "deck" ? "users" : "mail"} className="i-sm" />{c.source && c.source !== "deck" ? c.to : `To ${c.to || "(no address)"}`}</div>
                                   {c.thread && <div className="subj">{c.thread}</div>}
                                   {ks.editing ? (
                                     <>
@@ -352,7 +385,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
                                         onChange={(e) => setText(e.target.value)}
                                         rows={Math.min(18, Math.max(6, text.split("\n").length + 1))}
                                       />
-                                      <p className="c-3 t-12" style={{ marginTop: 8 }}>Re-linted on the Mac before sending. Esc cancels.</p>
+                                      <p className="c-3 t-12" style={{ marginTop: 8 }}>{c.source === "update" ? "Published to the client's portal when the undo runs out. Esc cancels." : "Re-linted on the Mac before sending. Esc cancels."}</p>
                                     </>
                                   ) : (
                                     <div className="pre">{c.draft}</div>
@@ -374,15 +407,15 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
                                   {(c.wedge || c.channel) && (<><dt>Deal</dt><dd>{[c.wedge, c.channel].filter(Boolean).join(" · ")}</dd></>)}
                                   <dt>Lint</dt><dd>{c.lint.length ? `${c.lint.length} warning${c.lint.length > 1 ? "s" : ""}` : "ok"}</dd>
                                   <dt>Drafted by</dt><dd>{c.agent}</dd>
-                                  <dt>Sends</dt><dd>from the Mac outbox, {UNDO_SECONDS} s undo</dd>
+                                  <dt>{c.source && c.source !== "deck" ? "Goes to" : "Sends"}</dt><dd>{c.source === "update" ? `client portal + digest, ${UNDO_SECONDS} s undo` : c.source === "report" ? "client portal + PDF, from the report page" : `from the Mac outbox, ${UNDO_SECONDS} s undo`}</dd>
                                 </dl>
-                                {!ks.editing && (
+                                {!ks.editing && c.source !== "report" && (
                                   <input
                                     className="input"
                                     type="text"
                                     maxLength={300}
-                                    placeholder="Reject reason (optional)"
-                                    aria-label="Reject reason"
+                                    placeholder={c.source === "update" ? "Skip reason (optional)" : "Reject reason (optional)"}
+                                    aria-label={c.source === "update" ? "Skip reason" : "Reject reason"}
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value)}
                                   />

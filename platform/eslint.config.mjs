@@ -8,13 +8,14 @@ export default defineConfig([
   // app/styles/ holds the approved design system copied verbatim; it is not linted or edited here.
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "app/styles/**"]),
   // F11 narrowing: the service-role client is allowed ONLY in the public deal room, the portal invite landing, the
-  // invoice PDF code and the push sender (lib/push-send.ts, behind the bearer-secret route /api/cron/push).
+  // invoice and report PDF code, the push sender (lib/push-send.ts) and the portal mailer (lib/digest-send.ts), both
+  // behind bearer-secret routes (/api/cron/push, /api/cron/digest).
   {
     rules: {
       "no-restricted-imports": ["error", {
-        patterns: [{ group: ["**/supabase/service"], message: "Service role: only app/client/p/**, app/client/invite/**, lib/invoice-pdf.ts and lib/push-send.ts (see lib/supabase/service.ts)." }],
+        patterns: [{ group: ["**/supabase/service"], message: "Service role: only app/client/p/**, app/client/invite/**, lib/invoice-pdf.ts, lib/report-pdf.ts, lib/push-send.ts and lib/digest-send.ts (see lib/supabase/service.ts)." }],
       }],
     },
   },
-  { files: ["app/client/p/**", "app/client/invite/**", "lib/invoice-pdf.ts", "lib/push-send.ts"], rules: { "no-restricted-imports": "off" } },
+  { files: ["app/client/p/**", "app/client/invite/**", "lib/invoice-pdf.ts", "lib/report-pdf.ts", "lib/push-send.ts", "lib/digest-send.ts"], rules: { "no-restricted-imports": "off" } },
 ]);

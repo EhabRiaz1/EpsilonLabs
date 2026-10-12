@@ -8,6 +8,8 @@ import { getSession } from "@/lib/session";
 import { dayMonth, dayMonthYear } from "@/lib/dates";
 import { isOpen } from "@/lib/tickets";
 import { InviteForm, ProjectForm, RowAction } from "../ClientForms";
+import { RetainerPanel } from "../RetainerPanel";
+import type { Usage } from "@/lib/retainers";
 
 export const metadata: Metadata = { title: "Client" };
 
@@ -23,11 +25,12 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const { supabase } = await getSession();
   const { data: org } = await supabase.from("organizations").select("id, name, slug, domain, status, is_test, created_at, companies(name)").eq("id", id).maybeSingle();
   if (!org) notFound();
-  const [team, projects, tickets] = await Promise.all([
+  const [team, projects, tickets, usage] = await Promise.all([
     supabase.rpc("org_team", { p_org_id: id }),
     // staff read repo_path through RLS (the column is not granted to clients)
     supabase.from("projects").select("id, name, status, summary, repo_path, progress, next_milestone, next_milestone_on").eq("org_id", id).order("created_at"),
     supabase.from("tickets").select("id, status").eq("org_id", id),
+    supabase.rpc("retainer_usage", { p_org_id: id, p_months: 6, p_today: null }),
   ]);
   const t = (team.data ?? { members: [], invites: [] }) as Team;
   const ps = (projects.data ?? []) as Project[];
@@ -97,6 +100,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
               </div>
             </details>
           </section>
+          <RetainerPanel orgId={id} usage={(usage.data ?? null) as Usage | null} error={Boolean(usage.error)} />
         </div>
 
         <div className="col">

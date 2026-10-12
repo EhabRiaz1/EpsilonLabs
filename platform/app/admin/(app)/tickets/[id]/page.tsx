@@ -9,6 +9,7 @@ import { clientStatus, PRIORITY_LABEL, staffStatus, TYPE_LABEL } from "@/lib/tic
 import { dayMonth, stamp } from "@/lib/dates";
 import { prettySize } from "@/lib/files";
 import { ReplyComposer, SendNoteButton, StatusControl, TimelineFilter } from "../TicketControls";
+import { TimePanel, type TimeEntry } from "../TimePanel";
 
 export const metadata: Metadata = { title: "Ticket" };
 
@@ -31,9 +32,11 @@ export default async function AdminTicket({ params }: { params: Promise<{ id: st
     .maybeSingle();
   if (!data) notFound();
   const t = data as Ticket;
-  const [{ data: ev }, { data: fl }] = await Promise.all([
+  const [{ data: ev }, { data: fl }, { data: te }, { data: ret }] = await Promise.all([
     supabase.from("ticket_events").select("id, kind, body, data, client_visible, actor, created_at").eq("ticket_id", id).order("created_at"),
     supabase.from("files").select("id, name, size, created_at, uploaded_by").eq("ticket_id", id).eq("status", "ready").order("created_at"),
+    supabase.from("time_entries").select("id, minutes, note, billable, worked_on").eq("ticket_id", id).order("worked_on", { ascending: false }).limit(100),
+    supabase.from("retainers").select("id").eq("org_id", t.org_id).eq("status", "active").limit(1),
   ]);
   const events = (ev ?? []) as Event[];
   const files = (fl ?? []) as File[];
@@ -121,6 +124,7 @@ export default async function AdminTicket({ params }: { params: Promise<{ id: st
               </p>
             </div>
           </section>
+          <TimePanel ticketId={t.id} entries={(te ?? []) as TimeEntry[]} hasRetainer={Boolean(ret?.length)} />
           <section className="panel">
             <div className="panel-head">
               <h2>Client request</h2>

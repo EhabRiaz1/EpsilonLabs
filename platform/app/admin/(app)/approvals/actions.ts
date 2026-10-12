@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireStaff } from "@/lib/staff";
+import { editAndPublishUpdate, publishUpdate, skipUpdate } from "../updates/actions";
 
 /** The Deck rulebook's result (migration 011): same codes and messages as the 8787 cockpit. */
 export type DeckResult = {
@@ -55,4 +56,27 @@ export async function holdDraft(id: string): Promise<DeckResult> {
 
 export async function releaseHeldDraft(id: string): Promise<DeckResult> {
   return deck("release_held_draft", { p_id: id });
+}
+
+// ---- 012: client updates in the same queue (E2). Publishing is committed when the undo toast runs out, so Undo never
+// reaches the server; the update goes to the client's portal and their next digest.
+async function asDeck(p: Promise<{ ok?: string; error?: string } | undefined>): Promise<DeckResult> {
+  try {
+    const r = await p;
+    return r?.error ? { ok: false, error: "update", message: r.error } : { ok: true, message: r?.ok };
+  } catch {
+    return DB_DOWN;
+  }
+}
+
+export async function publishUpdateCard(id: string): Promise<DeckResult> {
+  return asDeck(publishUpdate(id));
+}
+
+export async function editPublishUpdateCard(id: string, title: string, body: string): Promise<DeckResult> {
+  return asDeck(editAndPublishUpdate(id, title, body));
+}
+
+export async function skipUpdateCard(id: string, reason: string): Promise<DeckResult> {
+  return asDeck(skipUpdate(id, reason));
 }

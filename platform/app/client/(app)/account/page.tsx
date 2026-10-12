@@ -7,6 +7,8 @@ import { dayMonth, dayMonthYear } from "@/lib/dates";
 import { PortalHeader } from "../_ui/PortalHeader";
 import { NoOrg } from "../_ui/NoOrg";
 import { InviteForm, NameForm, OrgSwitcher, TeamAction } from "../_ui/AccountForms";
+import { EmailPrefs } from "../_ui/EmailPrefs";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Account & team" };
 
@@ -20,7 +22,11 @@ export default async function AccountPage() {
   const { supabase, claims, org, all, projects, unread } = await portalContext();
   const name = displayName(claims);
   if (!org) return <NoOrg email={claims.email} />;
-  const { data, error } = await supabase.rpc("org_team", { p_org_id: org.orgId });
+  const [{ data, error }, { data: prof }] = await Promise.all([
+    supabase.rpc("org_team", { p_org_id: org.orgId }),
+    supabase.from("profiles").select("timezone, email_pref").eq("user_id", claims.sub).maybeSingle(),
+  ]);
+  const prefs = (prof ?? { timezone: "Asia/Karachi", email_pref: "daily" }) as { timezone: string; email_pref: string };
   const team = (data ?? { can_manage: false, members: [], invites: [] }) as Team;
   const pending = team.invites.filter((i) => i.state === "pending" || i.state === "expired");
   const owners = team.members.filter((m) => m.role === "owner").length;
@@ -102,6 +108,17 @@ export default async function AccountPage() {
             <p className="hint" style={{ marginTop: 14 }}>
               You sign in with a one-time link sent to {claims.email}. No password is needed.
             </p>
+          </section>
+          <section className="panel panel-pad">
+            <EmailPrefs pref={prefs.email_pref} timezone={prefs.timezone} />
+          </section>
+          <section className="panel panel-pad">
+            <h2 className="t-16 w-600" style={{ marginBottom: 6 }}>Testimonial</h2>
+            <p className="c-3 t-13" style={{ marginBottom: 10 }}>Happy with the work? A couple of sentences in your own words helps. Only what you approve is ever quoted.</p>
+            <Link className="btn btn-secondary btn-sm" href="/testimonial">
+              <Icon name="sparkle" className="i-sm" />
+              Write or approve a testimonial
+            </Link>
           </section>
           {all.length > 1 && (
             <section className="panel">

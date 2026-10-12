@@ -125,12 +125,12 @@ export function detailIssue(detail: Detail): string {
 }
 
 // ---- approval queue ----
-export type DeckKind = "outbound" | "reply" | "ack" | "quote" | "optout_confirm" | string;
+export type DeckKind = "outbound" | "reply" | "ack" | "quote" | "optout_confirm" | "referral" | string;
 
 /** Cold email = first touch, Follow-up = sequence step 2/3, then the inbox kinds */
 export function kindLabel(kind: DeckKind | null | undefined, step: number | null | undefined): string {
   if (kind === "outbound") return (step ?? 0) >= 2 ? `Follow-up ${step}` : "Cold email";
-  return { ack: "Acknowledgement", quote: "Quote", optout_confirm: "Opt-out confirmation", reply: "Reply" }[kind ?? "reply"] ?? "Reply";
+  return { ack: "Acknowledgement", quote: "Quote", optout_confirm: "Opt-out confirmation", reply: "Reply", referral: "Referral ask" }[kind ?? "reply"] ?? "Reply";
 }
 
 /** Deck order (data.pending_cards): not-later first by created_at, then 'later' items in the order they were deferred */

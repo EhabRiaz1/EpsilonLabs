@@ -18,17 +18,19 @@ export default async function AdminAppLayout({ children }: { children: ReactNode
   if (claims.aal !== "aal2") redirect("/mfa");
   const name = displayName(claims);
   // sidebar counts (RLS scopes all of them): decks waiting, new enquiries, tickets waiting on the founder
-  const [approvals, intake, tickets, worker, queued] = await Promise.all([
+  const [approvals, intake, tickets, worker, queued, updates] = await Promise.all([
     supabase.from("approval_queue").select("id", { count: "exact", head: true }).eq("status", "pending").eq("held", false),
     supabase.from("intake").select("id", { count: "exact", head: true }).eq("status", "new"),
     supabase.from("tickets").select("id", { count: "exact", head: true }).in("status", OPEN_TICKETS),
     supabase.from("agent_heartbeats").select("last_run").eq("agent", "worker").order("last_run", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("jobs").select("id", { count: "exact", head: true }).eq("status", "queued"),
+    supabase.from("updates").select("id", { count: "exact", head: true }).eq("status", "draft"),
   ]);
   const counts: Record<string, { count?: number; hot?: boolean }> = {
     "/approvals": { count: approvals.count || undefined, hot: true },
     "/intake": { count: intake.count || undefined },
     "/tickets": { count: tickets.count || undefined },
+    "/updates": { count: updates.count || undefined },
   };
   const now = new Date();
   const last = (worker.data as { last_run: string } | null)?.last_run ?? null;
