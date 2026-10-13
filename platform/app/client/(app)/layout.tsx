@@ -8,10 +8,23 @@ import { relativeDay } from "@/lib/tickets";
 import { RequestSheet } from "./_ui/RequestSheet";
 import { FilesSheet, type SheetFile, type SheetInvoice } from "./_ui/FilesSheet";
 import { BellSheet, type Bell } from "./_ui/BellSheet";
+import { DEMO_NAME } from "@/lib/demo";
+
+/** On every screen of the demo portal (E3). */
+function DemoBanner() {
+  return (
+    <div className="demo-banner" role="note">
+      <span>DEMO · sample data. Northwind Industrial is a fictional company; nothing here can be changed.</span>
+      <a href="https://epsilon-labs.co/start/">Start a real project</a>
+    </div>
+  );
+}
 
 export default async function ClientAppLayout({ children }: { children: ReactNode }) {
   const { supabase, claims, org, projects, notifications } = await portalContext();
-  const name = displayName(claims);
+  const demo = Boolean(org?.isDemo);
+  // visitors share the demo login, so its Auth metadata is never shown
+  const name = demo ? DEMO_NAME : displayName(claims);
   const now = new Date();
 
   let sheetFiles: SheetFile[] = [];
@@ -56,9 +69,11 @@ export default async function ClientAppLayout({ children }: { children: ReactNod
       ]}
       user={{
         name,
-        detail: org ? `${org.role === "owner" ? "Owner" : "Member"} · ${org.name}` : (claims.email ?? ""),
+        detail: demo ? "Read-only demo" : org ? `${org.role === "owner" ? "Owner" : "Member"} · ${org.name}` : (claims.email ?? ""),
         initials: initials(name),
       }}
+      status={demo ? <span className="pill pill-warn"><span className="dot" />DEMO</span> : undefined}
+      banner={demo ? <DemoBanner /> : undefined}
     >
       {children}
       {org && (

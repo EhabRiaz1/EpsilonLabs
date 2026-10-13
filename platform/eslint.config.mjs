@@ -13,9 +13,10 @@ export default defineConfig([
   {
     rules: {
       "no-restricted-imports": ["error", {
-        patterns: [{ group: ["**/supabase/service"], message: "Service role: only app/client/p/**, app/client/invite/**, lib/invoice-pdf.ts, lib/report-pdf.ts, lib/push-send.ts and lib/digest-send.ts (see lib/supabase/service.ts)." }],
+        patterns: [{ group: ["**/supabase/service"], message: "Service role: only app/client/p/**, app/client/invite/**, app/client/demo/actions.ts, lib/invoice-pdf.ts, lib/report-pdf.ts, lib/push-send.ts and lib/digest-send.ts (see lib/supabase/service.ts)." }],
       }],
     },
   },
-  { files: ["app/client/p/**", "app/client/invite/**", "lib/invoice-pdf.ts", "lib/report-pdf.ts", "lib/push-send.ts", "lib/digest-send.ts"], rules: { "no-restricted-imports": "off" } },
+  // app/client/demo/actions.ts: the "View demo" sign-in (demo_prepare + the Auth admin API), same pattern as invites.
+  { files: ["app/client/p/**", "app/client/invite/**", "app/client/demo/actions.ts", "lib/invoice-pdf.ts", "lib/report-pdf.ts", "lib/push-send.ts", "lib/digest-send.ts"], rules: { "no-restricted-imports": "off" } },
 ]);

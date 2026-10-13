@@ -17,6 +17,8 @@ export function Shell(props: {
   /** admin: the Mac worker chip above the theme row */
   worker?: ReactNode;
   user: { name: string; detail: string; initials: string };
+  /** shown above the page on every screen (the demo portal's "DEMO · sample data" banner) */
+  banner?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -57,6 +59,7 @@ export function Shell(props: {
         </div>
       </aside>
       <div className="main">
+        {props.banner}
         <main className="content">{props.children}</main>
       </div>
     </div>

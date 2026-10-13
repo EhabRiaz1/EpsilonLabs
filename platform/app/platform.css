@@ -280,3 +280,30 @@
   .where { grid-template-columns: 1fr; } .where > div { border-right: 0 !important; border-bottom: 1px solid var(--line); } .where > div:last-child { border-bottom: 0; }
   #action-card .actions .btn { flex: 1 1 45%; } #action-card .actions .spacer { display: none; }
 }
+/* ---- admin /analytics (migration 016) ---- */
+.kpi-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .kpi.kpi-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.an-chart { padding: 18px 22px 14px; display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.an-rows { display: flex; flex-direction: column; padding: 0 22px 16px; }
+.an-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: var(--t-13); }
+.an-row:first-child { border-top: 0; }
+.an-row .meter { grid-column: 1 / -1; height: 4px; }
+.an-row .meter span { background: var(--accent); }
+.an-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; align-items: start; }
+@media (max-width: 960px) { .an-grid { grid-template-columns: minmax(0, 1fr); } }
+.tree { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 1px solid var(--line); }
+.tree-root { padding: 0 22px 16px; }
+.tree-root > .tree { border-left: 0; padding-left: 0; }
+.tree li { margin: 0; }
+.tree .node { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 4px 8px; border-radius: 10px; font-size: var(--t-13); }
+.tree .node:hover { background: var(--surface-2); }
+.tree .node .views { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tree .node .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree .node.zero .name { color: var(--bad); }
+.tree .node.folder .name { color: var(--text-3); }
+.tree details > summary { list-style: none; cursor: pointer; }
+.tree details > summary::-webkit-details-marker { display: none; }
+
+/* ---- demo portal (E3): the banner on every portal screen ---- */
+.demo-banner { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 14px; padding: 8px 16px; background: var(--ink); color: var(--panel); font-size: var(--t-12); font-weight: 600; letter-spacing: .04em; text-align: center; }
+.demo-banner a { color: inherit; text-decoration: underline; font-weight: 500; letter-spacing: 0; }

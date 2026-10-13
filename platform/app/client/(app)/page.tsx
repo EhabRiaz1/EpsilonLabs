@@ -124,7 +124,7 @@ export default async function ClientHome() {
   return (
     <>
       <PortalHeader
-        title={`Welcome back, ${firstName(claims)}`}
+        title={org.isDemo ? "Welcome to the demo portal" : `Welcome back, ${firstName(claims)}`}
         sub={`${org.name} · ${open.length ? `${open.length} open request${open.length > 1 ? "s" : ""}` : "no open requests"}`}
         unread={unread}
         canRequest={projects.length > 0}

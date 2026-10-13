@@ -73,6 +73,12 @@ describe("isPublicPath", () => {
     }
   });
 
+  it("opens the demo entry on client.* only", () => {
+    expect(isPublicPath("/demo", "client")).toBe(true);
+    for (const p of ["/demo/", "/demo/x", "/demos"]) expect(isPublicPath(p, "client")).toBe(false);
+    expect(isPublicPath("/demo", "admin")).toBe(false);
+  });
+
   it("opens a portal invite link on client.* only, and nothing else in the portal", () => {
     expect(isPublicPath("/invite/abcDEF_123-xyz", "client")).toBe(true);
     for (const p of ["/invite/a/b", "/invite/", "/tickets/1", "/files/1", "/account"]) expect(isPublicPath(p, "client")).toBe(false);
