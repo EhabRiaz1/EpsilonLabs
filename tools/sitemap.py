@@ -32,7 +32,9 @@ PRIORITY = {
 def pages():
     out = []
     for dirpath, dirnames, filenames in os.walk(ROOT):
-        dirnames[:] = [d for d in dirnames if d not in ('.git', 'tools', 'node_modules')]
+        # only the site: not the OS, the platform app, design docs or agent worktrees
+        dirnames[:] = [d for d in dirnames if d not in ('.git', 'tools', 'node_modules', '.claude', '.vercel',
+                                                        'epsilon-os', 'platform', 'docs')]
         for f in filenames:
             if not f.endswith('.html'):
                 continue
