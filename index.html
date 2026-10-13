@@ -17,9 +17,8 @@
 <meta property="og:image" content="https://epsilon-labs.co/assets/brand/og.png">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preload" href="/assets/fonts/instrument-sans-normal-400-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
 <link rel="stylesheet" href="/assets/css/site.css">
 <script>
 /* The boot curtain. Set before the first paint so the page never flashes in
@@ -29,12 +28,13 @@
   var r = document.documentElement;
   if (r.dataset.boot !== '1') return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  /* Once per tab. An arrival you sit through on every visit home stops
-     being an arrival and becomes a toll. */
+  /* Only on arrival from outside. An arrival you sit through every time you
+     click back home stops being an arrival and becomes a toll. Read from the
+     referrer rather than remembered in storage, so the site keeps nothing on
+     the visitor's device. */
   try {
-    if (sessionStorage.getItem('eps:arrived')) return;
-    sessionStorage.setItem('eps:arrived', '1');
-  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+    if (document.referrer && new URL(document.referrer).origin === location.origin) return;
+  } catch (e) { /* unparseable referrer: play it, it is only 1.4s */ }
   r.classList.add('booting');
   var lift = function () {
     if (!r.classList.contains('booting')) return;
@@ -45,7 +45,7 @@
   setTimeout(lift, 4000);
 })();
 </script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://epsilon-labs.co/#org","name":"Epsilon Labs","url":"https://epsilon-labs.co/","logo":"https://epsilon-labs.co/assets/brand/og.png","email":"er@epsilon-labs.co","description":"A hardware and software lab. Circuit boards, firmware, and the systems that run on them — including protocols nobody has documented.","founder":{"@type":"Person","name":"Ehab Riaz"},"foundingDate":"2025-01","address":{"@type":"PostalAddress","addressLocality":"Lahore","addressCountry":"PK"},"areaServed":["PK","AE","SA","GB"],"knowsAbout":["RS485 protocol reverse engineering","Modbus","PCB design","KiCad","ESP32-S3 firmware","embedded systems","fuel forecourt automation","industrial telemetry"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://epsilon-labs.co/#org","name":"Epsilon Labs","legalName":"Epsilon Labs AI Solutions (SMC-PVT) Ltd.","url":"https://epsilon-labs.co/","logo":"https://epsilon-labs.co/assets/brand/og.png","email":"er@epsilon-labs.co","description":"A hardware and software lab. Circuit boards, firmware, and the systems that run on them — including protocols nobody has documented.","founder":{"@type":"Person","name":"Ehab Riaz"},"foundingDate":"2025-01","address":{"@type":"PostalAddress","addressLocality":"Lahore","addressCountry":"PK"},"areaServed":["US","CA","GB","AE","SA","PK"],"knowsAbout":["RS485 protocol reverse engineering","Modbus","PCB design","KiCad","ESP32-S3 firmware","embedded systems","fuel forecourt automation","industrial telemetry"]}</script>
 
 </head>
 
@@ -335,7 +335,6 @@
     </div>
     <div class="win band-win" aria-label="The Epsilon1 board at the centre, with four denser boards around it, drawn by the same point field as the hero" role="img"></div>
     <div class="band-cap" style="position:relative">
-      <p class="mono">Designed in Lahore<br>Running in the field</p>
       <div>
         <b><span style="text-transform:none">ε</span> Fuel Pro</b>
         <p>At the centre, Epsilon1: the 120 mm board that reads a fuel dispenser's undocumented protocol. Around it, the denser boards we lay out — compute, RF, power, FPGA.</p>
@@ -447,6 +446,7 @@
     <div class="foot__legal">
       <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
       <span>Hardware and software, built to tolerance.</span>
+      <span class="foot__policies"><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a></span>
     </div>
     <div class="foot__contact">
       <h4>Contact</h4>
@@ -459,5 +459,6 @@
 <script src="/assets/js/demos.js" defer></script>
 <script type="module" src="/assets/js/scene.js"></script>
 <script type="module" src="/assets/js/twin.js"></script>
+<script src="/assets/js/track.js" defer></script>
 </body>
 </html>

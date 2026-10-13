@@ -30,6 +30,7 @@ def organization(site):
         '@type': 'Organization',
         '@id': f'{site}/#org',
         'name': 'Epsilon Labs',
+        'legalName': 'Epsilon Labs AI Solutions (SMC-PVT) Ltd.',
         'url': site + '/',
         'logo': f'{site}/assets/brand/og.png',
         'email': 'er@epsilon-labs.co',
@@ -44,7 +45,7 @@ def organization(site):
             'addressLocality': 'Lahore',
             'addressCountry': 'PK',
         },
-        'areaServed': ['PK', 'AE', 'SA', 'GB'],
+        'areaServed': ['US', 'CA', 'GB', 'AE', 'SA', 'PK'],
         'knowsAbout': [
             'RS485 protocol reverse engineering', 'Modbus', 'PCB design', 'KiCad',
             'ESP32-S3 firmware', 'embedded systems', 'fuel forecourt automation',

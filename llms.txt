@@ -1,6 +1,6 @@
 # Epsilon Labs
 
-> A hardware and software lab in Lahore, Pakistan. We design circuit boards and the systems that run on them, and we decode industrial protocols that have never been documented. Founded January 2025 by Ehab Riaz; founder-led. On-site hardware work is delivered in Pakistan, the Gulf and the UK. Software, Frontier and Desk work offers are delivered remotely and sold worldwide.
+> A hardware and software lab in Lahore, Pakistan. We design circuit boards and the systems that run on them, and we decode industrial protocols that have never been documented. Founded January 2025 by Ehab Riaz; founder-led. On-site hardware work is delivered in North America, the UK, the Gulf and Pakistan. Software, Frontier and Desk work offers are delivered remotely and sold worldwide.
 
 The deepest proof is protocol work: for eFuelPro we recovered 25-byte frames at 38400 8N1 with 0x04/0x06 delimiters and BCD-encoded fields off a fuel dispenser with no specification, then built a decode engine that works out that protocol's field layout by itself at each new site.
 
@@ -12,6 +12,9 @@ Every offer below has a written scope, a typical duration, an explicit statement
 - [Protocol Decode Sprint](https://epsilon-labs.co/services/protocol-decode/index.md): Your machine is already talking. We work out what it is saying. Typically 2–4 weeks. Priced per project.
 - [Board-to-Fab](https://epsilon-labs.co/services/board-to-fab/index.md): Schematic to fabrication-ready, owned by you. Typically 6–10 weeks. Priced per project.
 - [Firmware Rescue](https://epsilon-labs.co/services/firmware-rescue/index.md): It half-works, and whoever wrote it is gone. Typically 3–6 weeks. Priced per project.
+- [Plant Visibility Pilot](https://epsilon-labs.co/services/plant-visibility-pilot/index.md): See every machine that matters, live, in six weeks, without replacing any of them. Typically 6 weeks. Priced per project.
+- [Hardware Rescue](https://epsilon-labs.co/services/hardware-rescue/index.md): Your product half-works. We get it to a board and firmware you can ship. Typically 8 weeks. Priced per project.
+- [Ops Software Build](https://epsilon-labs.co/services/ops-software-build/index.md): Replace the spreadsheets with one system your team actually uses. Typically 8 weeks. Priced per project.
 
 ## Security
 

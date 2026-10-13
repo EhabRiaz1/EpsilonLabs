@@ -17,9 +17,8 @@
 <meta property="og:image" content="https://epsilon-labs.co/assets/brand/og.png">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preload" href="/assets/fonts/instrument-sans-normal-400-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
 <link rel="stylesheet" href="/assets/css/site.css">
 <script>
 /* The boot curtain. Set before the first paint so the page never flashes in
@@ -29,12 +28,13 @@
   var r = document.documentElement;
   if (r.dataset.boot !== '1') return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  /* Once per tab. An arrival you sit through on every visit home stops
-     being an arrival and becomes a toll. */
+  /* Only on arrival from outside. An arrival you sit through every time you
+     click back home stops being an arrival and becomes a toll. Read from the
+     referrer rather than remembered in storage, so the site keeps nothing on
+     the visitor's device. */
   try {
-    if (sessionStorage.getItem('eps:arrived')) return;
-    sessionStorage.setItem('eps:arrived', '1');
-  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+    if (document.referrer && new URL(document.referrer).origin === location.origin) return;
+  } catch (e) { /* unparseable referrer: play it, it is only 1.4s */ }
   r.classList.add('booting');
   var lift = function () {
     if (!r.classList.contains('booting')) return;
@@ -45,7 +45,7 @@
   setTimeout(lift, 4000);
 })();
 </script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","@id":"https://epsilon-labs.co/catalogue/#list","name":"Epsilon Labs catalogue","numberOfItems":24,"itemListElement":[{"@type":"ListItem","position":1,"url":"https://epsilon-labs.co/services/design-review/","name":"Pre-Fab Design Review"},{"@type":"ListItem","position":2,"url":"https://epsilon-labs.co/services/protocol-decode/","name":"Protocol Decode Sprint"},{"@type":"ListItem","position":3,"url":"https://epsilon-labs.co/services/board-to-fab/","name":"Board-to-Fab"},{"@type":"ListItem","position":4,"url":"https://epsilon-labs.co/services/firmware-rescue/","name":"Firmware Rescue"},{"@type":"ListItem","position":5,"url":"https://epsilon-labs.co/products/efuelpro/","name":"eFuelPro"},{"@type":"ListItem","position":6,"url":"https://epsilon-labs.co/products/epsilon1/","name":"Epsilon1"},{"@type":"ListItem","position":7,"url":"https://epsilon-labs.co/services/device-pentest/","name":"Device Penetration Test"},{"@type":"ListItem","position":8,"url":"https://epsilon-labs.co/services/authz-review/","name":"Authorisation Model Review"},{"@type":"ListItem","position":9,"url":"https://epsilon-labs.co/services/software-pentest/","name":"Software Penetration Test"},{"@type":"ListItem","position":10,"url":"https://epsilon-labs.co/services/remote-decode/","name":"Remote Protocol Decode"},{"@type":"ListItem","position":11,"url":"https://epsilon-labs.co/services/bom-audit/","name":"BOM Risk Audit"},{"@type":"ListItem","position":12,"url":"https://epsilon-labs.co/services/footprint/","name":"Datasheet to Footprint"},{"@type":"ListItem","position":13,"url":"https://epsilon-labs.co/products/epsilon1-kit/","name":"Epsilon1 Design Package"},{"@type":"ListItem","position":14,"url":"https://epsilon-labs.co/products/bookings/","name":"Booking & Scheduling"},{"@type":"ListItem","position":15,"url":"https://epsilon-labs.co/products/quote-engine/","name":"Quote Engine"},{"@type":"ListItem","position":16,"url":"https://epsilon-labs.co/products/ops-analyst/","name":"Ops Analyst"},{"@type":"ListItem","position":17,"url":"https://epsilon-labs.co/products/dashboards/","name":"Sales & Admin Dashboards"},{"@type":"ListItem","position":18,"url":"https://epsilon-labs.co/products/inventory/","name":"Inventory & Stock"},{"@type":"ListItem","position":19,"url":"https://epsilon-labs.co/products/crm/","name":"CRM & Case Management"},{"@type":"ListItem","position":20,"url":"https://epsilon-labs.co/products/marketplace/","name":"Marketplaces"},{"@type":"ListItem","position":21,"url":"https://epsilon-labs.co/products/mobile-apps/","name":"Mobile Apps"},{"@type":"ListItem","position":22,"url":"https://epsilon-labs.co/products/digital-twin/","name":"Digital Twins"},{"@type":"ListItem","position":23,"url":"https://epsilon-labs.co/products/robotics-infra/","name":"Robot-Learning Infrastructure"},{"@type":"ListItem","position":24,"url":"https://epsilon-labs.co/products/sensing/","name":"Sensing & Calibration"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","@id":"https://epsilon-labs.co/catalogue/#list","name":"Epsilon Labs catalogue","numberOfItems":27,"itemListElement":[{"@type":"ListItem","position":1,"url":"https://epsilon-labs.co/services/design-review/","name":"Pre-Fab Design Review"},{"@type":"ListItem","position":2,"url":"https://epsilon-labs.co/services/protocol-decode/","name":"Protocol Decode Sprint"},{"@type":"ListItem","position":3,"url":"https://epsilon-labs.co/services/board-to-fab/","name":"Board-to-Fab"},{"@type":"ListItem","position":4,"url":"https://epsilon-labs.co/services/firmware-rescue/","name":"Firmware Rescue"},{"@type":"ListItem","position":5,"url":"https://epsilon-labs.co/products/efuelpro/","name":"eFuelPro"},{"@type":"ListItem","position":6,"url":"https://epsilon-labs.co/products/epsilon1/","name":"Epsilon1"},{"@type":"ListItem","position":7,"url":"https://epsilon-labs.co/services/device-pentest/","name":"Device Penetration Test"},{"@type":"ListItem","position":8,"url":"https://epsilon-labs.co/services/authz-review/","name":"Authorisation Model Review"},{"@type":"ListItem","position":9,"url":"https://epsilon-labs.co/services/software-pentest/","name":"Software Penetration Test"},{"@type":"ListItem","position":10,"url":"https://epsilon-labs.co/services/remote-decode/","name":"Remote Protocol Decode"},{"@type":"ListItem","position":11,"url":"https://epsilon-labs.co/services/bom-audit/","name":"BOM Risk Audit"},{"@type":"ListItem","position":12,"url":"https://epsilon-labs.co/services/footprint/","name":"Datasheet to Footprint"},{"@type":"ListItem","position":13,"url":"https://epsilon-labs.co/products/epsilon1-kit/","name":"Epsilon1 Design Package"},{"@type":"ListItem","position":14,"url":"https://epsilon-labs.co/products/bookings/","name":"Booking & Scheduling"},{"@type":"ListItem","position":15,"url":"https://epsilon-labs.co/products/quote-engine/","name":"Quote Engine"},{"@type":"ListItem","position":16,"url":"https://epsilon-labs.co/products/ops-analyst/","name":"Ops Analyst"},{"@type":"ListItem","position":17,"url":"https://epsilon-labs.co/products/dashboards/","name":"Sales & Admin Dashboards"},{"@type":"ListItem","position":18,"url":"https://epsilon-labs.co/products/inventory/","name":"Inventory & Stock"},{"@type":"ListItem","position":19,"url":"https://epsilon-labs.co/products/crm/","name":"CRM & Case Management"},{"@type":"ListItem","position":20,"url":"https://epsilon-labs.co/products/marketplace/","name":"Marketplaces"},{"@type":"ListItem","position":21,"url":"https://epsilon-labs.co/products/mobile-apps/","name":"Mobile Apps"},{"@type":"ListItem","position":22,"url":"https://epsilon-labs.co/products/digital-twin/","name":"Digital Twins"},{"@type":"ListItem","position":23,"url":"https://epsilon-labs.co/products/robotics-infra/","name":"Robot-Learning Infrastructure"},{"@type":"ListItem","position":24,"url":"https://epsilon-labs.co/products/sensing/","name":"Sensing & Calibration"},{"@type":"ListItem","position":25,"url":"https://epsilon-labs.co/services/plant-visibility-pilot/","name":"Plant Visibility Pilot"},{"@type":"ListItem","position":26,"url":"https://epsilon-labs.co/services/hardware-rescue/","name":"Hardware Rescue"},{"@type":"ListItem","position":27,"url":"https://epsilon-labs.co/services/ops-software-build/","name":"Ops Software Build"}]}</script>
 
 </head>
 
@@ -159,6 +159,27 @@
               <span class="cat__name">Firmware Rescue</span>
               <span class="cat__what">It half-works, and whoever wrote it is gone.</span>
               <span class="cat__price"><b>3–6 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/plant-visibility-pilot/">
+              <span class="cat__name">Plant Visibility Pilot</span>
+              <span class="cat__what">See every machine that matters, live, in six weeks, without replacing any of them.</span>
+              <span class="cat__price"><b>6 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/hardware-rescue/">
+              <span class="cat__name">Hardware Rescue</span>
+              <span class="cat__what">Your product half-works. We get it to a board and firmware you can ship.</span>
+              <span class="cat__price"><b>8 weeks</b><small>Contact sales</small></span>
+            </a>
+          </li>
+          <li>
+            <a class="cat__row reveal" href="/services/ops-software-build/">
+              <span class="cat__name">Ops Software Build</span>
+              <span class="cat__what">Replace the spreadsheets with one system your team actually uses.</span>
+              <span class="cat__price"><b>8 weeks</b><small>Contact sales</small></span>
             </a>
           </li>
         </ol>
@@ -420,6 +441,7 @@
     <div class="foot__legal">
       <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
       <span>Hardware and software, built to tolerance.</span>
+      <span class="foot__policies"><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a></span>
     </div>
     <div class="foot__contact">
       <h4>Contact</h4>
@@ -432,5 +454,6 @@
 <script src="/assets/js/demos.js" defer></script>
 <script type="module" src="/assets/js/scene.js"></script>
 <script type="module" src="/assets/js/twin.js"></script>
+<script src="/assets/js/track.js" defer></script>
 </body>
 </html>

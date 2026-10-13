@@ -2,6 +2,8 @@
 // The leading underscore keeps Vercel from deploying this file as its own function.
 'use strict';
 
+const crypto = require('crypto');
+
 const MAX_BYTES = 16 * 1024;
 const MAX_EVENTS = 20;
 const KINDS = new Set(['view', 'click', 'start_step', 'start_submit']);
@@ -60,9 +62,20 @@ function country(headers) {
 }
 
 /**
+ * The anonymous visit id: sha256 of the IP, the user agent and a salt that changes every UTC day, cut to 32 hex
+ * characters. Same browser + network on the same day = one visit; nothing is stored on the device, the inputs are
+ * never stored, and tomorrow's id cannot be linked to today's.
+ */
+function visitorId(ip, ua, secret, now) {
+  if (!secret || secret.length < 16) throw new Error('INTAKE_IP_SALT must be at least 16 characters');
+  const salt = crypto.createHmac('sha256', secret).update(`visit-day:${now.toISOString().slice(0, 10)}`).digest('hex');
+  return crypto.createHash('sha256').update(`${ip || 'unknown'}|${ua || ''}|${salt}`).digest('hex').slice(0, 32);
+}
+
+/**
  * The tracker's body {e: [...]} to the events record_events() takes. Invalid events are dropped one by one (the
  * database refuses a whole batch with any bad event), at most 20 are kept, and the country and device class come
- * from the request, never from the body.
+ * from the request, never from the body. The visit id is ctx.sid (visitorId) when given.
  */
 function normalise(body, ctx) {
   const list = body && typeof body === 'object' && Array.isArray(body.e) ? body.e : [];
@@ -70,7 +83,7 @@ function normalise(body, ctx) {
   for (const raw of list) {
     if (out.length >= MAX_EVENTS) break;
     if (!raw || typeof raw !== 'object') continue;
-    const s = typeof raw.s === 'string' && SESSION.test(raw.s) ? raw.s : null;
+    const s = ctx && ctx.sid ? ctx.sid : (typeof raw.s === 'string' && SESSION.test(raw.s) ? raw.s : null);
     const p = cleanPath(raw.p);
     const k = typeof raw.k === 'string' && KINDS.has(raw.k) ? raw.k : null;
     if (!s || !p || !k) continue;
@@ -88,4 +101,4 @@ function normalise(body, ctx) {
   return out;
 }
 
-module.exports = { MAX_BYTES, MAX_EVENTS, cleanPath, cleanUtm, deviceClass, isBot, optedOut, country, normalise };
+module.exports = { MAX_BYTES, MAX_EVENTS, cleanPath, cleanUtm, deviceClass, isBot, optedOut, country, normalise, visitorId };

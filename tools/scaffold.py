@@ -109,6 +109,21 @@ PAGES = {
         'Everything Epsilon Labs sells, priced. Pre-fab design review, protocol '
         'decode, board-to-fab, firmware rescue, eFuelPro and the Epsilon1 terminal.'),
 
+    'terms/index.html': (None, 'mark',
+        'Terms of use — Epsilon Labs',
+        'The rules for using the Epsilon Labs website. Engagements are governed by '
+        'their own written agreement.'),
+
+    'privacy/index.html': (None, 'mark',
+        'Privacy — Epsilon Labs',
+        'What Epsilon Labs collects and what it does not: no cookies, no advertising, '
+        'a cookie-free visit counter, the enquiry form and emails. Your rights.'),
+
+    'cookies/index.html': (None, 'mark',
+        'Cookies — Epsilon Labs',
+        'Epsilon Labs sets no cookies and stores nothing on your device, so there is '
+        'no consent banner.'),
+
     '404.html': (None, 'epsilon',
         'Not found — Epsilon Labs',
         'That page does not exist. Epsilon Labs builds hardware and software '

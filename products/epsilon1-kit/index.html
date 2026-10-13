@@ -18,9 +18,8 @@
 <meta property="og:image" content="https://epsilon-labs.co/assets/brand/og.png">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preload" href="/assets/fonts/instrument-sans-normal-400-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
 <link rel="stylesheet" href="/assets/css/site.css">
 <script>
 /* The boot curtain. Set before the first paint so the page never flashes in
@@ -30,12 +29,13 @@
   var r = document.documentElement;
   if (r.dataset.boot !== '1') return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  /* Once per tab. An arrival you sit through on every visit home stops
-     being an arrival and becomes a toll. */
+  /* Only on arrival from outside. An arrival you sit through every time you
+     click back home stops being an arrival and becomes a toll. Read from the
+     referrer rather than remembered in storage, so the site keeps nothing on
+     the visitor's device. */
   try {
-    if (sessionStorage.getItem('eps:arrived')) return;
-    sessionStorage.setItem('eps:arrived', '1');
-  } catch (e) { /* private mode: play it, it is only 1.4s */ }
+    if (document.referrer && new URL(document.referrer).origin === location.origin) return;
+  } catch (e) { /* unparseable referrer: play it, it is only 1.4s */ }
   r.classList.add('booting');
   var lift = function () {
     if (!r.classList.contains('booting')) return;
@@ -281,6 +281,7 @@
     <div class="foot__legal">
       <b>Copyright © <span data-year>2026</span> Epsilon Labs</b>
       <span>Hardware and software, built to tolerance.</span>
+      <span class="foot__policies"><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a></span>
     </div>
     <div class="foot__contact">
       <h4>Contact</h4>
@@ -293,5 +294,6 @@
 <script src="/assets/js/demos.js" defer></script>
 <script type="module" src="/assets/js/scene.js"></script>
 <script type="module" src="/assets/js/twin.js"></script>
+<script src="/assets/js/track.js" defer></script>
 </body>
 </html>

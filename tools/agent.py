@@ -113,8 +113,8 @@ def llms_txt():
     L.append('> A hardware and software lab in Lahore, Pakistan. We design circuit '
              'boards and the systems that run on them, and we decode industrial '
              'protocols that have never been documented. Founded January 2025 by '
-             'Ehab Riaz; founder-led. On-site hardware work is delivered in Pakistan, '
-             'the Gulf and the UK. Software, Frontier and Desk work offers are '
+             'Ehab Riaz; founder-led. On-site hardware work is delivered in North America, '
+             'the UK, the Gulf and Pakistan. Software, Frontier and Desk work offers are '
              'delivered remotely and sold worldwide.')
     L.append('')
     L.append('The deepest proof is protocol work: for eFuelPro we recovered 25-byte '

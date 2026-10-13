@@ -75,9 +75,9 @@ describe("track.js", () => {
     expect(t.sent).toHaveLength(1);
     expect(t.sent[0].via).toBe("beacon");
     const [view] = t.sent[0].body.e;
-    expect(view).toEqual({ s: "ab".repeat(12), p: "/work/", k: "view", r: "www.google.com", u: { source: "linkedin", campaign: "oct" } });
-    expect(t.store.get("eps-sid")).toBe("ab".repeat(12));
-    expect(load({ stored: "existing-session-1" }).store.get("eps-sid")).toBe("existing-session-1");
+    expect(view).toEqual({ p: "/work/", k: "view", r: "www.google.com", u: { source: "linkedin", campaign: "oct" } });
+    expect(t.store.size).toBe(0);                                      // nothing is kept on the device
+    expect(load({ stored: "existing-session-1" }).store.get("eps-sid")).toBe("existing-session-1");   // and nothing read or changed
   });
 
   it("names clicked links by path, outbound host or scheme, and batches every 10 s", () => {

@@ -50,7 +50,9 @@ HEX = re.compile(r'#[0-9a-fA-F]{3,8}\b')
 def pages():
     found = []
     for dirpath, dirnames, filenames in os.walk(ROOT):
-        dirnames[:] = [d for d in dirnames if d not in ('.git', 'tools', 'node_modules')]
+        # only the site: not the OS, the platform app, design docs or agent worktrees
+        dirnames[:] = [d for d in dirnames if d not in ('.git', 'tools', 'node_modules', '.claude', '.vercel',
+                                                        'epsilon-os', 'platform', 'docs')]
         for f in filenames:
             if f.endswith('.html'):
                 found.append(os.path.relpath(os.path.join(dirpath, f), ROOT))

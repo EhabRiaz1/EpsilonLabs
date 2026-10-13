@@ -1,7 +1,7 @@
 // POST /api/events: the site's analytics beacon (assets/js/track.js), same origin. Vercel Node function, no framework.
 //
 // Drops bots and Do-Not-Track / GPC requests, validates the batch (16 KB, at most 20 events), adds the country from
-// Vercel's x-vercel-ip-country header and a coarse device class from the user agent (the agent itself is dropped),
+// Vercel's x-vercel-ip-country header, the daily anonymous visit id (core.visitorId) and a coarse device class from the user agent (the agent itself is dropped),
 // and calls record_events() with the PUBLIC (anon) key: it is the only 016 function anon may execute, and it applies
 // the per-client limit (keyed by sha256(ip + daily salt), as /api/intake does; the raw IP never leaves this
 // function) and the global daily cap. Answers 204 whatever the database decided, so a visitor learns nothing.
@@ -53,14 +53,15 @@ module.exports = async function handler(req, res) {
   if (Buffer.byteLength(raw, 'utf8') > core.MAX_BYTES) return done(res, 413);
   let body;
   try { body = JSON.parse(raw); } catch (e) { return done(res, 400); }
-  const events = core.normalise(body, { country: core.country(h), device: core.deviceClass(h['user-agent']) });
-  if (!events.length) return done(res, 204);
-
   const { SUPABASE_URL: url, SUPABASE_ANON_KEY: key, INTAKE_IP_SALT: salt } = process.env;
   if (!url || !key || !salt) {
     console.error('events: SUPABASE_URL, SUPABASE_ANON_KEY and INTAKE_IP_SALT must be set');
     return done(res, 503);
   }
+  const sid = core.visitorId(intake.clientIp(h), String(h['user-agent'] || ''), salt, new Date());
+  const events = core.normalise(body, { sid, country: core.country(h), device: core.deviceClass(h['user-agent']) });
+  if (!events.length) return done(res, 204);
+
   try {
     const r = await fetch(`${url.replace(/\/$/, '')}/rest/v1/rpc/record_events`, {
       method: 'POST',

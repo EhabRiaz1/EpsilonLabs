@@ -42,7 +42,7 @@ TERMS = {
                  'Your own cloud account, or ours if you would rather not run it.'),
     'hardware': ('Schematics, board files, firmware source and the bill of '
                  'materials. Yours to have built by anyone.',
-                 'Installed on site. Pakistan, the Gulf and the UK.'),
+                 'Installed on site in North America, the UK, the Gulf and Pakistan.'),
 }
 
 

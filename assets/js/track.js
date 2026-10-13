@@ -1,18 +1,13 @@
-/* Analytics without cookies or IPs: a random id per tab, page, clicked links, referring site, utm_* tags.
-   Nothing is sent with Do-Not-Track or GPC on. Batches to /api/events every 10 s and on page hide. */
+/* Analytics without cookies, storage or IPs: page, clicked links, referring site, utm_* tags. Nothing is kept on the
+   device; the server derives a daily anonymous visit id (salted hash, never stored raw), so visits cannot be followed
+   from one day to the next. Nothing is sent with Do-Not-Track or GPC on. Batches to /api/events every 10 s and on
+   page hide. */
 (function (w, d) {
   var n = w.navigator || {};
   if (n.doNotTrack == '1' || w.doNotTrack == '1' || n.globalPrivacyControl) return;
-  var sid, K = 'eps-sid', U = '/api/events', q = [], path = w.location.pathname || '/', seen = {};
-  try { sid = w.sessionStorage.getItem(K); } catch (e) {}
-  if (!/^[A-Za-z0-9_-]{8,64}$/.test(sid || '')) {
-    var a = new Uint8Array(12);
-    w.crypto.getRandomValues(a);
-    sid = Array.prototype.map.call(a, function (b) { return (b + 256).toString(16).slice(1); }).join('');
-    try { w.sessionStorage.setItem(K, sid); } catch (e) {}
-  }
+  var U = '/api/events', q = [], path = w.location.pathname || '/', seen = {};
   var push = function (k, x) {
-    var e = { s: sid, p: path, k: k };
+    var e = { p: path, k: k };
     for (var i in x) if (x[i]) e[i] = x[i];
     q.push(e);
     if (q.length >= 20) send();

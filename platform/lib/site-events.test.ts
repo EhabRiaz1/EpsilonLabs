@@ -109,9 +109,16 @@ describe("POST /api/events", () => {
     expect(url).toBe("https://db.example.supabase.co/rest/v1/rpc/record_events");
     const sent = JSON.parse(init.body);
     expect(sent.p_batch.client).toMatch(/^[0-9a-f]{64}$/);
-    expect(sent.p_batch.events).toEqual([{ s: SID, p: "/work/", k: "view", c: "GB", d: "desktop" }]);
+    // the visit id comes from the server (daily salted hash of IP + agent), never from the browser
+    const [ev] = sent.p_batch.events;
+    expect(ev).toEqual({ s: expect.stringMatching(/^[0-9a-f]{32}$/), p: "/work/", k: "view", c: "GB", d: "desktop" });
+    expect(ev.s).not.toBe(SID);
     expect(init.body).not.toContain("203.0.113.7");
     expect(init.body).not.toContain("Mozilla");
+    await post({ e: [{ p: "/", k: "view" }] });                       // the tracker no longer sends an id at all
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).p_batch.events[0].s).toBe(ev.s);   // same visitor, same day
+    await post({ e: [{ p: "/", k: "view" }] }, { "x-forwarded-for": "198.51.100.9" });
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body).p_batch.events[0].s).not.toBe(ev.s);
   });
 
   it("stores nothing for DNT, GPC, bots or an empty batch", async () => {
