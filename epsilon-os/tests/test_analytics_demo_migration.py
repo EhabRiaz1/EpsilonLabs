@@ -206,7 +206,7 @@ def test_per_client_hourly_limit(clean):
 
 
 def test_global_daily_cap(clean):
-    q("insert into site_events_daily (day, stored) values ((now() at time zone 'UTC')::date, 19990)")
+    q("insert into site_events_daily (day, stored) values ((now() at time zone 'UTC')::date, 4990)")
     assert record([ev() for _ in range(20)]) == {"state": "capped", "stored": 10}
     assert record([ev()]) == {"state": "capped", "stored": 0}
     assert count_events() == 10

@@ -10,7 +10,7 @@
 -- Anon RPC    record_events(p_batch)   THE ONLY function anon may execute here. p_batch = {client, events[1..20]}:
 --             client is sha256(ip + daily salt) computed by /api/events (the raw IP never reaches the database) and is
 --             used only for a per-client limit (300 events per hour, counter rows deleted after a day). A global cap
---             stores at most 20,000 events per UTC day. Kill switch: settings analytics.enabled = false.
+--             stores at most 5,000 events per UTC day (bounds a 180-day worst case to ~150 MB on the free plan). Kill switch: settings analytics.enabled = false.
 -- Staff RPCs  analytics_top_pages, analytics_sources, analytics_funnel, analytics_daily, analytics_live,
 --             analytics_breakdown   (is_staff(): full scope + aal2). Days are Asia/Karachi days.
 -- Retention   prune_site_events() deletes events older than 180 days (F16) and stale counters. pg_cron is available on
@@ -141,13 +141,13 @@ begin
     return jsonb_build_object('state', 'rate_limited', 'stored', 0);
   end if;
 
-  -- everyone: 20,000 stored events per UTC day (the public key is public; this bounds what a direct caller can add)
+  -- everyone: 5,000 stored events per UTC day (the public key is public; this bounds what a direct caller can add)
   insert into site_events_daily (day, stored) values (v_day, 0) on conflict (day) do nothing returning day into v_new_day;
   if v_new_day is not null then
     delete from site_events_rate where window_start < now() - interval '1 day';
   end if;
   select stored into v_done from site_events_daily where day = v_day for update;
-  v_take := least(v_n, 20000 - v_done);
+  v_take := least(v_n, 5000 - v_done);
   if v_take <= 0 then
     return jsonb_build_object('state', 'capped', 'stored', 0);
   end if;
@@ -437,7 +437,7 @@ begin
   end if;
 end $$;
 
--- 012's guards, unchanged except the first statement: reset_demo() may refresh the demo org's published rows (their
+-- 012's guards (with 012b's guard_allows_cleanup exit), unchanged except the first statement: reset_demo() may refresh the demo org's published rows (their
 -- dates move with the reset so the demo never looks abandoned). Nothing else can set the flag.
 create or replace function updates_guard() returns trigger
 language plpgsql set search_path = public, pg_temp as $$
@@ -452,6 +452,9 @@ begin
     end if;
   end if;
   if tg_op = 'DELETE' then
+    if guard_allows_cleanup(old.org_id) then
+      return old;
+    end if;
     if old.status = 'published' then
       raise exception 'a published update cannot be deleted' using errcode = '55000';
     end if;
@@ -480,6 +483,9 @@ begin
     end if;
   end if;
   if tg_op = 'DELETE' then
+    if guard_allows_cleanup(old.org_id) then
+      return old;
+    end if;
     if old.status in ('published','void') and old.pdf_path is not null then
       raise exception 'a published report cannot be deleted' using errcode = '55000';
     end if;
