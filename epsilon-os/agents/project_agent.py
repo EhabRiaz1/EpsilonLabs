@@ -208,8 +208,24 @@ def plan_settings(repo: Path, epsilon: Path = EPSILON_REPO) -> dict:
 
 
 def bash_gate_command(test_command: str, python: str | None = None, gate: Path | None = None) -> str:
-    """The PreToolUse hook command that pins Bash to exactly the test command (agents/bash_gate.py)."""
-    return " ".join(shlex.quote(x) for x in (python or sys.executable, "-I", str(gate or BASH_GATE), test_command))
+    """The PreToolUse hook command that pins Bash to exactly the test command (agents/bash_gate.py). Fails closed: Claude Code
+    treats any hook exit other than 2 as non-blocking, so a gate that cannot start (missing python, crash) becomes exit 2."""
+    return " ".join(shlex.quote(x) for x in (python or sys.executable, "-I", str(gate or BASH_GATE), test_command)) + " || exit 2"
+
+
+def gate_self_test(test_command: str, python: str | None = None, gate: Path | None = None) -> None:
+    """Before every execute run: the gate must allow the test command and block anything else, or the run is refused."""
+    import json as _json
+    import subprocess as _sp
+    argv = [python or sys.executable, "-I", str(gate or BASH_GATE), test_command]
+    def rc(cmd: str) -> int:
+        payload = _json.dumps({"tool_name": "Bash", "tool_input": {"command": cmd}})
+        try:
+            return _sp.run(argv, input=payload, capture_output=True, text=True, timeout=10).returncode
+        except (OSError, _sp.SubprocessError):
+            return -1
+    if rc(test_command) != 0 or rc("ls -la") != 2:
+        raise SafetyError("the Bash gate failed its self-test: the execute run is refused")
 
 
 def execute_settings(worktree: Path, repo: Path, test_command: str | None, epsilon: Path = EPSILON_REPO,
@@ -686,6 +702,8 @@ def handle_execute(db, job: dict, claude=run_claude, tester=run_tests, run_id: s
     try:
         linked = link_node_modules(repo, wt)
         copied = copy_test_env(repo, wt, env_rel)
+        if cmd:
+            gate_self_test(cmd)
         args = claude_args("execute", execute_settings(wt, repo, cmd), EXEC_SCHEMA, EXECUTOR_SKILL, test_command=cmd)
         try:
             out = claude(args, wt, execute_task(t, project, brief, plan, run.get("notes"), cmd), EXECUTE_TIMEOUT)

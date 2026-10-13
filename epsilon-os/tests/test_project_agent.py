@@ -158,9 +158,9 @@ def test_execute_settings_and_flags_exactly():
         "hooks": {"PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "GATE", "timeout": 10}]}]},
     }
     gate = pa.bash_gate_command("npm run test -- --run", python="/venv/bin/python", gate=Path("/eos/agents/bash_gate.py"))
-    assert gate == "/venv/bin/python -I /eos/agents/bash_gate.py 'npm run test -- --run'"
+    assert gate == "/venv/bin/python -I /eos/agents/bash_gate.py 'npm run test -- --run' || exit 2"
     assert pa.execute_settings(wt, repo, "npm test", eps)["hooks"]["PreToolUse"][0]["hooks"][0]["command"].endswith(
-        "-I " + str(pa.BASH_GATE) + " 'npm test'")
+        "-I " + str(pa.BASH_GATE) + " 'npm test' || exit 2")
     args = pa.claude_args("execute", s, {}, "SKILL", test_command="npm test", binary="claude")
     assert args[args.index("--tools") + 1] == "Read,Grep,Glob,Edit,Write,Bash"
     assert args[args.index("--allowedTools") + 1] == "Read,Grep,Glob,Edit,Write,Bash(npm test)"
@@ -528,3 +528,13 @@ def test_cap_diff_and_numstat():
     assert s == {"files": [{"path": "src/a.ts", "added": 3, "removed": 1, "binary": False},
                            {"path": "logo.png", "added": 0, "removed": 0, "binary": True}],
                  "files_changed": 2, "added": 3, "removed": 1}
+
+
+def test_gate_self_test_fails_closed(tmp_path):
+    pa.gate_self_test("npm test")                                   # the real gate passes
+    with pytest.raises(pa.SafetyError):
+        pa.gate_self_test("npm test", gate=tmp_path / "missing.py")  # a gate that cannot start refuses the run
+    bad = tmp_path / "allow_all.py"
+    bad.write_text("import sys; sys.exit(0)\n")
+    with pytest.raises(pa.SafetyError):
+        pa.gate_self_test("npm test", gate=bad)                     # a gate that lets everything through refuses the run
