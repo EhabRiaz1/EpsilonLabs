@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
 import { stamp } from "@/lib/dates";
 import { checkReport, normalise } from "@/lib/report-content";
@@ -41,34 +41,28 @@ export default async function AdminReport({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      <div className="row" style={{ gap: 12, marginBottom: 6 }}>
-        <MenuButton />
-        <Link className="btn btn-ghost btn-sm" href="/reports"><Icon name="arrowL" className="i-sm" />Reports</Link>
-      </div>
-      <header className="page-head">
-        <div>
-          <div className="row" style={{ gap: 10 }}>
-            <h1 className="display">{r.title}</h1>
-            <span className={`pill ${r.status === "published" ? "pill-good" : r.status === "approved" ? "pill-warn" : ""}`}><span className="dot" />{r.status}</span>
-          </div>
-          <div className="sub">
+      <PageHeader
+        crumbs={[{ label: "Reports", href: "/reports" }, { label: r.title }]}
+        title={r.title}
+        pills={
+          <span className={`pill ${r.status === "published" ? "pill-good" : r.status === "approved" ? "pill-warn" : ""}`}>
+            <span className="dot" />
+            {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+          </span>
+        }
+        sub={
+          <span>
             {[org?.name, one(r.projects)?.name, r.period_label].filter(Boolean).join(" · ")} · drafted {stamp(r.created_at)}
             {r.edited_at ? ` · edited ${stamp(r.edited_at)}` : ""}
             {r.published_at ? ` · published ${stamp(r.published_at)}` : ""}
-          </div>
-        </div>
-      </header>
+          </span>
+        }
+      />
       {r.status === "approved" && r.pdf_error && (
-        <p className="auth-error" role="status" style={{ marginBottom: 14 }}>
-          <Icon name="alert" className="i-sm" />
-          Approved but not published: {r.pdf_error}. Nothing reached the client. Press &quot;Retry publish&quot;.
-        </p>
+        <Note tone="error">Approved but not published: {r.pdf_error}. Nothing reached the client. Press &quot;Retry publish&quot;.</Note>
       )}
       {!valid.ok && r.status !== "void" && (
-        <p className="auth-error" role="status" style={{ marginBottom: 14 }}>
-          <Icon name="alert" className="i-sm" />
-          Not publishable yet: {valid.error}
-        </p>
+        <Note tone="warn">Not publishable yet: {valid.error}</Note>
       )}
       {notes && (
         <p className="ok-note" role="note" style={{ marginBottom: 14 }}>

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Icon } from "@/app/components/Icon";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
 import { ActionForm } from "@/app/components/Forms";
 import { getSession } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
@@ -30,18 +28,11 @@ export default async function NewInvoice() {
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">New invoice</h1>
-            <div className="sub">Drafts never use a number. Approve, then issue: the number is assigned and the client is notified.</div>
-          </div>
-        </div>
-        <div className="actions-bar">
-          <Link className="btn btn-ghost" href="/invoices"><Icon name="arrowL" className="i-sm" />Invoices</Link>
-        </div>
-      </header>
+      <PageHeader
+        crumbs={[{ label: "Invoices", href: "/invoices" }, { label: "New invoice" }]}
+        title="New invoice"
+        sub={<span>drafts never use a number; approve, then issue: the number is assigned and the client is notified</span>}
+      />
       <div className="grid-main" style={{ marginTop: 0 }}>
         <div className="col">
           <section className="panel panel-pad">

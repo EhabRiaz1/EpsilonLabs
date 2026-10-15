@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, type ReactNode } from "react";
 import { Icon } from "./Icon";
 import { eps } from "./eps";
 import { trapTab } from "./focus";
@@ -36,9 +36,11 @@ export function Sheet({
   useEffect(() => {
     closeRef.current = onClose;
   });
+  const unmounting = useRef(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    unmounting.current = false;
     let back: HTMLElement | null = null;
     const mo = new MutationObserver(() => {
       if (el.hasAttribute("data-open")) {
@@ -46,6 +48,7 @@ export function Sheet({
       } else if (back !== null) {
         const b = back;
         back = null;
+        if (unmounting.current) return;
         b.focus?.();
         closeRef.current?.();
       }
@@ -53,6 +56,17 @@ export function Sheet({
     mo.observe(el, { attributes: true, attributeFilter: ["data-open"] });
     return () => mo.disconnect();
   }, []);
+  // A form inside that redirects (create → its new page) unmounts the sheet while it is open: release the scrim and
+  // the body scroll lock while the element is still in the document (layout cleanup runs before removal).
+  useLayoutEffect(() => {
+    const el = ref.current;
+    return () => {
+      if (!el?.hasAttribute("data-open")) return;
+      // not a user close: onClose must not run (it could navigate back to this page)
+      unmounting.current = true;
+      eps()?.close(id);
+    };
+  }, [id]);
   return (
     <div className={`sheet${wide ? " sheet-wide" : ""}`} id={id} ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={(e) => trapTab(e, ref.current)}>
       <div className="sheet-head">

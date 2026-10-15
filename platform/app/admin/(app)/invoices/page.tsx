@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Icon } from "@/app/components/Icon";
 import { Money } from "@/app/components/Money";
 import { StatusPill } from "@/app/components/StatusPill";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
 import { dayMonth } from "@/lib/dates";
 
@@ -31,42 +33,49 @@ export default async function InvoicesPage() {
     .order("created_at", { ascending: false })
     .limit(300);
   const rows = (data ?? []) as Row[];
+  const due = rows.filter((r) => r.kind === "invoice" && (r.status === "sent" || r.status === "overdue"));
+  const dueCur = due[0]?.currency ?? "USD";
+  const dueSum = due.filter((r) => r.currency === dueCur).reduce((t, r) => t + Number(r.total), 0);
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Invoices</h1>
-            <div className="sub">Numbered EL-YYYY-NNN when issued. Issued invoices never change; corrections are credit notes.</div>
-          </div>
-        </div>
-        <div className="actions-bar">
+      <PageHeader
+        title="Invoices"
+        sub={
+          <>
+            <span>{due.length} outstanding</span>
+            {due.length > 0 && (
+              <>
+                <span aria-hidden="true">·</span>
+                <Money value={dueSum} currency={dueCur} />
+              </>
+            )}
+            <span aria-hidden="true">·</span>
+            <span>numbered EL-YYYY-NNN when issued; corrections are credit notes</span>
+          </>
+        }
+        actions={
           <Link className="btn btn-primary" href="/invoices/new">
             <Icon name="plus" className="i-sm" />
             New invoice
           </Link>
-        </div>
-      </header>
+        }
+      />
       {error ? (
-        <section className="panel panel-pad">
-          <p className="c-bad t-13">Couldn&apos;t load invoices. Reload to retry.</p>
-        </section>
+        <Note retry>Couldn&apos;t load invoices.</Note>
       ) : rows.length === 0 ? (
         <section className="panel">
-          <div className="empty">
-            <div className="orb">
-              <span className="wave" />
-              <span className="wave" />
-              <span className="core">
-                <Icon name="receipt" className="i-lg" />
-              </span>
-            </div>
-            <h2 className="display">No invoices yet</h2>
-            <p className="c-2" style={{ maxWidth: "40ch" }}>
-              The deposit invoice is issued automatically when a client accepts a proposal. Milestone, final and ad-hoc invoices start from New invoice.
-            </p>
-          </div>
+          <Empty
+            icon="receipt"
+            title="No invoices yet"
+            action={
+              <Link className="btn btn-primary" href="/invoices/new">
+                <Icon name="plus" className="i-sm" />
+                New invoice
+              </Link>
+            }
+          >
+            <p>The deposit invoice is issued automatically when a client accepts a proposal. Milestone, final and ad-hoc invoices start from New invoice.</p>
+          </Empty>
         </section>
       ) : (
         <section className="panel table-wrap">
@@ -76,7 +85,7 @@ export default async function InvoicesPage() {
                 <th>Number</th>
                 <th>Client</th>
                 <th>Status</th>
-                <th style={{ textAlign: "right" }}>Total</th>
+                <th className="num-col">Total</th>
                 <th>Issued</th>
                 <th>Due</th>
                 <th>PDF</th>
@@ -95,7 +104,7 @@ export default async function InvoicesPage() {
                   <td>
                     <StatusPill status={r.status} />
                   </td>
-                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                  <td className="num-col nowrap">
                     <Money value={r.total} currency={r.currency} />
                   </td>
                   <td className="c-3 t-12">{r.issued_at ? dayMonth(r.issued_at) : "–"}</td>

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { ask } from "@/app/components/Confirm";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
+import { Note } from "@/app/components/Note";
 import type { IntakeStatus } from "@/lib/intake";
 import { convertToProposal, setIntakeStatus, type IntakeResult } from "./actions";
 
@@ -29,7 +30,7 @@ export function IntakeActions({ id, status, email }: { id: string; status: Intak
   const spin = (k: string) => (busy === k ? <span className="spinner" /> : null);
 
   return (
-    <div className="stack" style={{ gap: 10 }}>
+    <div className="stack gap-10">
       <div className="actions-bar">
         <button className="btn btn-primary" type="button" disabled={pending} onClick={() => run("convert", () => convertToProposal(id))}>
           {spin("convert") ?? <Icon name="file" className="i-sm" />}
@@ -58,18 +59,8 @@ export function IntakeActions({ id, status, email }: { id: string; status: Intak
           </button>
         )}
       </div>
-      {r?.error && (
-        <p className="auth-error" role="alert" style={{ marginTop: 0 }}>
-          <Icon name="alert" className="i-sm" />
-          {r.error}
-        </p>
-      )}
-      {r?.ok && (
-        <p className="ok-note" role="status">
-          <Icon name="check" className="i-sm" />
-          {r.ok}
-        </p>
-      )}
+      {r?.error && <Note tone="error">{r.error}</Note>}
+      {r?.ok && <Note tone="ok">{r.ok}</Note>}
     </div>
   );
 }

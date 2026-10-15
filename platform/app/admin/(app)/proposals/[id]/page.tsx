@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
-import { Icon } from "@/app/components/Icon";
 import { Money } from "@/app/components/Money";
 import { StatusPill } from "@/app/components/StatusPill";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
 import { PACKAGES } from "@/lib/packages";
 import { scheduleAmounts, scheduleError, type Stage } from "@/lib/money";
@@ -66,24 +66,22 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <div className="row" style={{ gap: 10 }}>
-              <h1 className="display">{p.title}</h1>
-              <StatusPill status={p.status} />
-            </div>
-            <div className="sub">
-              {p.client_company} · {p.contact_name} · v{p.version} · <Money value={p.total} currency={p.currency} />
-            </div>
-          </div>
-        </div>
-        <Link className="btn btn-ghost" href="/proposals">
-          <Icon name="arrowL" className="i-sm" />
-          Proposals
-        </Link>
-      </header>
+      <PageHeader
+        crumbs={[{ label: "Proposals", href: "/proposals" }, { label: p.title }]}
+        title={p.title}
+        pills={<StatusPill status={p.status} />}
+        sub={
+          <>
+            <span>{p.client_company}</span>
+            <span aria-hidden="true">·</span>
+            <span>{p.contact_name}</span>
+            <span aria-hidden="true">·</span>
+            <span>v{p.version}</span>
+            <span aria-hidden="true">·</span>
+            <Money value={p.total} currency={p.currency} />
+          </>
+        }
+      />
 
       <section className="panel panel-pad stack" style={{ gap: 16, marginBottom: 14 }}>
         <dl className="kv-list">
@@ -190,7 +188,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
             />
           </div>
         ) : (
-          <p className="c-bad t-13">The payment schedule is invalid; fix it to see the preview.</p>
+          <Note tone="error">The payment schedule is invalid; fix it to see the preview.</Note>
         )}
       </section>
     </>

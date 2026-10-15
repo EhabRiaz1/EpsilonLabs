@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/app/components/Icon";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Note } from "@/app/components/Note";
+import { Empty } from "@/app/components/Empty";
 import { getSession } from "@/lib/session";
 import { PACKAGES } from "@/lib/packages";
 import { DEFAULT_SCHEDULE } from "@/lib/money";
@@ -93,7 +95,7 @@ export default async function NewProposal({ searchParams }: { searchParams: Prom
     <>
       <Head title="New proposal" sub="Pick the deal this proposal is for." />
       <section className="panel">
-        <form className="row panel-pad" style={{ gap: 8 }} method="get">
+        <form className="row panel-pad gap-8" method="get">
           <input className="input grow" name="q" defaultValue={q} placeholder="Search deals or companies" aria-label="Search deals or companies" autoFocus />
           <button className="btn btn-secondary" type="submit">
             <Icon name="search" className="i-sm" />
@@ -101,16 +103,16 @@ export default async function NewProposal({ searchParams }: { searchParams: Prom
           </button>
         </form>
         {failed ? (
-          <p className="c-bad t-13 panel-pad">Couldn&apos;t load deals. Reload to retry.</p>
+          <Note retry>Couldn&apos;t load deals.</Note>
         ) : deals.length === 0 ? (
-          <p className="c-3 t-13 panel-pad">{term ? "No deals match." : "No deals yet."}</p>
+          <Empty variant="inline">{term ? "No deals match." : "No deals yet."}</Empty>
         ) : (
           <div className="deals">
             {deals.map((d) => (
               <Link key={d.id} href={`/proposals/new?deal=${d.id}`}>
                 <span className="grow">
                   <span className="w-500">{d.title}</span>
-                  <span className="c-3 t-12" style={{ display: "block" }}>
+                  <span className="c-3 t-12 block">
                     {one(d.companies)?.name ?? "No company"}
                   </span>
                 </span>
@@ -129,19 +131,5 @@ export default async function NewProposal({ searchParams }: { searchParams: Prom
 }
 
 function Head({ title, sub }: { title: string; sub: string }) {
-  return (
-    <header className="page-head">
-      <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-        <MenuButton />
-        <div>
-          <h1 className="display">{title}</h1>
-          <div className="sub">{sub}</div>
-        </div>
-      </div>
-      <Link className="btn btn-ghost" href="/proposals">
-        <Icon name="arrowL" className="i-sm" />
-        Proposals
-      </Link>
-    </header>
-  );
+  return <PageHeader crumbs={[{ label: "Proposals", href: "/proposals" }, { label: title }]} title={title} sub={<span>{sub}</span>} />;
 }

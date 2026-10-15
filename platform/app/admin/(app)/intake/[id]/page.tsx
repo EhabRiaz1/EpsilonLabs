@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Fragment } from "react";
 import { Icon } from "@/app/components/Icon";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
 import { getSession } from "@/lib/session";
 import { answerLines, INTAKE_CHIP, type IntakeStatus } from "@/lib/intake";
 import { stamp } from "@/lib/dates";
@@ -42,26 +41,18 @@ export default async function IntakeDetail({ params }: { params: Promise<{ id: s
   ];
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">{r.name}</h1>
-            <div className="sub row wrap" style={{ gap: 8 }}>
-              <span className={`pill ${chip.tone}`}>
-                <span className="dot" />
-                {chip.label}
-              </span>
-              {r.company && <span>{r.company}</span>}
-            </div>
-          </div>
-        </div>
-        <Link className="btn btn-ghost" href="/intake">
-          <Icon name="arrowL" className="i-sm" />
-          Intake
-        </Link>
-      </header>
-      <div className="grid-main" style={{ marginTop: 0 }}>
+      <PageHeader
+        crumbs={[{ label: "Intake", href: "/intake" }, { label: r.name }]}
+        title={r.name}
+        pills={
+          <span className={`pill ${chip.tone}`}>
+            <span className="dot" />
+            {chip.label}
+          </span>
+        }
+        sub={r.company ? <span>{r.company}</span> : <span>{r.email}</span>}
+      />
+      <div className="grid-main grid-flush">
         <div className="col">
           <section className="panel">
             <div className="panel-head">
@@ -73,13 +64,13 @@ export default async function IntakeDetail({ params }: { params: Promise<{ id: s
                   <Icon name="alert" className="i-sm" />
                   Visitor text · untrusted
                 </div>
-                <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{r.message || "(no details)"}</div>
+                <div className="pre-wrap">{r.message || "(no details)"}</div>
               </div>
             </div>
           </section>
           <section className="panel panel-pad">
             <IntakeActions id={r.id} status={r.status} email={r.email} />
-            <p className="hint" style={{ marginTop: 12 }}>
+            <p className="hint mt-12">
               Convert opens a proposal draft prefilled from this enquiry. Nothing reaches {r.email} until you approve and send it.
             </p>
           </section>
@@ -96,7 +87,7 @@ export default async function IntakeDetail({ params }: { params: Promise<{ id: s
             </dl>
           </section>
           <section className="panel panel-pad">
-            <div className="eyebrow" style={{ marginBottom: 8 }}>
+            <div className="eyebrow mb-8">
               Pipeline
             </div>
             {deal ? (
