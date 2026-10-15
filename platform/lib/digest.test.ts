@@ -47,7 +47,7 @@ describe("notification email", () => {
   it("brands the mail with the company footer, a text part and the preferences link", () => {
     const m = notificationEmail({ name: "Ayesha Khan", items: [item({ urgent: true, kind: "invoice", title: "Invoice EL-2026-004 issued", link: "/invoices/i1" })], mode: "immediate" });
     expect(m.subject).toBe("Invoice EL-2026-004 issued");
-    expect(m.html).toContain(">ε</td>");
+    expect(m.html).toContain('alt="Epsilon Labs"');
     expect(m.html).toContain("21-A Zahoor Afridi Rd., Cantt, Lahore");
     expect(m.html).toContain("Epsilon Labs AI Solutions (SMC-PVT) Ltd.");
     expect(m.html).toContain('href="https://client.epsilon-labs.co/account#email"');
@@ -72,7 +72,8 @@ describe("notification email", () => {
     expect(m.subject).toBe("Your Epsilon digest · 2 updates");
     expect(m.html).toContain("at most one digest a day");
     const one = notificationEmail({ name: "Bo", mode: "digest", items: [item({})] });
-    expect(one.html).not.toContain("letter-spacing:.12em;text-transform:uppercase;color:#8a867f\">Alpha Mills");
+    expect(m.html).toContain('margin:24px 0 0">Beta</div>');
+    expect(one.html).not.toContain('margin:24px 0 0">Alpha Mills</div>');
   });
 
   it("survives an unknown timezone", () => {

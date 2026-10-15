@@ -88,52 +88,55 @@ function supabaseHeaders(key) {
 }
 
 // ---- email (fixed templates, F13: no AI wording, so they go automatically) ------------------------------------------
+// The layout is the shared Epsilon email system: api/_email-layout.js, generated from platform/lib/email/layout-core.mjs.
 
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+const L = require('./_email-layout.js');
+
+const esc = L.esc;
+const TRACK = { software: 'Software', hardware: 'Hardware', both: 'Software and hardware' };
+
+/** "15 Oct 2026" in Lahore time. */
+function lahoreDate(now) {
+  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Karachi' }).format(now);
 }
 
-const FOOT_TEXT = 'Epsilon Labs · epsilon-labs.co\nThis is an automatic message from notifications@epsilon-labs.co. Replies go to Ehab.';
-
-function layout(preheader, body) {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light"><title>Epsilon Labs</title></head>
-<body style="margin:0;padding:0;background:#efede9;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#1b1a18">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(preheader)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#efede9;padding:32px 12px"><tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:24px;padding:32px 30px">
-<tr><td style="padding-bottom:22px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-<td style="width:34px;height:34px;border-radius:10px;background:#1b1a18;color:#ffffff;font:400 20px/34px Georgia,'Times New Roman',serif;text-align:center">ε</td>
-<td style="padding-left:10px;font-weight:600;font-size:14px">Epsilon Labs</td></tr></table></td></tr>
-<tr><td style="font-size:14px;line-height:1.6;color:#3d3b37">${body}</td></tr>
-</table>
-<p style="max-width:520px;margin:18px auto 0;font-size:11px;line-height:1.6;color:#8a867f;text-align:center">
-Epsilon Labs · <a href="https://epsilon-labs.co" style="color:#8a867f">epsilon-labs.co</a><br>
-This is an automatic message from notifications@epsilon-labs.co. Replies go to Ehab.</p>
-</td></tr></table></body></html>`;
-}
-
-const h1 = (t) => `<h1 style="margin:0 0 10px;font-size:22px;font-weight:500;color:#1b1a18">${esc(t)}</h1>`;
-const p = (html) => `<p style="margin:0 0 14px">${html}</p>`;
-
-/** The enquirer's acknowledgement. Fixed text; only their first name is interpolated. */
-function ackEmail(v) {
+/**
+ * The enquirer's acknowledgement. Fixed text: only their first name and the validated track are interpolated, never
+ * the free-text answers or message (anyone can type any address into the form, so this mail must not carry their
+ * words to it).
+ */
+function ackEmail(v, now) {
   const first = v.name.split(/\s+/)[0] || 'there';
-  return {
+  const received = lahoreDate(now || new Date());
+  return L.email({
     subject: 'We have your enquiry · Epsilon Labs',
-    html: layout(
-      'Thanks. Ehab replies within two working days.',
-      h1(`Thanks, ${first}`) +
-        p('Your enquiry reached Epsilon Labs. Ehab reads every one himself and replies within two working days, usually sooner.') +
-        p('If you have a model number, a photo of the connector or a sample file, reply to this email with it.') +
-        p('<span style="color:#8a867f;font-size:12px">You are getting this because someone used this address on epsilon-labs.co/start. If that wasn\'t you, ignore it; we won\'t write again unless you reply.</span>'),
-    ),
-    text: `Thanks, ${first}.\n\nYour enquiry reached Epsilon Labs. Ehab reads every one himself and replies within two working days, usually sooner.\nIf you have a model number, a photo of the connector or a sample file, reply to this email with it.\n\nIf you didn't use this address on epsilon-labs.co/start, ignore this email.\n\n${FOOT_TEXT}`,
-  };
+    label: 'Enquiry',
+    preheader: 'We have your enquiry. Ehab reads every one himself and replies within two working days.',
+    title: 'We have your enquiry',
+    why: 'You got this because someone used this address on epsilon-labs.co/start. If that wasn’t you, ignore it; we won’t write again unless you reply.',
+    html:
+      L.eyebrow(`Enquiry received · ${received}`) +
+      L.h1(`We have your enquiry, ${first}`) +
+      L.p('Thanks for getting in touch. Ehab reads every enquiry himself and replies within two working days (Lahore, UTC+5), usually sooner, often with two or three questions or a call slot.') +
+      L.p('If you have a model number, a photo of the connector or a sample file, reply to this email with it.', { mb: 0 }) +
+      L.kv([['Track', TRACK[v.kind] || 'Not sure yet'], ['Received', received], ['Reply within', 'Two working days']]) +
+      L.subhead('What happens next') +
+      L.steps([
+        ['A reply from Ehab', 'Questions, or a 20-minute call slot.'],
+        ['Short scoping call', 'We agree what done looks like.'],
+        ['Fixed-scope proposal', 'Price, timeline and terms on one page.'],
+      ]) +
+      L.signature(),
+    text: [
+      `Thanks, ${first}.`,
+      'Your enquiry reached Epsilon Labs. Ehab reads every one himself and replies within two working days, usually sooner.\nIf you have a model number, a photo of the connector or a sample file, reply to this email with it.',
+      'What happens next: a reply from Ehab, a short scoping call, then a fixed-scope proposal (price, timeline and terms on one page).',
+      'Ehab Riaz\nFounder, Epsilon Labs',
+    ],
+  });
 }
 
-/** The founder's notice, with everything the visitor typed (escaped). */
+/** The founder's notice, with everything the visitor typed (escaped by the layout's text blocks). */
 function founderEmail(v, id) {
   const who = v.company ? `${v.name} (${v.company})` : v.name;
   const rows = [
@@ -142,16 +145,20 @@ function founderEmail(v, id) {
     ['Budget', v.budget || '–'],
   ];
   const link = id ? `${ADMIN}/intake/${id}` : `${ADMIN}/intake`;
-  return {
+  return L.email({
     subject: `[Epsilon] New enquiry from ${who}`,
-    html: layout(`New enquiry from ${who}`,
-      h1(`New enquiry from ${who}`) +
-        `<table role="presentation" cellpadding="0" cellspacing="0" style="font-size:13px;margin:0 0 14px">${rows.map(([k, val]) =>
-          `<tr><td style="color:#8a867f;padding:2px 14px 2px 0;vertical-align:top">${esc(k)}</td><td style="padding:2px 0">${esc(val)}</td></tr>`).join('')}</table>` +
-        p(`<span style="white-space:pre-wrap">${esc(v.message || '(no details)')}</span>`) +
-        `<p style="margin:22px 0"><a href="${esc(link)}" style="display:inline-block;background:#d9532f;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:13px 24px;border-radius:999px">Open in admin</a></p>`),
-    text: `New enquiry from ${who}\n\n${rows.map(([k, val]) => `${k}: ${val}`).join('\n')}\n\n${v.message || '(no details)'}\n\n${link}\n`,
-  };
+    label: 'Enquiry',
+    preheader: `New enquiry from ${who}`,
+    title: `New enquiry from ${who}`,
+    why: 'Internal notice: a visitor sent the form at epsilon-labs.co/start. Reply to this email to answer them.',
+    html:
+      L.eyebrow(`New enquiry · ${TRACK[v.kind] || v.kind}`) +
+      L.h1(`New enquiry from ${who}`) +
+      L.kv(rows, { mt: 8 }) +
+      L.quote(v.message || '(no details)', 'Their message') +
+      L.button(link, 'Open in admin'),
+    text: [`New enquiry from ${who}`, rows.map(([k, val]) => `${k}: ${val}`).join('\n'), v.message || '(no details)', link],
+  });
 }
 
 module.exports = { MAX_BYTES, FOUNDER, originAllowed, validate, clientIp, ipKey, supabaseHeaders, ackEmail, founderEmail, esc };

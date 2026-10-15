@@ -1,0 +1,430 @@
+// The Epsilon email layout and blocks: the ONE source for every branded email (portal, site enquiry, Supabase auth).
+// Ported from the approved mockups (designs/admin-v3-20261015/email/build.py). Pure, dependency-free ES module:
+//  - platform/lib/email/layout.ts re-exports it, typed, for the Next app;
+//  - tools/build-email-layout.mjs turns it into api/_email-layout.js (CommonJS) for the site's Vercel function;
+//  - epsilon-os/scripts/sb_auth_templates.py renders the Supabase auth templates from it with node.
+// Keep it free of imports and of `export default`: the CommonJS build is a plain text transform.
+//
+// Email-client safe: table layout, inline styles, 600 px, bulletproof buttons (VML for Outlook), light + dark.
+// Escaping rule: blocks that take TEXT escape it; parameters named `html` (and p/small/note bodies) are HTML the
+// caller has already built with esc(). Everything a person typed must go through esc() or a text parameter.
+
+export const PAPER = "#EEECE6";
+export const CARD = "#FFFFFF";
+export const INK = "#111416";
+export const BODY = "#2E3439";
+export const MUTED = "#4C5358";
+export const RULE = "#DDD9D0";
+export const COPPER = "#9A4E1C";
+export const COPPER_LIFT = "#F0B98E";
+export const SIGNAL = "#16697A";
+export const TINT = "#F6F4EF";
+export const FAINT = "#8A8F92";
+export const SANS = "'Instrument Sans','Helvetica Neue',Helvetica,Arial,sans-serif";
+export const MONO = "'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace";
+
+/** The full legal line, in every footer (HTML and text). */
+export const COMPANY_LINE =
+  "Epsilon Labs AI Solutions (SMC-PVT) Ltd. · SECP CUIN 0290150 · 21-A Zahoor Afridi Rd., Cantt, Lahore, Pakistan";
+/** Logo PNGs and web fonts, served by the site deploy from assets/brand/email/. */
+export const ASSET = "https://epsilon-labs.co/assets/brand/email/";
+export const SITE_URL = "https://epsilon-labs.co";
+export const PORTAL_URL = "https://client.epsilon-labs.co";
+export const CONTACT = "er@epsilon-labs.co";
+
+/**
+ * HTML-escape anything (same rules as platform/lib/html.ts `esc`; a test keeps them identical).
+ * @param {unknown} s
+ * @returns {string}
+ */
+export function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// ------------------------------------------------------------------------------------------------------------ layout
+
+/**
+ * @param {string} k
+ * @param {string} v
+ * @param {string} href
+ */
+function footCol(k, v, href) {
+  return (
+    `<td class="stack" valign="top" width="33%" style="padding:0 12px 20px 0">` +
+    `<div class="muted" style="font:500 10px/1 ${MONO};letter-spacing:.14em;text-transform:uppercase;color:${MUTED};padding-bottom:7px">${esc(k)}</div>` +
+    `<a href="${esc(href)}" class="ink" style="font:500 13px/1.4 ${SANS};color:${INK};text-decoration:none">${esc(v)}</a></td>`
+  );
+}
+
+/**
+ * The whole email: ink header band (white lockup + mono label, copper rule), white body card, paper footer
+ * (lockup, portal / website / contact, why-you-got-this, preferences link, legal line).
+ * @param {{ label: string, preheader: string, body: string, why: string, prefsUrl?: string, title?: string, year?: number }} o
+ *   label, preheader, why and title are TEXT (escaped here); body is HTML built from the blocks below.
+ * @returns {string}
+ */
+export function layout(o) {
+  const title = o.title || "Epsilon Labs";
+  const year = o.year ?? new Date().getUTCFullYear();
+  const pref = o.prefsUrl
+    ? ` &nbsp;·&nbsp; <a href="${esc(o.prefsUrl)}" class="ink" style="color:${INK};text-decoration:underline">Email preferences</a>`
+    : "";
+  return `<!doctype html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<meta name="format-detection" content="telephone=no,address=no,email=no,date=no">
+<title>${esc(title)}</title>
+<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+<style>
+@font-face{font-family:'Instrument Sans';font-weight:400 700;font-stretch:75% 100%;src:url(${ASSET}instrument-sans-normal-400-700-latin.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-weight:400;src:url(${ASSET}ibm-plex-mono-normal-400-latin.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-weight:500;src:url(${ASSET}ibm-plex-mono-normal-500-latin.woff2) format('woff2')}
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+a{text-decoration:none}
+.dark-img{display:none;max-height:0;overflow:hidden}
+@media (max-width:620px){
+  .wrap{width:100%!important}
+  .pad{padding:28px 22px!important}
+  .hpad{padding:18px 22px!important}
+  .fpad{padding:24px 22px!important}
+  .h1{font-size:21px!important;line-height:28px!important}
+  .stack{display:block!important;width:100%!important;padding:0 0 14px!important}
+  .hide-sm{display:none!important}
+  .kv-k{width:42%!important}
+}
+@media (prefers-color-scheme:dark){
+  .bg{background:#08090A!important}
+  .card{background:#0E1113!important}
+  .band{background:#0E1113!important;border-bottom-color:#1C2124!important}
+  .ink,.h1{color:#EDF0F1!important}
+  .body{color:#C9CFD3!important}
+  .muted{color:#8A949B!important}
+  .faint{color:#6B757C!important}
+  .rule{border-color:#1C2124!important}
+  .tint{background:#14181B!important;border-color:#2A3136!important}
+  .pill{background:#14181B!important;border-color:#2A3136!important;color:#C9CFD3!important}
+  .pill-hot{background:#3A2317!important;border-color:#5A3420!important;color:#F0B98E!important}
+  .btn{background:#D2793C!important}
+  .btn a{color:#111416!important}
+  .link{color:#5FC6D6!important}
+  .light-img{display:none!important;max-height:0!important;overflow:hidden!important}
+  .dark-img{display:block!important;max-height:none!important;overflow:visible!important}
+}
+[data-ogsc] .card{background:#0E1113!important}
+[data-ogsc] .ink,[data-ogsc] .h1{color:#EDF0F1!important}
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:${PAPER};">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">${esc(o.preheader)}${"&#847;&zwnj;&nbsp;".repeat(40)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bg" style="background:${PAPER};">
+<tr><td align="center" style="padding:32px 12px 40px">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" class="wrap" style="width:600px;max-width:600px;">
+
+<!-- header band -->
+<tr><td class="band hpad" style="background:${INK};border-radius:10px 10px 0 0;border-bottom:2px solid ${COPPER};padding:20px 36px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td align="left" valign="middle"><a href="${SITE_URL}" style="display:inline-block"><img src="${ASSET}logo-white@2x.png" width="129" height="20" alt="Epsilon Labs" style="display:block;width:129px;height:20px;color:#FFFFFF;font:700 16px ${SANS}"></a></td>
+    <td align="right" valign="middle" style="font:500 11px/1 ${MONO};letter-spacing:.14em;text-transform:uppercase;color:${COPPER_LIFT};white-space:nowrap">${esc(o.label)}</td>
+  </tr></table>
+</td></tr>
+
+<!-- body card -->
+<tr><td class="card pad" style="background:${CARD};padding:40px 40px 36px;border-radius:0 0 10px 10px;">
+${o.body}
+</td></tr>
+
+<!-- footer -->
+<tr><td class="fpad" style="padding:30px 36px 0;">
+  <img class="light-img" src="${ASSET}logo-ink@2x.png" width="103" height="16" alt="Epsilon Labs" style="display:block;width:103px;height:16px;margin:0 0 20px">
+  <!--[if !mso]><!--><div class="dark-img" style="display:none;max-height:0;overflow:hidden"><img src="${ASSET}logo-white@2x.png" width="103" height="16" alt="Epsilon Labs" style="display:block;width:103px;height:16px;margin:0 0 20px"></div><!--<![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+    ${footCol("Client portal", "client.epsilon-labs.co", PORTAL_URL)}
+    ${footCol("Website", "epsilon-labs.co", SITE_URL)}
+    ${footCol("Contact", CONTACT, `mailto:${CONTACT}`)}
+  </tr></table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td class="rule" style="border-top:1px solid ${RULE};padding:18px 0 0;font:400 11px/1.7 ${SANS};color:${MUTED}">
+    <span class="muted">${esc(o.why)}${pref}</span><br>
+    <span class="muted">${esc(COMPANY_LINE)} &middot; &copy; ${esc(year)} Epsilon Labs</span>
+  </td></tr></table>
+</td></tr>
+
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</body>
+</html>
+`;
+}
+
+// ------------------------------------------------------------------------------------------------------------ blocks
+
+/** Mono uppercase line above the title ("EL-21 · FABRICPORT"). @param {string} text */
+export function eyebrow(text) {
+  return `<div class="muted" style="font:500 11px/1 ${MONO};letter-spacing:.14em;text-transform:uppercase;color:${MUTED};margin:0 0 14px">${esc(text)}</div>`;
+}
+
+/** The 24 px title. @param {string} text */
+export function h1(text) {
+  return `<h1 class="h1" style="margin:0 0 16px;font:600 24px/31px ${SANS};letter-spacing:-0.02em;color:${INK}">${esc(text)}</h1>`;
+}
+
+/** Small bold heading inside the body ("What happens next"). @param {string} text */
+export function subhead(text) {
+  return `<div class="ink" style="font:600 14px/22px ${SANS};color:${INK};margin:24px 0 0">${esc(text)}</div>`;
+}
+
+/**
+ * Body paragraph. `html` is HTML: escape anything typed with esc().
+ * @param {string} html
+ * @param {{ muted?: boolean, mb?: number }} [o]
+ */
+export function p(html, o = {}) {
+  const muted = !!o.muted;
+  const mb = o.mb ?? 16;
+  return `<p class="${muted ? "muted" : "body"}" style="margin:0 0 ${mb}px;font:400 15px/24px ${SANS};color:${muted ? MUTED : BODY}">${html}</p>`;
+}
+
+/**
+ * Small muted paragraph (fine print under a button). `html` is HTML.
+ * @param {string} html
+ * @param {number} [mb]
+ */
+export function small(html, mb = 0) {
+  return `<p class="muted" style="margin:0 0 ${mb}px;font:400 13px/20px ${SANS};color:${MUTED}">${html}</p>`;
+}
+
+/** Inline bold ink text (escaped). @param {string} text */
+export function strong(text) {
+  return `<strong class="ink" style="color:${INK}">${esc(text)}</strong>`;
+}
+
+/** Inline mono ink text, for addresses and references (escaped). @param {string} text */
+export function mono(text) {
+  return `<span class="ink" style="font-family:${MONO};color:${INK}">${esc(text)}</span>`;
+}
+
+/**
+ * The copper button, with a VML fallback so Outlook draws it; optional secondary text link beside it.
+ * @param {string} href
+ * @param {string} label
+ * @param {{ label: string, href: string }} [secondary]
+ */
+export function button(href, label, secondary) {
+  const sec = secondary
+    ? `<td style="padding-left:18px" valign="middle"><a href="${esc(secondary.href)}" class="link" style="font:500 14px/1 ${SANS};color:${SIGNAL};text-decoration:none">${esc(secondary.label)} &rarr;</a></td>`
+    : "";
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 8px"><tr>
+<td>
+<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${esc(href)}" style="height:46px;v-text-anchor:middle;width:${20 + 9 * label.length}px" arcsize="17%" stroke="f" fillcolor="${COPPER}"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold">${esc(label)}</center></v:roundrect><![endif]-->
+<!--[if !mso]><!--><table role="presentation" cellpadding="0" cellspacing="0"><tr><td class="btn" style="background:${COPPER};border-radius:8px">
+<a href="${esc(href)}" style="display:inline-block;padding:14px 24px;font:600 15px/18px ${SANS};color:#FFFFFF;text-decoration:none;border-radius:8px">${esc(label)}</a>
+</td></tr></table><!--<![endif]-->
+</td>${sec}</tr></table>`;
+}
+
+/** "USD 1,800.00" with greyed decimals (escaped). Returns HTML for a kv value. @param {string} text */
+export function money(text) {
+  const m = /^(.*?)(\.\d+)(\D*)$/.exec(String(text));
+  if (!m) return esc(text);
+  return `${esc(m[1])}<span class="faint" style="color:${FAINT}">${esc(m[2])}</span>${esc(m[3])}`;
+}
+
+/**
+ * A kv value: plain text (escaped) or pre-built HTML (from money() etc.).
+ * @typedef {string | { html: string }} KvValue
+ */
+
+/** @param {KvValue} v */
+function kvValue(v) {
+  return typeof v === "string" ? esc(v) : v.html;
+}
+
+/**
+ * Receipt table: label | mono value, hairline rules, optional bold total row.
+ * @param {Array<[string, KvValue]>} rows
+ * @param {{ total?: [string, KvValue], mt?: number }} [o]
+ */
+export function kv(rows, o = {}) {
+  const out = [`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:${o.mt ?? 24}px 0 4px">`];
+  for (const [k, v] of rows) {
+    out.push(
+      `<tr><td class="rule muted kv-k" style="border-top:1px solid ${RULE};padding:11px 12px 11px 0;font:400 13px/20px ${SANS};color:${MUTED};width:38%;vertical-align:top">${esc(k)}</td>` +
+        `<td class="rule ink" style="border-top:1px solid ${RULE};padding:11px 0;font:400 13px/20px ${MONO};color:${INK};text-align:right;vertical-align:top">${kvValue(v)}</td></tr>`,
+    );
+  }
+  if (o.total) {
+    const [k, v] = o.total;
+    out.push(
+      `<tr><td class="rule ink" style="border-top:2px solid ${INK};padding:14px 12px 4px 0;font:600 14px/20px ${SANS};color:${INK}">${esc(k)}</td>` +
+        `<td class="rule ink" style="border-top:2px solid ${INK};padding:14px 0 4px;font:500 18px/20px ${MONO};color:${INK};text-align:right">${kvValue(v)}</td></tr>`,
+    );
+  } else {
+    out.push(`<tr><td colspan="2" class="rule" style="border-top:1px solid ${RULE};font-size:0;line-height:0">&nbsp;</td></tr>`);
+  }
+  out.push("</table>");
+  return out.join("");
+}
+
+/**
+ * Small mono tag; `hot` is the copper "needs you" variant. Carries text, never colour alone.
+ * @param {string} text
+ * @param {boolean} [hot]
+ */
+export function pill(text, hot = false) {
+  if (hot) {
+    return `<span class="pill-hot" style="display:inline-block;padding:3px 7px;border:1px solid #E7C9B2;border-radius:4px;background:#FBF1E9;font:500 10px/12px ${MONO};letter-spacing:.08em;text-transform:uppercase;color:${COPPER}">${esc(text)}</span>`;
+  }
+  return `<span class="pill" style="display:inline-block;padding:3px 7px;border:1px solid ${RULE};border-radius:4px;background:${TINT};font:500 10px/12px ${MONO};letter-spacing:.08em;text-transform:uppercase;color:${MUTED}">${esc(text)}</span>`;
+}
+
+/**
+ * @typedef {{ kind: string, hot?: boolean, title: string, sub?: string, meta?: string, href: string }} Item
+ *   All TEXT (escaped): kind (the pill), title (the link), sub (a line under it), meta (mono line).
+ */
+
+/**
+ * Digest rows: pill, linked title, optional line, mono meta, chevron.
+ * @param {Item[]} rows
+ * @param {{ mt?: number }} [o]
+ */
+export function items(rows, o = {}) {
+  const out = [`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:${o.mt ?? 22}px 0 4px">`];
+  for (const r of rows) {
+    out.push(`<tr><td class="rule" style="border-top:1px solid ${RULE};padding:16px 0">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+<td valign="top">
+  <div style="margin:0 0 8px">${pill(r.kind, !!r.hot)}</div>
+  <a href="${esc(r.href)}" class="ink" style="font:600 15px/22px ${SANS};color:${INK};text-decoration:none">${esc(r.title)}</a>
+  ${r.sub ? `<div class="body" style="font:400 14px/21px ${SANS};color:${BODY};margin:4px 0 0">${esc(r.sub)}</div>` : ""}
+  ${r.meta ? `<div class="muted" style="font:400 12px/18px ${MONO};color:${MUTED};margin:6px 0 0">${esc(r.meta)}</div>` : ""}
+</td>
+<td valign="middle" width="28" align="right" class="hide-sm"><a href="${esc(r.href)}" class="link" style="font:400 18px/1 ${SANS};color:${SIGNAL};text-decoration:none">&rsaquo;</a></td>
+</tr></table></td></tr>`);
+  }
+  out.push(`<tr><td class="rule" style="border-top:1px solid ${RULE};font-size:0;line-height:0">&nbsp;</td></tr></table>`);
+  return out.join("");
+}
+
+/**
+ * Quoted text with a left rule and an optional mono attribution (both TEXT, escaped; newlines kept).
+ * @param {string} text
+ * @param {string} [who]
+ */
+export function quote(text, who) {
+  const w = who ? `<div class="muted" style="font:400 12px/18px ${MONO};color:${MUTED};margin:8px 0 0">${esc(who)}</div>` : "";
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0 6px"><tr>` +
+    `<td class="rule" style="border-left:2px solid ${RULE};padding:2px 0 2px 16px">` +
+    `<div class="muted" style="font:400 14px/22px ${SANS};color:${MUTED};white-space:pre-wrap">${esc(text)}</div>${w}</td></tr></table>`
+  );
+}
+
+/**
+ * The big spaced code in a tinted box, with a mono note under it (both TEXT).
+ * @param {string} code
+ * @param {string} note
+ */
+export function codeBlock(code, note) {
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 10px"><tr>` +
+    `<td class="tint" align="center" style="background:${TINT};border:1px solid ${RULE};border-radius:8px;padding:22px 12px">` +
+    `<div class="ink" style="font:500 34px/1 ${MONO};letter-spacing:.32em;color:${INK};padding-left:.32em">${esc(code)}</div>` +
+    `<div class="muted" style="font:400 12px/18px ${MONO};color:${MUTED};margin:12px 0 0">${esc(note)}</div></td></tr></table>`
+  );
+}
+
+/** Tinted note box. `html` is HTML. @param {string} html */
+export function note(html) {
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 4px"><tr>` +
+    `<td class="tint" style="background:${TINT};border:1px solid ${RULE};border-radius:8px;padding:14px 16px;` +
+    `font:400 13px/20px ${SANS};color:${MUTED}"><span class="muted">${html}</span></td></tr></table>`
+  );
+}
+
+/** A long URL in a tinted mono box, for "copy this link instead" (TEXT). @param {string} text */
+export function linkBox(text) {
+  return `<div class="tint muted" style="background:${TINT};border:1px solid ${RULE};border-radius:8px;padding:12px 14px;font:400 12px/18px ${MONO};color:${MUTED};word-break:break-all">${esc(text)}</div>`;
+}
+
+/**
+ * Numbered steps (01, 02 …) with a title and a line each (TEXT).
+ * @param {Array<[string, string]>} rows
+ */
+export function steps(rows) {
+  const out = [`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 4px">`];
+  rows.forEach(([t, d], i) => {
+    out.push(
+      `<tr><td valign="top" width="34" style="padding:8px 0;font:500 12px/22px ${MONO};color:${COPPER}" class="link">${String(i + 1).padStart(2, "0")}</td>` +
+        `<td valign="top" style="padding:8px 0"><div class="ink" style="font:600 14px/22px ${SANS};color:${INK}">${esc(t)}</div>` +
+        `<div class="muted" style="font:400 13px/20px ${SANS};color:${MUTED}">${esc(d)}</div></td></tr>`,
+    );
+  });
+  out.push("</table>");
+  return out.join("");
+}
+
+/**
+ * Ehab's sign-off under a hairline.
+ * @param {{ line2?: string, reply?: string }} [o]
+ */
+export function signature(o = {}) {
+  const line2 = o.line2 ?? "Founder, Epsilon Labs";
+  const reply = o.reply ?? "Reply to this email and it reaches me directly.";
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0 0"><tr>` +
+    `<td class="rule" style="border-top:1px solid ${RULE};padding:20px 0 0">` +
+    `<div class="ink" style="font:600 14px/20px ${SANS};color:${INK}">Ehab Riaz</div>` +
+    `<div class="muted" style="font:400 13px/20px ${SANS};color:${MUTED}">${esc(line2)}</div>` +
+    `<div class="muted" style="font:400 12px/18px ${MONO};color:${MUTED};margin:6px 0 0">${esc(reply)}</div></td></tr></table>`
+  );
+}
+
+// ------------------------------------------------------------------------------------------------------- plain text
+
+/**
+ * The plain-text alternative: paragraphs separated by blank lines, then the footer (why, preferences, legal line).
+ * Empty parts are dropped.
+ * @param {Array<string | null | undefined | false>} parts
+ * @param {{ why?: string, prefsUrl?: string }} [o]
+ * @returns {string}
+ */
+export function text(parts, o = {}) {
+  const body = parts.filter((x) => typeof x === "string" && x.trim() !== "").join("\n\n");
+  const foot = [
+    "--",
+    o.why || "",
+    o.prefsUrl ? `Email preferences: ${o.prefsUrl}` : "",
+    COMPANY_LINE,
+    `epsilon-labs.co · ${CONTACT}`,
+  ].filter(Boolean);
+  return `${body}\n\n${foot.join("\n")}\n`;
+}
+
+/**
+ * One whole mail: { subject, html, text } from the layout options, the HTML body and the text parts.
+ * @param {{ subject: string, label: string, preheader: string, title?: string, why: string, prefsUrl?: string, html: string, text: Array<string | null | undefined | false> }} o
+ * @returns {{ subject: string, html: string, text: string }}
+ */
+export function email(o) {
+  return {
+    subject: o.subject,
+    html: layout({ label: o.label, preheader: o.preheader, title: o.title ?? o.subject, why: o.why, prefsUrl: o.prefsUrl, body: o.html }),
+    text: text(o.text, { why: o.why, prefsUrl: o.prefsUrl }),
+  };
+}
