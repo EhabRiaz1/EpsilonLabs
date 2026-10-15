@@ -7,10 +7,8 @@ export function AuthFrame({ host, children }: { host: string; children: ReactNod
     <div className="auth">
       <main className="panel auth-card">
         <div className="sb-brand" style={{ padding: "0 0 22px" }}>
-          <span className="mark" aria-hidden="true">
-            ε
-          </span>
-          <div className="sb-org">
+          <span className="brand-mark" aria-hidden="true" />
+          <div className="brand-word">
             <strong>Epsilon Labs</strong>
             <span>{host}</span>
           </div>

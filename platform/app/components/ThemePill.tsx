@@ -16,6 +16,11 @@ export function ThemePill() {
     return () => document.removeEventListener("eps:theme", read);
   }, []);
   function pick(t: Theme) {
+    try {
+      localStorage.setItem("eps.theme.chosen", "1"); // admin stops following the OS once the founder picks
+    } catch {
+      // storage blocked: the pick still applies to this page
+    }
     const api = eps();
     if (api) api.theme.set(t);
     else {

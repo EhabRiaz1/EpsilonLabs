@@ -4,7 +4,9 @@ import { useEffect, useRef } from "react";
 import { eps, whenEps } from "./eps";
 
 // Palette validated for the approved prototype (dataviz validate_palette): light #2F6FD6 + #D9532F, dark #4F86DC + #E06E52.
+// admin.* uses the website's two practices instead (design review D13): signal + copper on light, ink + signal on dark.
 const COLORS = { light: ["#2F6FD6", "#D9532F"], dark: ["#4F86DC", "#E06E52"] };
+const ADMIN_COLORS = { light: ["#16697A", "#9A4E1C"], dark: ["#EDF0F1", "#5FC6D6"] };
 
 /** Eps.lines trend chart (up to two series) that redraws on theme change. */
 export function TrendChart(props: { labels: string[]; series: { name: string; data: number[] }[]; aria: string; height?: number }) {
@@ -15,7 +17,8 @@ export function TrendChart(props: { labels: string[]; series: { name: string; da
     const draw = () => {
       const e = eps();
       if (!e || !el.current) return;
-      const c = COLORS[e.theme.get() === "dark" ? "dark" : "light"];
+      const pal = document.documentElement.dataset.site === "admin" ? ADMIN_COLORS : COLORS;
+      const c = pal[e.theme.get() === "dark" ? "dark" : "light"];
       e.lines(el.current, {
         labels: props.labels,
         series: props.series.map((s, i) => ({ ...s, color: c[i % 2] })),

@@ -307,3 +307,22 @@
 /* ---- demo portal (E3): the banner on every portal screen ---- */
 .demo-banner { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 14px; padding: 8px 16px; background: var(--ink); color: var(--panel); font-size: var(--t-12); font-weight: 600; letter-spacing: .04em; text-align: center; }
 .demo-banner a { color: inherit; text-decoration: underline; font-weight: 500; letter-spacing: 0; }
+
+/* ---- brand lockup (both portals): the website's ε mark as a currentColor mask + the org line ----
+   admin.* restyles it as the site's condensed wordmark in styles/admin-theme.css. */
+.brand-mark { display: block; height: 20px; aspect-ratio: 73 / 100; flex: none; color: var(--ink); background: currentColor; }
+@supports (mask-image: url("#m")) or (-webkit-mask-image: url("#m")) {
+  .brand-mark { -webkit-mask: url("./styles/epsilon.svg") center / contain no-repeat; mask: url("./styles/epsilon.svg") center / contain no-repeat; }
+}
+@supports not ((mask-image: url("#m")) or (-webkit-mask-image: url("#m"))) {
+  .brand-mark { background: none; }
+  .brand-mark::before { content: "\03B5"; font-size: 1.25em; line-height: 0.8; }
+}
+.brand-word { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.brand-word strong { font-size: var(--t-14); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-word span { font-size: var(--t-11); color: var(--text-3); margin-top: 2px; }
+
+/* ---- admin.* additions on top of styles/admin-theme.css (hand-written, same scope) ---- */
+/* the chart tooltip shows on hover only; at rest the Today badge and marker are enough */
+:root[data-site="admin"] .chart:not(:hover) .tip { opacity: 0; }
+:root[data-site="admin"] .chart .tip { transition: opacity var(--d-fast) var(--ease); }

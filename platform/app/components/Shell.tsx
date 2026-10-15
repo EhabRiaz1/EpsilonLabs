@@ -7,12 +7,14 @@ import { CloseMenuButton, SearchButton } from "./ShellControls";
 
 export type { NavItem };
 
-/** The approved shell: rounded outer frame, frosted inset sidebar, theme pill in the sidebar foot. */
+/** The approved shell: outer frame, inset sidebar with the website's ε mark + wordmark, theme pill in the sidebar foot. */
 export function Shell(props: {
   orgName: string;
   orgHost: string;
   searchLabel: string;
-  nav: NavItem[];
+  /** flat links (client portal) or a ready-made navigation block (admin's grouped AdminNav) */
+  nav?: NavItem[];
+  navigation?: ReactNode;
   status?: ReactNode;
   /** admin: the Mac worker chip above the theme row */
   worker?: ReactNode;
@@ -25,17 +27,15 @@ export function Shell(props: {
     <div className="app">
       <aside className="sidebar" id="sidebar" aria-label="Navigation">
         <div className="sb-brand">
-          <span className="mark" aria-hidden="true">
-            ε
-          </span>
-          <div className="sb-org">
+          <span className="brand-mark" aria-hidden="true" />
+          <div className="brand-word">
             <strong>{props.orgName}</strong>
             <span>{props.orgHost}</span>
           </div>
           <CloseMenuButton />
         </div>
         <SearchButton label={props.searchLabel} />
-        <NavLinks items={props.nav} />
+        {props.navigation ?? <NavLinks items={props.nav ?? []} />}
         <div className="sb-foot">
           {props.worker}
           <div className="row between" style={{ padding: "0 6px" }}>

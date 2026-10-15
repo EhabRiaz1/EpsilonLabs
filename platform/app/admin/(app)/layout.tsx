@@ -5,7 +5,8 @@ import { Shell, initials } from "@/app/components/Shell";
 import { AdminPalette } from "@/app/components/AdminPalette";
 import { PwaBoot } from "@/app/components/PwaBoot";
 import { displayName, getStaff } from "@/lib/session";
-import { ADMIN_PAGES } from "@/lib/admin-nav";
+import { ADMIN_NAV } from "@/lib/admin-nav";
+import { AdminNav, type TicketOrg } from "@/app/components/AdminNav";
 import { ago, hhmm, workerOnline } from "@/lib/admin-ops";
 
 const OPEN_TICKETS = ["new", "triaged", "briefed", "planned", "approved", "in_progress"];
@@ -18,14 +19,28 @@ export default async function AdminAppLayout({ children }: { children: ReactNode
   if (claims.aal !== "aal2") redirect("/mfa");
   const name = displayName(claims);
   // sidebar counts (RLS scopes all of them): decks waiting, new enquiries, tickets waiting on the founder
-  const [approvals, intake, tickets, worker, queued, updates] = await Promise.all([
+  const [approvals, intake, tickets, worker, queued, updates, openByOrg] = await Promise.all([
     supabase.from("approval_queue").select("id", { count: "exact", head: true }).eq("status", "pending").eq("held", false),
     supabase.from("intake").select("id", { count: "exact", head: true }).eq("status", "new"),
     supabase.from("tickets").select("id", { count: "exact", head: true }).in("status", OPEN_TICKETS),
     supabase.from("agent_heartbeats").select("last_run").eq("agent", "worker").order("last_run", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("jobs").select("id", { count: "exact", head: true }).eq("status", "queued"),
     supabase.from("updates").select("id", { count: "exact", head: true }).eq("status", "draft"),
+    // the Tickets tree: open tickets per client (a failure just renders Tickets without the tree)
+    supabase.from("tickets").select("org_id, organizations(name, is_demo)").in("status", OPEN_TICKETS).limit(500),
   ]);
+  const ticketOrgs: TicketOrg[] | null = openByOrg.error
+    ? null
+    : Object.values(
+        ((openByOrg.data ?? []) as unknown as { org_id: string; organizations: { name: string; is_demo: boolean } | null }[]).reduce<
+          Record<string, TicketOrg>
+        >((acc, r) => {
+          const name = r.organizations?.name ?? "Client";
+          acc[r.org_id] = { id: r.org_id, name, open: (acc[r.org_id]?.open ?? 0) + 1 };
+          return acc;
+        }, {}),
+      ).sort((a, b) => b.open - a.open || a.name.localeCompare(b.name));
+  if (openByOrg.error) console.error("nav tree query failed:", openByOrg.error.message);
   const counts: Record<string, { count?: number; hot?: boolean }> = {
     "/approvals": { count: approvals.count || undefined, hot: true },
     "/intake": { count: intake.count || undefined },
@@ -37,10 +52,10 @@ export default async function AdminAppLayout({ children }: { children: ReactNode
   const online = workerOnline(last, now);
   return (
     <Shell
-      orgName="Epsilon admin"
+      orgName="Epsilon Labs"
       orgHost="admin.epsilon-labs.co"
       searchLabel="Jump to…"
-      nav={ADMIN_PAGES.map((p) => ({ href: p.href, label: p.label, icon: p.icon, ...counts[p.href] }))}
+      navigation={<AdminNav groups={ADMIN_NAV} counts={counts} ticketOrgs={ticketOrgs} />}
       worker={
         <div className={`sb-worker${online ? "" : " off"}`} role="status">
           <span className="dot" />
@@ -67,7 +82,7 @@ export default async function AdminAppLayout({ children }: { children: ReactNode
           </span>
         )
       }
-      user={{ name, detail: staff.email, initials: initials(name) }}
+      user={{ name, detail: staff.scope === "test" ? staff.email : "Founder", initials: initials(name) }}
     >
       {children}
       <AdminPalette />
