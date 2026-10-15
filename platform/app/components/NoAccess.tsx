@@ -10,7 +10,7 @@ export function NoAccess({ email }: { email?: string }) {
         {email ? <span className="mono">{email}</span> : "This account"} can&apos;t open Epsilon admin. If you are a client, use
         client.epsilon-labs.co.
       </p>
-      <form action={signOut} style={{ marginTop: 20 }}>
+      <form action={signOut} className="mt-20">
         <button className="btn btn-secondary btn-lg btn-block" type="submit">
           Sign out
         </button>

@@ -7,6 +7,7 @@ import { PageHeader } from "@/app/components/PageHeader";
 import { Tabs, type TabItem } from "@/app/components/Tabs";
 import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
+import { one } from "@/lib/one";
 import { peopleById } from "@/lib/portal";
 import { clientStatus, PRIORITY_LABEL, staffStatus, TYPE_LABEL } from "@/lib/tickets";
 import { dayMonth, stamp } from "@/lib/dates";
@@ -36,7 +37,6 @@ type RunRow = {
 type Agent = ProjectAgent & { id: string; test_env_file: string | null; default_branch: string | null };
 const RUN_COLS = "id, stage, status, output, notes, diff_stat, diff, test_result, usage, tokens, worktree, branch, base_sha, head_sha, error, edited_at, approved_at, preview_requested_at, pushed_at, push_error, preview_url, created_at, finished_at";
 type File = { id: string; name: string; size: number; created_at: string; uploaded_by: string | null };
-const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
 
 /** The current ask of the pipeline (design review D8): the accent pill and the header's primary button. */
 type Ask = { pill: string; tone?: "accent" | "good" | "warn" | "bad"; button?: ReactNode };

@@ -342,11 +342,11 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday, online =
         <table className="table">
           <thead>
             <tr>
-              <th style={{ width: 52 }} aria-label="Kind" />
+              <th className="th-kind" aria-label="Kind" />
               <th>Item</th>
               <th className="hide-m">Who</th>
               <th>Status</th>
-              <th className="hide-m" style={{ textAlign: "right" }}>When</th>
+              <th className="hide-m ta-r">When</th>
             </tr>
           </thead>
           <tbody>
@@ -381,7 +381,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday, online =
                         <div>
                           {open && (
                             <div className={`detail-body q-card${out}`} id="card">
-                              <div className="stack" style={{ gap: 10, minWidth: 0 }}>
+                              <div className="stack g-10 min-0">
                                 {c.held && <Note tone="warn">Held: {c.heldReason || "needs a look"}</Note>}
                                 {c.theyWrote && (
                                   <div className="untrusted">
@@ -414,7 +414,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday, online =
                                         onChange={(e) => setText(e.target.value)}
                                         rows={Math.min(18, Math.max(6, text.split("\n").length + 1))}
                                       />
-                                      <p className="c-3 t-12" style={{ marginTop: 8 }}>{c.source === "update" ? "Published to the client's portal when the undo runs out. Esc cancels." : "Re-linted on the Mac before sending. Esc cancels."}</p>
+                                      <p className="c-3 t-12 mt-8">{c.source === "update" ? "Published to the client's portal when the undo runs out. Esc cancels." : "Re-linted on the Mac before sending. Esc cancels."}</p>
                                     </>
                                   ) : (
                                     <div className="pre">{c.draft}</div>
@@ -452,7 +452,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday, online =
                               </div>
                               <div className="detail-actions" onClick={(e) => e.stopPropagation()}>
                                 {actionButtons(c, true)}
-                                <span className="c-3 t-12" style={{ marginLeft: "auto" }}>{i + 1} of {visible.length}</span>
+                                <span className="c-3 t-12 ml-auto">{i + 1} of {visible.length}</span>
                               </div>
                             </div>
                           )}

@@ -22,7 +22,7 @@ export function TermsToggle({ version, active }: { version: string; active: bool
     });
   }
   return (
-    <div className="stack" style={{ gap: 8, alignItems: "flex-end" }}>
+    <div className="stack g-8 ai-end">
       <button className={`btn btn-sm ${active ? "btn-secondary" : "btn-primary"}`} type="button" disabled={pending} onClick={() => void toggle()}>
         {pending ? <span className="spinner" /> : null}
         {active ? "Deactivate" : "Activate"}

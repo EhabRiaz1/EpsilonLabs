@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { MenuButton } from "@/app/components/ShellControls";
-import { AutoRefresh } from "@/app/components/AutoRefresh";
-import { Sparkline } from "@/app/components/Sparkline";
+import { PageHeader } from "@/app/components/PageHeader";
+import { KpiTile } from "@/app/components/KpiTile";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { TrendChart } from "@/app/components/TrendChart";
 import { getSession } from "@/lib/session";
 import {
   changeText, conversion, countryLabel, dayLabels, deviceLabel, funnelRows, parseSitemap, pct, sitemapTree, sourceLabel,
   unlistedPages, utmLabel, weekTrend, zeroViewPages,
-  type DayRow, type Funnel, type PageRow, type TreeNode,
+  TRACKING_SINCE, type DayRow, type Funnel, type FunnelRow, type PageRow, type TreeNode,
 } from "@/lib/analytics";
+import { TreeToggle } from "./TreeToggle";
 
 export const metadata: Metadata = { title: "Analytics" };
 
@@ -32,7 +34,7 @@ async function sitemapPaths(): Promise<{ paths: string[]; error: string | null }
 
 function Bars({ rows, empty }: { rows: { key: string; label: string; value: number; note?: string }[]; empty: string }) {
   const max = Math.max(1, ...rows.map((r) => r.value));
-  if (!rows.length) return <div className="an-rows"><p className="c-3 t-13" style={{ padding: "6px 0 4px" }}>{empty}</p></div>;
+  if (!rows.length) return <Empty variant="inline">{empty}</Empty>;
   return (
     <div className="an-rows">
       {rows.map((r) => (
@@ -42,6 +44,38 @@ function Bars({ rows, empty }: { rows: { key: string; label: string; value: numb
           <div className="meter" aria-hidden="true"><span style={{ width: `${pct(r.value, max)}%` }} /></div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** The /start funnel as stepped bars (each scaled to the visitors who opened /start), with the drop-off between
+ *  consecutive steps. "Visited the site" is the header line, not a bar: it would flatten every step under it. */
+function StepFunnel({ rows }: { rows: FunnelRow[] }) {
+  const [visits, ...steps] = rows;
+  const top = Math.max(1, steps[0]?.sessions ?? 0);
+  return (
+    <div className="an-funnel">
+      <p className="an-funnel-head c-3 t-12 mono">
+        {visits.sessions.toLocaleString("en-US")} visits · {steps[0]?.ofVisits ?? 0}% opened /start
+      </p>
+      <ol className="an-steps">
+        {steps.map((r, i) => (
+          <li key={r.key}>
+            {i > 0 && (
+              <div className="an-drop" aria-label={`${100 - (r.ofPrev ?? 0)}% dropped off`}>
+                <span aria-hidden="true">↓</span> {100 - (r.ofPrev ?? 0)}% drop-off
+              </div>
+            )}
+            <div className="an-step">
+              <span className="truncate">{r.label}</span>
+              <span className="num c-2">{r.sessions.toLocaleString("en-US")}</span>
+              <div className="an-step-bar" aria-hidden="true">
+                <span style={{ width: `${Math.max(r.sessions ? 2 : 0, pct(r.sessions, top))}%` }} />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
@@ -95,72 +129,55 @@ export default async function AnalyticsPage() {
   const zero = zeroViewPages(tree);
   const unlisted = unlistedPages(map.paths, allPages).slice(0, 10);
   const funnelData = funnelRows(f);
+  const noData = !failed && days.every((d) => !d.views);
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Analytics</h1>
-            <div className="sub">epsilon-labs.co, last 30 days. No cookies and no IP addresses; visitors with Do-Not-Track or GPC are not counted.</div>
-          </div>
-        </div>
-        <AutoRefresh seconds={30} />
-      </header>
+      <PageHeader
+        title="Analytics"
+        refresh={30}
+        sub="epsilon-labs.co, last 30 days. No cookies and no IP addresses; visitors with Do-Not-Track or GPC are not counted."
+      />
 
-      {failed?.error ? (
-        <div className="panel panel-pad c-bad t-13" role="alert" style={{ marginBottom: 14 }}>Couldn&apos;t load analytics: {failed.error.message}</div>
-      ) : null}
+      {failed?.error ? <Note tone="error" retry>Couldn&apos;t load analytics: {failed.error.message}</Note> : null}
 
       <section className="kpi kpi-4">
-        <div className="panel tile">
-          <div className="l">
-            <div className="k"><span className="dot live c-good" aria-hidden="true" /> Live now · 5 min</div>
-            <div className="v big num">{now.sessions}</div>
-            <div className="d truncate">{now.pages[0] ? `${now.pages[0].path} · ${now.pages[0].sessions}` : "nobody on the site"}</div>
-          </div>
-        </div>
-        <div className="panel tile">
-          <div className="l">
-            <div className="k">Page views · 7 days</div>
-            <div className="v big num">{views.last7.toLocaleString("en-US")}</div>
-            <div className={`d${views.change !== null && views.change < 0 ? " down" : views.change ? " up" : ""}`}>{changeText(views.change, views.prev7)}</div>
-          </div>
-          <Sparkline data={days.map((d) => d.views)} label="Page views per day, last 30 days" />
-        </div>
-        <div className="panel tile">
-          <div className="l">
-            <div className="k">Visits · 7 days</div>
-            <div className="v big num">{sessions.last7.toLocaleString("en-US")}</div>
-            <div className={`d${sessions.change !== null && sessions.change < 0 ? " down" : sessions.change ? " up" : ""}`}>{changeText(sessions.change, sessions.prev7)}</div>
-          </div>
-          <Sparkline data={days.map((d) => d.sessions)} label="Visits per day, last 30 days" />
-        </div>
-        <div className="panel tile">
-          <div className="l">
-            <div className="k">/start → sent · 30 days</div>
-            <div className="v big num">{conversion(f)}</div>
-            <div className="d">{f ? `${f.submit} sent of ${f.start} who opened /start` : "no data"}</div>
-          </div>
-        </div>
+        <KpiTile label="Live now · 5 min" value={now.sessions} context={now.pages[0] ? `${now.pages[0].path} · ${now.pages[0].sessions}` : "nobody on the site"} />
+        <KpiTile
+          label="Page views · 7 days"
+          value={views.last7.toLocaleString("en-US")}
+          context={noData ? `tracking started ${TRACKING_SINCE}` : views.change === null ? changeText(null, views.prev7) : undefined}
+          delta={views.change === null ? null : { text: changeText(views.change, views.prev7), dir: views.change > 0 ? "up" : views.change < 0 ? "down" : "flat" }}
+        />
+        <KpiTile
+          label="Visits · 7 days"
+          value={sessions.last7.toLocaleString("en-US")}
+          context={noData ? `tracking started ${TRACKING_SINCE}` : sessions.change === null ? changeText(null, sessions.prev7) : undefined}
+          delta={sessions.change === null ? null : { text: changeText(sessions.change, sessions.prev7), dir: sessions.change > 0 ? "up" : sessions.change < 0 ? "down" : "flat" }}
+        />
+        <KpiTile label="/start → sent · 30 days" value={conversion(f)} context={f && f.start ? `${f.submit} sent · ${f.start} opened` : "no /start visits yet"} />
       </section>
 
       <section className="panel an-chart" aria-label="Views per day">
         <div className="row between">
-          <h2 className="t-16" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>Views per day · last 30 days</h2>
-          <span className="c-3 t-12">{days.at(-1)?.views ?? 0} today</span>
+          <h2 className="t-16">Views per day · last 30 days</h2>
+          <span className="c-3 t-12 mono">{days.at(-1)?.views ?? 0} today</span>
         </div>
-        <TrendChart labels={dayLabels(days)} series={[{ name: "Page views", data: days.map((d) => d.views) }, { name: "Visits", data: days.map((d) => d.sessions) }]} aria="Page views and visits per day, last 30 days" />
+        {noData ? (
+          <Empty variant="inline">Tracking started {TRACKING_SINCE} · no page views recorded yet.</Empty>
+        ) : (
+          <TrendChart labels={dayLabels(days)} series={[{ name: "Page views", data: days.map((d) => d.views) }, { name: "Visits", data: days.map((d) => d.sessions) }]} aria="Page views and visits per day, last 30 days" />
+        )}
       </section>
 
       <div className="an-grid">
         <section className="panel">
           <div className="panel-head"><h2>The /start funnel</h2><span className="more c-3 t-12">visits, 30 days</span></div>
-          <Bars
-            empty="No visits recorded yet."
-            rows={funnelData.map((r) => ({ key: r.key, label: r.label, value: r.sessions, note: r.ofPrev === null ? undefined : `${r.ofPrev}% of previous` }))}
-          />
+          {funnelData.length && funnelData[0].sessions > 0 ? (
+            <StepFunnel rows={funnelData} />
+          ) : (
+            <Empty variant="inline">Tracking started {TRACKING_SINCE} · no visits recorded yet.</Empty>
+          )}
         </section>
         <section className="panel">
           <div className="panel-head"><h2>Top pages</h2><span className="more c-3 t-12">views</span></div>
@@ -169,31 +186,34 @@ export default async function AnalyticsPage() {
         <section className="panel">
           <div className="panel-head"><h2>Sources</h2><span className="more c-3 t-12">first page of each visit</span></div>
           <Bars empty="No visits yet." rows={src.referrers.map((r) => ({ key: r.host || "-", label: sourceLabel(r.host), value: r.sessions }))} />
-          <div className="panel-head" style={{ paddingTop: 4 }}><h2>Campaigns (utm)</h2></div>
+          <div className="panel-head pt-4"><h2>Campaigns (utm)</h2></div>
           <Bars empty="No tagged links used yet." rows={src.utm.map((u, i) => ({ key: `${i}`, label: utmLabel(u), value: u.sessions }))} />
         </section>
         <section className="panel">
           <div className="panel-head"><h2>Live now</h2><span className="more c-3 t-12">page each visitor is on</span></div>
           <Bars empty="Nobody in the last 5 minutes." rows={now.pages.map((p) => ({ key: p.path, label: p.path, value: p.sessions }))} />
-          <div className="panel-head" style={{ paddingTop: 4 }}><h2>Devices</h2></div>
+          <div className="panel-head pt-4"><h2>Devices</h2></div>
           <Bars empty="No visits yet." rows={br.devices.map((d) => ({ key: d.device, label: deviceLabel(d.device), value: d.sessions }))} />
-          <div className="panel-head" style={{ paddingTop: 4 }}><h2>Countries</h2></div>
+          <div className="panel-head pt-4"><h2>Countries</h2></div>
           <Bars empty="No visits yet." rows={br.countries.map((c) => ({ key: c.country || "-", label: countryLabel(c.country), value: c.sessions }))} />
         </section>
       </div>
 
-      <section className="panel" style={{ marginTop: 14 }} aria-label="Sitemap">
+      <section className="panel an-sitemap" aria-label="Sitemap">
         <div className="panel-head">
           <h2>Sitemap · views per page, 30 days</h2>
-          <span className="more c-3 t-12">{map.paths.length} pages · {zero.length} with no views</span>
+          <span className="more row g-8">
+            <span className="c-3 t-12">{map.paths.length} pages · {zero.length} with no views</span>
+            {map.paths.length ? <TreeToggle target="sitemap-tree" /> : null}
+          </span>
         </div>
-        {map.error ? <p className="c-bad t-13" style={{ padding: "0 22px 12px" }}>{map.error}</p> : null}
+        {map.error ? <Note tone="error" className="an-note">{map.error}</Note> : null}
         {map.paths.length ? (
-          <div className="tree-root"><ul className="tree"><Tree node={tree} /></ul></div>
+          <div className="tree-root" id="sitemap-tree"><ul className="tree"><Tree node={tree} /></ul></div>
         ) : null}
         {unlisted.length ? (
           <>
-            <div className="panel-head" style={{ paddingTop: 4 }}><h2>Viewed but not in the sitemap</h2></div>
+            <div className="panel-head pt-4"><h2>Viewed but not in the sitemap</h2></div>
             <Bars empty="" rows={unlisted.map((p) => ({ key: p.path, label: p.path, value: p.views }))} />
           </>
         ) : null}

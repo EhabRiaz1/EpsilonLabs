@@ -10,6 +10,7 @@ import { TrendChart } from "@/app/components/TrendChart";
 import { Empty } from "@/app/components/Empty";
 import { Note } from "@/app/components/Note";
 import { firstName, getSession } from "@/lib/session";
+import { one } from "@/lib/one";
 import { dayMonth, greeting, longDate } from "@/lib/dates";
 import { ago, hhmm, isVerify, money, pktMidnight, until, workerOnline } from "@/lib/admin-ops";
 import { AGENT_CATALOG, agentRow, type Beat, type JobSnap } from "@/lib/admin-agents";
@@ -35,7 +36,6 @@ type Proposal = { id: string; title: string; total: number | string; status: str
 type Invoice = { id: string; number: string | null; total: number | string; currency: string; due_date: string | null; status: string; organizations: { name: string } | { name: string }[] | null };
 type Need = { key: string; n: number; label: string; context: string; href: string; tone?: "warn" | "bad" };
 const sum = (rows: { value_usd?: number | string | null }[] | null) => (rows ?? []).reduce((s, d) => s + Number(d.value_usd ?? 0), 0);
-const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
 const usd = (v: number) => `$${Math.round(v).toLocaleString("en-US")}`;
 
 export default async function AdminToday() {

@@ -127,8 +127,8 @@ export function PushToggle() {
   };
 
   return (
-    <div className="push-toggle" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div className="row" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+    <div className="push-toggle stack g-10">
+      <div className="row wrap g-10">
         <span className={`pill ${state === "on" ? "pill-good" : state === "blocked" ? "pill-bad" : "pill-white"}`}>
           <span className="dot" />
           {state === "on" ? "On for this device" : state === "checking" ? "Checking" : "Off"}
@@ -150,11 +150,11 @@ export function PushToggle() {
           </>
         )}
       </div>
-      <p className="c-3 t-12" style={{ margin: 0, maxWidth: "60ch", lineHeight: 1.55 }}>
+      <p className="c-3 t-12 push-hint">
         {note[state]}
       </p>
       {msg && (
-        <p className="c-bad t-12" role="alert" style={{ margin: 0 }}>
+        <p className="c-bad t-12 m-0" role="alert">
           {msg}
         </p>
       )}

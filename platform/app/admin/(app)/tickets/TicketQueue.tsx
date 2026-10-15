@@ -42,11 +42,11 @@ export function TicketQueue({ rows }: { rows: QueueRow[] }) {
     <table className="table">
       <thead>
         <tr>
-          <th style={{ width: 52 }} aria-label="Kind" />
+          <th className="th-kind" aria-label="Kind" />
           <th>Ticket</th>
           <th className="hide-m">Client</th>
           <th>Status</th>
-          <th className="hide-m" style={{ textAlign: "right" }}>
+          <th className="hide-m ta-r">
             Updated
           </th>
         </tr>
@@ -89,7 +89,7 @@ export function TicketQueue({ rows }: { rows: QueueRow[] }) {
                               <Icon name="alert" className="i-sm" />
                               Client wrote · untrusted
                             </div>
-                            <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{r.body ? (r.body.length > 600 ? `${r.body.slice(0, 600)}…` : r.body) : "(no description)"}</div>
+                            <div className="pre-wrap break-any">{r.body ? (r.body.length > 600 ? `${r.body.slice(0, 600)}…` : r.body) : "(no description)"}</div>
                           </div>
                         </div>
                         <div className="side">
@@ -108,7 +108,7 @@ export function TicketQueue({ rows }: { rows: QueueRow[] }) {
                             <span className="kbd">O</span>
                           </Link>
                           <StatusControl id={r.id} status={r.status.raw} compact />
-                          <span className="c-3 t-12" style={{ marginLeft: "auto" }}>
+                          <span className="c-3 t-12 ml-auto">
                             {i + 1} of {rows.length}
                           </span>
                         </div>

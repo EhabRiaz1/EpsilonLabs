@@ -24,16 +24,16 @@ export const AGENT_CATALOG: [string, CatalogEntry[]][] = [
     { key: "watchdog", label: "Watchdog", what: "Pings healthchecks.io so you are emailed if the system stops.", job: null, hb: "watchdog", stale: 3600 },
   ]],
   ["Always on", [
-    { key: "worker", label: "Worker", what: "Every minute: starts Run-now requests from here, sends push notifications, reports this page's launchd state.", job: "worker", hb: "worker", stale: 5 * 60 },
+    { key: "worker", label: "Worker", what: "Every minute: starts Run-now requests from here, sends push notifications, reports this page's launchd state, and drafts weekly updates, delivery reports and referral asks.", job: "worker", hb: "worker", stale: 5 * 60 },
     { key: "project_agent", label: "Project agent", what: "Every minute: tool-less ticket briefs, read-only plans, approved agent runs in a git worktree, preview pushes you ask for, and the 10-minute commit scan for manual tickets.", job: "project_agent", hb: "project_agent", stale: 45 * 60 },
     { key: "dashboard", label: "Local cockpit", what: "The 8787 cockpit on the Mac (127.0.0.1:8787).", job: "dashboard", hb: null, stale: 0 },
     { key: "keepawake", label: "Keep-awake", what: "Stops the Mac from idle-sleeping so jobs keep running.", job: "keepawake", hb: null, stale: 0 },
   ]],
 ];
+/** Agents not built yet. Weekly updates and report drafts run inside the worker (agents/platform_jobs.py) and invoices
+ *  are scheduled by the database from the proposal's payment plan, so only the proposal drafter is left. */
 export const PLANNED_AGENTS: [string, string][] = [
-  ["Weekly updates", "Drafts each client's Friday update for your approval."],
   ["Proposal drafter", "Drafts deal-room proposals from your packages and call notes."],
-  ["Invoice and report drafter", "Drafts invoices and R2-style delivery reports."],
 ];
 export const RUNNABLE = new Set(["prospector", "tenders", "brief"]);
 
@@ -42,7 +42,7 @@ export type Beat = { agent: string; last_run: string; status: "ok" | "warn" | "e
 export type AgentState = "ok" | "amber" | "red" | "idle";
 export type AgentRow = CatalogEntry & {
   state: AgentState; text: string; running: boolean; cadence: string; last: string; summary: string; issue: string;
-  next: string | null; calls: number; runnable: boolean; history: string[]; exit: string | null;
+  next: string | null; calls: number; runnable: boolean; history: string[]; historyAt: string[]; exit: string | null;
 };
 
 /** data.agents_overview for one entry. `snap` is null when the worker has not reported (no launchd facts). */
@@ -78,6 +78,7 @@ export function agentRow(a: CatalogEntry, beats: Beat[], snap: JobSnap | null, c
     issue: last ? detailIssue(last.detail) : "",
     runnable: RUNNABLE.has(a.job ?? "") && !running,
     history: beats.map((b) => b.status).reverse(),
+    historyAt: beats.map((b) => b.last_run).reverse(),
     exit: snap?.exit ?? null,
   };
 }

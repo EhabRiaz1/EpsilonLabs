@@ -4,7 +4,7 @@
 .auth {
   min-height: calc(100vh - var(--frame-pad) * 2); margin: var(--frame-pad);
   background: var(--canvas); border-radius: var(--r-xl); padding: 24px 16px;
-  box-shadow: inset 0 0 0 1px var(--hairline), 0 30px 80px -40px rgba(27, 26, 24, .35);
+  box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow-lg);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
 }
 .auth-card { width: min(440px, 100%); padding: 30px 28px 26px; border-radius: var(--r-lg); box-shadow: var(--shadow-md); animation: enter var(--d-slow) var(--ease) both; }
@@ -16,13 +16,11 @@
 .link-btn { background: none; border: 0; padding: 0; color: var(--accent-text); font-weight: 600; cursor: pointer; font-size: inherit; }
 .link-btn:disabled { color: var(--text-3); cursor: default; }
 .mfa-qr { display: flex; gap: 18px; align-items: center; margin-top: 20px; padding: 14px; border-radius: 18px; background: var(--surface-2); }
+/* #fff on purpose in both modes: a QR code needs a white quiet zone to scan */
 .mfa-qr img { display: block; border-radius: 12px; background: #fff; padding: 6px; flex: none; }
 .mfa-secret { display: block; margin-top: 8px; font-size: var(--t-12); color: var(--ink); word-break: break-all; line-height: 1.6; }
 
-/* home placeholders */
-.home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.proj { padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
-.proj .title { font-weight: 600; font-size: var(--t-16); color: var(--ink); }
+/* empty states */
 .empty h2 { font-size: var(--t-22); }
 
 /* admin: page header, proposal editor, lists (tokens only) */
@@ -50,6 +48,7 @@
 .kv-list { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; font-size: var(--t-13); }
 .kv-list dt { color: var(--text-3); }
 .kv-list dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+/* the invoice/report page preview is paper: white in both modes, like the PDF (#fff on purpose) */
 .sheet-frame { display: block; width: 100%; max-width: 210mm; margin: 0 auto; aspect-ratio: 210 / 296; border: 0; border-radius: var(--r-md); background: #fff; box-shadow: var(--shadow-md); }
 .preview-wrap { border-radius: var(--r-lg); overflow: hidden; box-shadow: inset 0 0 0 1px var(--hairline); }
 .preview-wrap .dr { margin: 0; max-width: none; min-height: 0; }

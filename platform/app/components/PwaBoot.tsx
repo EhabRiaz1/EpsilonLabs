@@ -44,27 +44,19 @@ export function PwaBoot() {
     }
   }
   return (
-    <div
-      className="panel"
-      role="note"
-      style={{
-        position: "fixed", left: 10, right: 10, top: "calc(env(safe-area-inset-top, 0px) + 10px)", zIndex: 60,
-        display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 12px 12px 16px", borderRadius: 20,
-        boxShadow: "var(--shadow-lg)", maxWidth: 460, margin: "0 auto",
-      }}
-    >
-      <span className="mark" aria-hidden="true" style={{ marginTop: 2 }}>
+    <div className="panel pwa-hint" role="note">
+      <span className="mark" aria-hidden="true">
         ε
       </span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <strong className="t-13" style={{ display: "block" }}>
+      <div className="flex-1 min-0">
+        <strong className="t-13 block">
           Install Epsilon Admin
         </strong>
-        <span className="t-12 c-2" style={{ display: "block", marginTop: 2, lineHeight: 1.5 }}>
+        <span className="t-12 c-2 block pwa-hint-body">
           Tap Share, then <strong>Add to Home Screen</strong>. Notifications on iPhone work only from the installed app.
         </span>
       </div>
-      <button className="btn btn-ghost btn-icon" type="button" aria-label="Dismiss" onClick={dismiss} style={{ flex: "none" }}>
+      <button className="btn btn-ghost btn-icon" type="button" aria-label="Dismiss" onClick={dismiss}>
         <Icon name="x" className="i-sm" />
       </button>
     </div>

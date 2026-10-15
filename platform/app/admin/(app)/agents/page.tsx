@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { MenuButton } from "@/app/components/ShellControls";
-import { AutoRefresh } from "@/app/components/AutoRefresh";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Empty } from "@/app/components/Empty";
 import { getSession } from "@/lib/session";
 import { ago, hhmm, pktMidnight, until, workerOnline } from "@/lib/admin-ops";
 import { AGENT_CATALOG, agentRow, PLANNED_AGENTS, STATE_PILL, type Beat, type JobSnap } from "@/lib/admin-agents";
-import { stamp } from "@/lib/dates";
+import { dayMonth, stamp } from "@/lib/dates";
 import { RunNow } from "./RunNow";
 
 export const metadata: Metadata = { title: "Agents" };
@@ -42,56 +42,55 @@ export default async function AgentsPage() {
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Agents</h1>
-            <div className="sub">
-              {counts.ok} healthy · {counts.amber} need a look · {counts.red} failing · {counts.idle} idle
-              {soonest?.next ? ` · next: ${soonest.label} ${until(soonest.next, now)}` : ""}
-            </div>
-          </div>
-        </div>
-        <div className="row wrap" style={{ gap: 8 }}>
-          <span className={`pill ${online ? "pill-good" : "pill-warn"}`}>
+      <PageHeader
+        title="Agents"
+        refresh={30}
+        sub={
+          <>
+            {counts.ok} healthy · {counts.amber} need a look · {counts.red} failing · {counts.idle} idle
+            {soonest?.next ? ` · next: ${soonest.label} ${until(soonest.next, now)}` : ""}
+          </>
+        }
+        actions={
+          <span className={`pill ${online ? "pill-good" : "pill-warn"}`} aria-live="polite">
             <span className={`dot${online ? " live" : ""}`} />
             {online ? `Worker online · heartbeat ${ago(w?.last_run, now)} ago` : w ? `Worker offline since ${hhmm(w.last_run)} · Run now is queued until the Mac is back` : "Worker not running yet"}
           </span>
-          <AutoRefresh seconds={30} />
-        </div>
-      </header>
+        }
+      />
 
       {AGENT_CATALOG.map(([cat]) => (
-        <section key={cat} className="panel" style={{ marginBottom: 14, overflow: "hidden" }}>
+        <section key={cat} className="panel agent-group">
           <div className="panel-head"><h2>{cat}</h2></div>
           <table className="table">
             <tbody>
               {rows.filter((r) => r.cat === cat).map((r) => (
                 <tr key={r.key}>
                   <td>
-                    <div className="row wrap" style={{ gap: 8 }}>
+                    <div className="row wrap g-8">
                       <span className="w-600">{r.label}</span>
                       <span className={`pill ${STATE_PILL[r.state]}`}><span className={`dot${r.running ? " live" : ""}`} />{r.text}</span>
                     </div>
-                    <div className="c-3 t-12" style={{ marginTop: 4 }}>{r.what}</div>
+                    <div className="c-3 t-12 mt-4">{r.what}</div>
                     {(r.summary || r.issue) && (
-                      <div className="t-12" style={{ marginTop: 4 }}>
+                      <div className="t-12 mt-4">
                         {r.summary && <span className="c-2">{r.summary}</span>}
                         {r.issue && <span className="c-bad">{r.summary ? " · " : ""}{r.issue}</span>}
                       </div>
                     )}
-                    <div className="hist" aria-label={`Last runs: ${r.history.join(", ") || "none"}`}>
-                      {r.history.map((h, k) => <i key={k} data-s={h} />)}
+                    <div className="hist" role="img" aria-label={`Last runs: ${r.history.join(", ") || "none"}`}>
+                      {r.history.map((h, k) => (
+                        <i key={k} data-s={h} title={`${dayMonth(r.historyAt[k])} ${hhmm(r.historyAt[k])} · ${h}`} />
+                      ))}
                     </div>
                   </td>
-                  <td className="hide-m t-12 c-2" style={{ whiteSpace: "nowrap" }}>
+                  <td className="hide-m t-12 c-2 nowrap">
                     <div>{r.cadence || "—"}</div>
                     <div className="c-3">last {r.last === "never" ? "never" : `${r.last} ago`}{r.calls ? ` · ${r.calls} LLM calls today` : ""}</div>
                     {r.next && <div className="c-3">next {hhmm(r.next)} · {until(r.next, now)}</div>}
                     {r.exit && r.exit !== "0" && <div className="c-warn">last exit {r.exit}</div>}
                   </td>
-                  <td style={{ textAlign: "right", width: 1 }}>
+                  <td className="ta-r w-min">
                     {r.runnable && r.job ? <RunNow agent={r.job} label={r.label} online={online} /> : null}
                   </td>
                 </tr>
@@ -101,24 +100,24 @@ export default async function AgentsPage() {
         </section>
       ))}
 
-      <div className="grid-main" style={{ marginTop: 0 }}>
+      <div className="grid-main mt-0">
         <section className="panel">
           <div className="panel-head"><h2>Run-now requests</h2></div>
-          <div className="list-rows" style={{ padding: "0 18px 14px" }}>
+          <div className="list-rows panel-list">
             {recentJobs.length ? recentJobs.map((j) => (
               <div key={j.id}>
                 <span className={`pill ${JOB_PILL[j.status] ?? ""}`}><span className="dot" />{j.status === "queued" && !online ? "queued until the Mac is back" : j.status}</span>
                 <span className="grow">{j.params?.agent ?? "?"}</span>
                 <span className="c-3 t-12">{stamp(j.created_at)}{j.error ? ` · ${j.error}` : ""}</span>
               </div>
-            )) : <p className="c-3 t-13">None yet. Run now starts the job on the Mac within a minute.</p>}
+            )) : <Empty variant="inline">None yet. Run now starts the job on the Mac within a minute.</Empty>}
           </div>
         </section>
         <section className="panel">
           <div className="panel-head"><h2>Planned</h2></div>
-          <div className="list-rows" style={{ padding: "0 18px 14px" }}>
+          <div className="list-rows panel-list">
             {PLANNED_AGENTS.map(([n, d]) => (
-              <div key={n}><span className="grow"><strong className="t-13">{n}</strong><span className="c-3 t-12" style={{ display: "block" }}>{d}</span></span></div>
+              <div key={n}><span className="grow"><strong className="t-13">{n}</strong><span className="c-3 t-12 block">{d}</span></span></div>
             ))}
           </div>
         </section>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/app/components/PageHeader";
 import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
+import { one } from "@/lib/one";
 import { relativeDay } from "@/lib/tickets";
 import { deckOrder, hhmm, kindLabel, pktMidnight, workerOnline } from "@/lib/admin-ops";
 import { ApprovalQueue, type Card, type Handoff, type View } from "./ApprovalQueue";
@@ -108,7 +109,6 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
   // 012: client-portal drafts in the same queue (weekly updates publish from here; reports open their page)
   type U = { id: string; title: string; body_md: string; source: string; week_of: string | null; inputs: Record<string, unknown> | null; lint: { type: string; text: string }[] | null; created_at: string; projects: { name: string } | { name: string }[] | null; organizations: { name: string } | { name: string }[] | null };
   type Rp = { id: string; title: string; period_label: string; content: { summary?: string[] } | null; created_at: string; projects: { name: string } | { name: string }[] | null; organizations: { name: string } | { name: string }[] | null };
-  const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
   const updateCards: Card[] = ((upd.data ?? []) as unknown as U[]).map((u) => ({
     id: u.id, kind: "update", source: "update", label: u.source === "weekly" ? "Weekly update" : "Update", who: one(u.organizations)?.name ?? "",
     company: one(u.projects)?.name ?? "", to: `Publishes to the ${one(u.organizations)?.name ?? "client"} portal`, subject: u.title, thread: "",

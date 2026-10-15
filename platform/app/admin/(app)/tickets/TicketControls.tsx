@@ -25,9 +25,9 @@ export function StatusControl({ id, status, compact }: { id: string; status: str
   const [r, setR] = useState<TicketResult>(undefined);
   const [pending, start] = useTransition();
   return (
-    <div className="stack" style={{ gap: 6 }}>
-      <div className="row wrap" style={{ gap: 8 }}>
-        <select className="select" aria-label="Status" value={next} onChange={(e) => setNext(e.target.value)} style={{ height: compact ? 36 : 40, minWidth: 150, width: "auto" }}>
+    <div className="stack g-6">
+      <div className="row wrap g-8">
+        <select className="select status-select" aria-label="Status" value={next} onChange={(e) => setNext(e.target.value)} data-compact={compact ? "" : undefined}>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
               {staffStatus(s).label}
@@ -93,7 +93,7 @@ export function ReplyComposer({ id, clientName }: { id: string; clientName: stri
         }}
         placeholder={mode === "client" ? `${clientName} sees it in the portal and gets a notification.` : "Only you see internal notes."}
       />
-      <div className="row between wrap" style={{ gap: 8 }}>
+      <div className="row between wrap g-8">
         <div className="seg" data-manual role="group" aria-label="Who sees it">
           <button type="button" aria-pressed={mode === "client"} onClick={() => setMode("client")}>
             To {clientName}
@@ -116,7 +116,7 @@ export function ReplyComposer({ id, clientName }: { id: string; clientName: stri
 export function SendNoteButton({ ticketId, eventId }: { ticketId: string; eventId: string }) {
   const router = useRouter();
   return (
-    <span className="row" style={{ gap: 8 }}>
+    <span className="row g-8">
       <button
         className="btn btn-ghost btn-sm"
         type="button"

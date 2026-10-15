@@ -6,6 +6,9 @@ export type Funnel = { visits: number; start: number; steps: { step: number; ses
 export type DayRow = { day: string; views: number; sessions: number };
 export type FunnelRow = { key: string; label: string; sessions: number; ofVisits: number; ofPrev: number | null };
 
+/** When first-party tracking went live (migration 016): the empty states say so instead of a bare zero. */
+export const TRACKING_SINCE = "14 Oct";
+
 /** The site's own hosts: a session whose first view came from one of these was opened from the site in a new tab. */
 export const SITE_HOSTS = ["epsilon-labs.co", "www.epsilon-labs.co"];
 

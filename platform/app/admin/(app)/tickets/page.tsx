@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Icon } from "@/app/components/Icon";
-import { MenuButton } from "@/app/components/ShellControls";
-import { AutoRefresh } from "@/app/components/AutoRefresh";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
+import { one } from "@/lib/one";
 import { peopleById } from "@/lib/portal";
 import { isOpen, NEEDS_CLIENT, PRIORITY_LABEL, relativeDay, staffStatus, TYPE_LABEL } from "@/lib/tickets";
 import { stamp } from "@/lib/dates";
@@ -16,7 +17,6 @@ type Row = {
   created_at: string; updated_at: string;
   organizations: { name: string } | { name: string }[] | null; projects: { name: string } | { name: string }[] | null;
 };
-const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
 const VIEWS = [
   ["you", "Waiting on you"],
   ["client", "With client"],
@@ -79,26 +79,23 @@ export default async function TicketsQueuePage({ searchParams }: { searchParams:
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Tickets</h1>
-            <div className="sub">
-              {orgName ? `${orgName} · ` : "Every client · "}
-              {all.filter((t) => inView("you", t.status)).length} waiting on you · {all.filter((t) => inView("client", t.status)).length} with the client
-              {org && (
-                <>
-                  {" · "}
-                  <Link href="/tickets">all clients</Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        <AutoRefresh seconds={15} />
-      </header>
-      <section className="panel" style={{ overflow: "hidden" }}>
+      <PageHeader
+        title="Tickets"
+        refresh={15}
+        sub={
+          <>
+            {orgName ? `${orgName} · ` : "Every client · "}
+            {all.filter((t) => inView("you", t.status)).length} waiting on you · {all.filter((t) => inView("client", t.status)).length} with the client
+            {org && (
+              <>
+                {" · "}
+                <Link href="/tickets">all clients</Link>
+              </>
+            )}
+          </>
+        }
+      />
+      <section className="panel clip">
         <div className="q-head">
           <nav className="tabs" aria-label="Filter tickets">
             {VIEWS.map(([v, label]) => (
@@ -107,30 +104,18 @@ export default async function TicketsQueuePage({ searchParams }: { searchParams:
               </Link>
             ))}
           </nav>
-          <span className="c-3 t-12 hide-m" style={{ marginLeft: "auto" }}>
+          <span className="c-3 t-12 hide-m ml-auto">
             <span className="kbd">J</span> <span className="kbd">K</span> move · <span className="kbd">O</span> open
           </span>
         </div>
         {error ? (
-          <p className="c-bad t-13 panel-pad">Couldn&apos;t load tickets. Reload to retry.</p>
+          <Note tone="error" retry className="m-16">Couldn&apos;t load tickets.</Note>
         ) : rows.length ? (
           <TicketQueue rows={rows} />
         ) : (
-          <div className="empty">
-            <div className="orb">
-              <span className="wave" />
-              <span className="wave" />
-              <span className="core">
-                <Icon name="check" className="i-lg" />
-              </span>
-            </div>
-            <h2 className="display" style={{ fontSize: "var(--t-28)" }}>
-              All clear
-            </h2>
-            <p className="c-2" style={{ maxWidth: "36ch" }}>
-              {view === "you" ? "Nothing waits on you. New client requests land here within 15 seconds." : "No tickets in this view."}
-            </p>
-          </div>
+          <Empty title="All clear">
+            <span>{view === "you" ? "Nothing waits on you. New client requests land here within 15 seconds." : "No tickets in this view."}</span>
+          </Empty>
         )}
       </section>
     </>

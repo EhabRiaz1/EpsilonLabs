@@ -126,7 +126,7 @@ export function BriefCard({ brief, approve, edit, redraft, editable }: {
   }, undefined);
   if (editing && edit)
     return (
-      <form action={act} className="stack" style={{ gap: 10 }}>
+      <form action={act} className="stack g-10">
         <label className="field"><span>Title</span><input className="input" name="title" maxLength={120} defaultValue={brief.title ?? ""} /></label>
         <label className="field"><span>Problem</span><textarea className="textarea" name="problem" maxLength={1200} defaultValue={brief.problem ?? ""} /></label>
         <label className="field"><span>Change (one per line)</span><textarea className="textarea" name="change" defaultValue={joinLines(brief.change)} /></label>
@@ -134,7 +134,7 @@ export function BriefCard({ brief, approve, edit, redraft, editable }: {
         <label className="field"><span>Acceptance</span><textarea className="textarea" name="acceptance" defaultValue={joinLines(brief.acceptance)} /></label>
         <label className="field"><span>Questions for the client</span><textarea className="textarea" name="questions_for_client" defaultValue={joinLines(brief.questions_for_client)} /></label>
         <input type="hidden" name="notes" value={brief.notes ?? ""} />
-        <div className="row wrap" style={{ gap: 8 }}>
+        <div className="row wrap g-8">
           <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>{pending ? <span className="spinner" /> : <Icon name="check" className="i-sm" />}Save brief</button>
           <button className="btn btn-ghost btn-sm" type="button" onClick={() => setEditing(false)}>Cancel</button>
         </div>
@@ -144,7 +144,7 @@ export function BriefCard({ brief, approve, edit, redraft, editable }: {
     );
   return (
     <div className="brief-view">
-      {brief.title && <h3 className="t-16 w-600" style={{ marginBottom: 6 }}>{brief.title}</h3>}
+      {brief.title && <h3 className="t-16 w-600 mb-6">{brief.title}</h3>}
       <h4>Problem</h4>
       <p>{brief.problem}</p>
       <List title="Change" items={brief.change} />
@@ -153,13 +153,13 @@ export function BriefCard({ brief, approve, edit, redraft, editable }: {
       <List title="Questions for the client" items={brief.questions_for_client} />
       {brief.notes && (<><h4>AI notes for you</h4><p className="c-2">{brief.notes}</p></>)}
       {brief.screened && brief.screened.length > 0 && (
-        <div className="untrusted" style={{ marginTop: 12 }}>
+        <div className="untrusted mt-12">
           <div className="untrusted-tag"><Icon name="shield" className="i-sm" />Removed by the screen · {brief.screened.length} line(s) asked for things outside the project</div>
-          <ul className="plan-list">{brief.screened.map((s, i) => <li key={i} style={{ overflowWrap: "anywhere" }}>{s}</li>)}</ul>
+          <ul className="plan-list">{brief.screened.map((s, i) => <li key={i} className="break-any">{s}</li>)}</ul>
         </div>
       )}
       {editable && (
-        <div className="row wrap" style={{ gap: 8, marginTop: 14 }}>
+        <div className="row wrap g-8 mt-14">
           {approve && <Act action={approve} label="Approve brief" icon="check" cls="btn btn-primary btn-sm" />}
           {edit && <button className="btn btn-secondary btn-sm" type="button" onClick={() => setEditing(true)}><Icon name="pencil" className="i-sm" />Edit</button>}
           {redraft && <Act action={redraft} label="Redraft" icon="undo" cls="btn btn-ghost btn-sm" confirmTitle="Draft a new brief?" confirmText="This one is set aside and the Mac drafts a new one, tool-less, from the ticket text." />}
@@ -180,19 +180,19 @@ export function PlanCard({ plan, approve, edit, redo, editable, touched }: {
   }, undefined);
   if (editing && edit)
     return (
-      <form action={act} className="stack" style={{ gap: 10 }}>
+      <form action={act} className="stack g-10">
         <label className="field"><span>Summary</span><textarea className="textarea" name="summary" maxLength={1200} defaultValue={plan.summary ?? ""} /></label>
         <label className="field"><span>Files (path: change, one per line)</span><textarea className="textarea mono-ish" name="files" defaultValue={(plan.files ?? []).map((f) => `${f.path}: ${f.change}`).join("\n")} /></label>
         <label className="field"><span>Steps</span><textarea className="textarea" name="steps" defaultValue={joinLines(plan.steps)} /></label>
         <label className="field"><span>Tests to add</span><textarea className="textarea" name="tests_to_add" defaultValue={joinLines(plan.tests_to_add)} /></label>
         <label className="field"><span>Risks</span><textarea className="textarea" name="risks" defaultValue={joinLines(plan.risks)} /></label>
-        <div className="row" style={{ gap: 8 }}>
-          <label className="field" style={{ flex: 1 }}><span>Hours, low</span><input className="input" name="low" type="number" min={0} step="0.5" defaultValue={plan.estimate_hours?.low ?? 0} /></label>
-          <label className="field" style={{ flex: 1 }}><span>Hours, high</span><input className="input" name="high" type="number" min={0} step="0.5" defaultValue={plan.estimate_hours?.high ?? 0} /></label>
+        <div className="row g-8">
+          <label className="field flex-1"><span>Hours, low</span><input className="input" name="low" type="number" min={0} step="0.5" defaultValue={plan.estimate_hours?.low ?? 0} /></label>
+          <label className="field flex-1"><span>Hours, high</span><input className="input" name="high" type="number" min={0} step="0.5" defaultValue={plan.estimate_hours?.high ?? 0} /></label>
         </div>
         <input type="hidden" name="questions_for_client" value={joinLines(plan.questions_for_client)} />
         <input type="hidden" name="notes" value={plan.notes ?? ""} />
-        <div className="row wrap" style={{ gap: 8 }}>
+        <div className="row wrap g-8">
           <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>{pending ? <span className="spinner" /> : <Icon name="check" className="i-sm" />}Save plan</button>
           <button className="btn btn-ghost btn-sm" type="button" onClick={() => setEditing(false)}>Cancel</button>
         </div>
@@ -225,7 +225,7 @@ export function PlanCard({ plan, approve, edit, redo, editable, touched }: {
       <h4>Denied to the plan agent</h4>
       <div className="denied">Edit · Write · Bash · WebFetch · WebSearch<br />**/.env*  **/*secret*  **/*cred*  *.rtf  *.pem  *.key  ~/.ssh  ~/Library</div>
       {editable && (
-        <div className="row wrap" style={{ gap: 8, marginTop: 14 }}>
+        <div className="row wrap g-8 mt-14">
           {approve && <Act action={approve} label="Approve plan" icon="check" cls="btn btn-primary btn-sm" />}
           {edit && <button className="btn btn-secondary btn-sm" type="button" onClick={() => setEditing(true)}><Icon name="pencil" className="i-sm" />Edit</button>}
           {redo && <Act action={redo} label="Re-plan" icon="undo" cls="btn btn-ghost btn-sm" confirmTitle="Run the read-only plan again?" confirmText="This plan is set aside and the read-only agent plans again from the approved brief." />}
@@ -282,9 +282,9 @@ export function StartRun({ start }: { start: (notes: string) => Promise<FormResu
   const [notes, setNotes] = useState("");
   const { pending, r, go } = useRun();
   return (
-    <div className="stack" style={{ gap: 10 }}>
+    <div className="stack g-10">
       <textarea className="textarea" placeholder="Optional notes for the agent (it already has the approved brief and plan)." maxLength={4000} value={notes} onChange={(e) => setNotes(e.target.value)} />
-      <div className="row wrap" style={{ gap: 8 }}>
+      <div className="row wrap g-8">
         <button className="btn btn-primary" type="button" disabled={pending} onClick={() => go(() => start(notes), "play")}>
           {pending ? <span className="spinner" /> : <Icon name="play" className="i-sm" />}Start agent run
         </button>
@@ -455,9 +455,9 @@ export function ReviewActions({ branch, merge, push, discard, sendBack, attach, 
         <span className="note">Merge is done by you, on your Mac. Push runs plain <span className="mono">git push origin {branch}</span> from the worker. The AI never pushes or deploys.</span>
       </div>
       {back && (
-        <div className="composer" style={{ paddingTop: 0 }}>
+        <div className="composer pt-0">
           <textarea ref={notesRef} className="textarea" placeholder="What should change? The agent continues on the same branch." maxLength={4000} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          <div className="row" style={{ gap: 8 }}>
+          <div className="row g-8">
             <button className="btn btn-primary btn-sm" type="button" disabled={b.pending || !notes.trim()} onClick={() => b.go(() => sendBack(notes), "undo")}>
               {b.pending ? <span className="spinner" /> : <Icon name="send" className="i-sm" />}Send back
             </button>
@@ -470,8 +470,8 @@ export function ReviewActions({ branch, merge, push, discard, sendBack, attach, 
         <div className="preview" data-show="">
           <Icon name="globe" className="i-sm c-3" />
           <span className="grow">Branch pushed. Paste the preview URL:</span>
-          <input className="input" style={{ maxWidth: 280, height: 36 }} placeholder="https://…vercel.app" value={url} onChange={(e) => setUrl(e.target.value)} />
-          <label className="row t-12" style={{ gap: 6 }}><input type="checkbox" checked={toClient} onChange={(e) => setToClient(e.target.checked)} />Send to {clientName}</label>
+          <input className="input preview-url" placeholder="https://…vercel.app" value={url} onChange={(e) => setUrl(e.target.value)} />
+          <label className="row t-12 g-6"><input type="checkbox" checked={toClient} onChange={(e) => setToClient(e.target.checked)} />Send to {clientName}</label>
           <button className="btn btn-secondary btn-sm" type="button" disabled={a.pending || !url.trim()} onClick={() => {
             if (!toClient) return a.go(() => attach(url, false), "globe");
             void confirmRun(router, {

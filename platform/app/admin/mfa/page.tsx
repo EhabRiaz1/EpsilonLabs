@@ -18,7 +18,7 @@ export default async function MfaPage() {
   return (
     <AuthFrame host="admin.epsilon-labs.co">
       <MfaForm verifiedFactorId={verified?.id ?? null} />
-      <form action={signOut} style={{ marginTop: 14, textAlign: "center" }}>
+      <form action={signOut} className="mt-14 ta-c">
         <button className="link-btn t-12" type="submit">
           Not you? Sign out
         </button>

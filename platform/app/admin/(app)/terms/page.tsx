@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
 import { clientOrigin } from "@/lib/host";
 import { stamp } from "@/lib/dates";
@@ -23,20 +25,19 @@ export default async function TermsPage() {
   const rows = (data ?? []) as Row[];
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Contract terms</h1>
-            <div className="sub">
-              A proposal can only be accepted while its terms version is active. Changed terms are a new version, never an edit, once anything has been accepted.
-            </div>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Contract terms"
+        sub="A proposal can only be accepted while its terms version is active. Changed terms are a new version, never an edit, once anything has been accepted."
+      />
       {error ? (
-        <section className="panel panel-pad">
-          <p className="c-bad t-13">Couldn&apos;t load terms. Reload to retry.</p>
+        <Note tone="error" retry>
+          Couldn&apos;t load terms.
+        </Note>
+      ) : !rows.length ? (
+        <section className="panel">
+          <Empty title="No terms versions yet">
+            <span>A version is added with a database migration (like 009_deal_room.sql) once its PDF is published; it then shows here to activate.</span>
+          </Empty>
         </section>
       ) : (
         <section className="panel table-wrap">
@@ -47,7 +48,7 @@ export default async function TermsPage() {
                 <th>Status</th>
                 <th>Fingerprint</th>
                 <th>Accepted under it</th>
-                <th style={{ textAlign: "right" }}>Activate</th>
+                <th className="ta-r">Activate</th>
               </tr>
             </thead>
             <tbody>
@@ -76,7 +77,7 @@ export default async function TermsPage() {
                     {t.sha256.slice(0, 4)}…{t.sha256.slice(-4)}
                   </td>
                   <td>{counts.get(t.version) ?? 0}</td>
-                  <td style={{ textAlign: "right" }}>
+                  <td className="ta-r">
                     <TermsToggle version={t.version} active={t.active} />
                   </td>
                 </tr>
