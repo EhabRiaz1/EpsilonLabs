@@ -1,178 +1,184 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { MenuButton } from "@/app/components/ShellControls";
-import { Icon } from "@/app/components/Icon";
+import { PageHeader } from "@/app/components/PageHeader";
+import { KpiTile } from "@/app/components/KpiTile";
+import { Money } from "@/app/components/Money";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
-import { ago, money } from "@/lib/admin-ops";
-import { stamp } from "@/lib/dates";
+import { dayMonth } from "@/lib/dates";
+import { pktMidnight } from "@/lib/admin-ops";
+import { lastDays, perDay, weekDelta } from "@/lib/series";
+import { byNeed, CHANNELS, CH_LABEL, daysSince, nextStep, stageGroup, STRATEGY_TAG, type LastTouch } from "@/lib/deals";
+import { PipelineTable, type DealRow } from "./PipelineTable";
+import type { DealDetail } from "./DealSheet";
 
 export const metadata: Metadata = { title: "Pipeline" };
 
-// dashboard/data.py STAGES / CHANNELS
-const STAGES: [string, string][] = [
-  ["lead", "Lead"], ["conversation", "Conversation"], ["scoping_call", "Scoping"], ["quote_out", "Quote out"],
-  ["won_lost", "Won / Lost"], ["dormant", "Dormant"],
-];
-const CHANNELS = ["referral", "inbound", "outbound", "dream25", "pre_existing"];
-const CH_LABEL: Record<string, string> = { referral: "Referral", inbound: "Inbound", outbound: "Outbound", dream25: "Dream 25", pre_existing: "Existing" };
-const STRATEGY_TAG: Record<string, string> = {
-  s2_trigger: "S2", s3_regulation: "S3", s4_partner: "S4", s5_intent: "S5", s7_orphaned: "S7", s8_tradeshow: "S8", s9_crowdfund: "S9",
-  s10_accelerator: "S10", s11_software: "S11", s12_devpartner: "S12", s13_hn: "S13", legacy: "LEGACY",
-};
 const UUID = /^[0-9a-f-]{36}$/i;
+const PERIOD_START_DEFAULT = "2026-10-01"; // settings key revenue.period_start overrides it (same as Today)
+const DRAFT_LIVE = ["pending", "edited_pending_lint"];
 
 type Deal = {
-  id: string; title: string; stage: string; source_channel: string; value_usd: number | null; strategy: string | null;
-  company_id: string; created_at: string; updated_at: string; companies: { name: string } | { name: string }[] | null;
+  id: string; title: string; stage: string; source_channel: string; value_usd: number | string | null; strategy: string | null; company_id: string;
+  quoted_at: string | null; closed_at: string | null; lost_reason: string | null; created_at: string; updated_at: string;
+  companies: { name: string; country: string | null } | { name: string; country: string | null }[] | null;
+  contacts: { full_name: string | null; email: string | null } | { full_name: string | null; email: string | null }[] | null;
 };
 type Touch = { id: string; deal_id: string | null; type: string; direction: string; subject: string | null; body_excerpt: string | null; occurred_at: string };
 const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
+const COLS = "id, title, stage, source_channel, value_usd, strategy, company_id, quoted_at, closed_at, lost_reason, created_at, updated_at, companies(name, country), contacts:primary_contact_id(full_name, email)";
 
 export default async function PipelinePage({ searchParams }: { searchParams: Promise<{ channel?: string; deal?: string }> }) {
   const sp = await searchParams;
-  const channel = CHANNELS.includes(sp.channel ?? "") ? (sp.channel as string) : null;
+  const channel = (CHANNELS as readonly string[]).includes(sp.channel ?? "") ? (sp.channel as string) : "";
   const dealId = UUID.test(sp.deal ?? "") ? (sp.deal as string) : null;
   const { supabase } = await getSession();
   const now = new Date();
-  let q = supabase
-    .from("deals")
-    .select("id, title, stage, source_channel, value_usd, strategy, company_id, created_at, updated_at, companies(name)")
-    .order("updated_at", { ascending: false })
-    .limit(1000);
-  if (channel) q = q.eq("source_channel", channel);
-  const [deals, touches] = await Promise.all([
-    q,
-    supabase.from("touches").select("deal_id, subject, occurred_at").not("deal_id", "is", null).order("occurred_at", { ascending: false }).limit(1000),
+  const days = lastDays(now, 14);
+  const since14 = pktMidnight(now, 13);
+  const [deals, touches, drafts, recent, settings] = await Promise.all([
+    supabase.from("deals").select(COLS).order("updated_at", { ascending: false }).limit(1000),
+    supabase.from("touches").select("deal_id, type, direction, subject, occurred_at").not("deal_id", "is", null).order("occurred_at", { ascending: false }).limit(1000),
+    supabase.from("approval_queue").select("deal_id").in("status", DRAFT_LIVE).not("deal_id", "is", null).limit(1000),
+    supabase.from("touches").select("type, direction, occurred_at").gte("occurred_at", since14).in("type", ["human_reply", "sent"]).limit(2000),
+    supabase.rpc("get_settings"),
   ]);
-  const list = (deals.data ?? []) as Deal[];
-  const latest = new Map<string, string>();
-  for (const t of (touches.data ?? []) as Touch[]) if (t.deal_id && !latest.has(t.deal_id)) latest.set(t.deal_id, t.subject ?? "");
-  const groups = new Map<string, Deal[]>(STAGES.map(([k]) => [k, []]));
-  for (const d of list) groups.get(d.stage === "won" || d.stage === "lost" ? "won_lost" : d.stage)?.push(d);
+  const list = (deals.data ?? []) as unknown as Deal[];
+  const last = new Map<string, NonNullable<LastTouch>>();
+  for (const t of (touches.data ?? []) as Touch[]) if (t.deal_id && !last.has(t.deal_id)) last.set(t.deal_id, t);
+  const waiting = new Set(((drafts.data ?? []) as { deal_id: string }[]).map((d) => d.deal_id));
 
-  // deal panel (data.deal_panel)
-  let panel: { deal: Deal; company: Record<string, unknown> | null; contacts: Record<string, string | null>[]; touches: Touch[] } | null = null;
+  const rows: DealRow[] = list
+    .map((d) => {
+      const lt = last.get(d.id) ?? null;
+      const touchedAt = lt?.occurred_at ?? d.updated_at ?? d.created_at;
+      const age = daysSince(touchedAt, now);
+      const nx = nextStep(d, lt, waiting.has(d.id), age, dayMonth);
+      const co = one(d.companies);
+      const ct = one(d.contacts);
+      return {
+        id: d.id,
+        company: co?.name ?? d.title,
+        place: co?.country ?? "",
+        title: d.title,
+        stage: d.stage,
+        group: stageGroup(d.stage),
+        channel: d.source_channel,
+        strategy: d.strategy ? (STRATEGY_TAG[d.strategy] ?? d.strategy) : (CH_LABEL[d.source_channel] ?? d.source_channel).toLowerCase(),
+        contact: ct?.full_name || ct?.email || "",
+        value: d.value_usd == null ? null : Number(d.value_usd),
+        age,
+        touchedAt,
+        rank: nx.rank,
+        next: { lead: nx.lead, rest: nx.rest },
+      };
+    })
+    .sort(byNeed);
+
+  // KPI row (D10: sparklines only with signal; KpiTile decides)
+  const s = (settings.data ?? {}) as Record<string, unknown>;
+  const periodStart = /^\d{4}-\d{2}-\d{2}$/.test(String(s["revenue.period_start"] ?? "")) ? String(s["revenue.period_start"]) : PERIOD_START_DEFAULT;
+  const newLeads = perDay(list.filter((d) => d.created_at >= since14).map((d) => d.created_at), days);
+  const nNew = newLeads.reduce((a, b) => a + b, 0);
+  const tr = (recent.data ?? []) as { type: string; direction: string; occurred_at: string }[];
+  const human = tr.filter((t) => t.type === "human_reply" && t.direction === "inbound");
+  const sent = tr.filter((t) => t.type === "sent" && t.direction === "outbound");
+  const replies = perDay(human.map((t) => t.occurred_at), days);
+  const quotes = list.filter((d) => d.stage === "quote_out");
+  const quotedUsd = quotes.reduce((a, d) => a + Number(d.value_usd ?? 0), 0);
+  const wonPeriod = list.filter((d) => d.stage === "won" && d.closed_at && d.closed_at >= `${periodStart}T00:00:00+05:00`);
+  const wonUsd = wonPeriod.reduce((a, d) => a + Number(d.value_usd ?? 0), 0);
+  const firstQuote = list.map((d) => d.quoted_at).filter((x): x is string => Boolean(x)).sort()[0];
+  const activeDays = newLeads.filter((n) => n > 0).length;
+
+  // the deal sheet (deep link ?deal=; J/K swap it without closing)
+  let detail: DealDetail | null = null;
   if (dealId) {
-    const { data: d } = await supabase.from("deals").select("id, title, stage, source_channel, value_usd, strategy, company_id, created_at, updated_at, companies(name)").eq("id", dealId).maybeSingle();
+    const d = list.find((x) => x.id === dealId) ?? ((await supabase.from("deals").select(COLS).eq("id", dealId).maybeSingle()).data as unknown as Deal | null);
     if (d) {
-      const deal = d as Deal;
       const [co, ct, tt] = await Promise.all([
-        supabase.from("companies").select("name, domain, country, sector, notes").eq("id", deal.company_id).maybeSingle(),
-        supabase.from("contacts").select("full_name, email, role, opted_out").eq("company_id", deal.company_id).limit(20),
+        supabase.from("companies").select("name, domain, country, sector").eq("id", d.company_id).maybeSingle(),
+        supabase.from("contacts").select("full_name, email, role, opted_out").eq("company_id", d.company_id).limit(20),
         supabase.from("touches").select("id, deal_id, type, direction, subject, body_excerpt, occurred_at").eq("deal_id", dealId).order("occurred_at", { ascending: false }).limit(10),
       ]);
-      panel = { deal, company: co.data as Record<string, unknown> | null, contacts: (ct.data ?? []) as Record<string, string | null>[], touches: (tt.data ?? []) as Touch[] };
+      const row = rows.find((r) => r.id === d.id);
+      const lt = last.get(d.id) ?? null;
+      const nx = row?.next ?? nextStep(d, lt, waiting.has(d.id), daysSince(lt?.occurred_at ?? d.updated_at, now), dayMonth);
+      detail = {
+        id: d.id,
+        title: d.title,
+        stage: d.stage,
+        channel: CH_LABEL[d.source_channel] ?? d.source_channel,
+        strategy: d.strategy ? (STRATEGY_TAG[d.strategy] ?? d.strategy) : null,
+        value: d.value_usd == null ? null : Number(d.value_usd),
+        opened: d.created_at,
+        quotedAt: d.quoted_at,
+        closedAt: d.closed_at,
+        lostReason: d.lost_reason,
+        draftWaiting: waiting.has(d.id),
+        next: nx,
+        company: (co.data as { name: string; domain: string | null; country: string | null; sector: string | null } | null) ?? { name: one(d.companies)?.name ?? d.title, domain: null, country: null, sector: null },
+        contacts: (ct.data ?? []) as DealDetail["contacts"],
+        touches: (tt.data ?? []) as Touch[],
+        error: Boolean(co.error || ct.error || tt.error),
+      };
     }
   }
-  const href = (p: { channel?: string | null; deal?: string | null }) => {
-    const u = new URLSearchParams();
-    if (p.channel) u.set("channel", p.channel);
-    if (p.deal) u.set("deal", p.deal);
-    const s = u.toString();
-    return s ? `/pipeline?${s}` : "/pipeline";
-  };
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Pipeline</h1>
-            <div className="sub">{list.length} deals{channel ? ` · ${CH_LABEL[channel]}` : ""} · amber after 7 days still, red after 14</div>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Pipeline"
+        sub={
+          <>
+            <span>{list.length} deals</span>
+            <span aria-hidden="true">·</span>
+            <span>
+              <Money value={quotedUsd} currency="USD" /> quoted
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>sorted by needs a touch</span>
+          </>
+        }
+      />
+      {deals.error && <Note retry>Couldn&apos;t load deals.</Note>}
 
-      <nav className="tabs scroll-x" aria-label="Channel" style={{ marginBottom: 14 }}>
-        <Link className="tab" href={href({})} aria-current={!channel ? "page" : undefined}>All</Link>
-        {CHANNELS.map((c) => (
-          <Link key={c} className="tab" href={href({ channel: c })} aria-current={channel === c ? "page" : undefined}>{CH_LABEL[c]}</Link>
-        ))}
-      </nav>
-
-      {deals.error && <p className="auth-error" role="alert">Couldn&apos;t load deals. Reload to retry.</p>}
-
-      {panel && (
-        <section className="panel deal-panel" aria-label="Deal">
-          <div className="panel-head">
-            <div className="grow">
-              <h2>{one(panel.deal.companies)?.name ?? panel.deal.title}</h2>
-              <div className="c-3 t-12">{panel.deal.title}</div>
-            </div>
-            <Link className="btn btn-secondary btn-icon" href={href({ channel })} aria-label="Close deal"><Icon name="x" /></Link>
-          </div>
-          <div className="detail-body" style={{ paddingTop: 0 }}>
-            <div className="stack" style={{ minWidth: 0 }}>
-              <div className="eyebrow">Last touches</div>
-              {panel.touches.length ? panel.touches.map((t) => (
-                <div key={t.id} className={t.direction === "inbound" ? "untrusted" : "comment"}>
-                  {t.direction === "inbound" && <div className="untrusted-tag"><Icon name="alert" className="i-sm" />They wrote · untrusted</div>}
-                  <div className="c-3 t-12">{t.type.replace(/_/g, " ")} · {t.direction} · {ago(t.occurred_at, now)} ago</div>
-                  {t.subject && <div className="w-600 t-13">{t.subject}</div>}
-                  {t.body_excerpt && <div className="pre t-13">{t.body_excerpt.slice(0, 600)}</div>}
-                </div>
-              )) : <p className="c-3 t-13">No touches yet.</p>}
-            </div>
-            <div className="side">
-              <dl className="fields">
-                <dt>Stage</dt><dd>{panel.deal.stage.replace(/_/g, " ")}</dd>
-                <dt>Channel</dt><dd>{CH_LABEL[panel.deal.source_channel] ?? panel.deal.source_channel}</dd>
-                <dt>Value</dt><dd>{panel.deal.value_usd != null ? money(Number(panel.deal.value_usd)) : "—"}</dd>
-                {panel.deal.strategy && (<><dt>Strategy</dt><dd>{STRATEGY_TAG[panel.deal.strategy] ?? panel.deal.strategy}</dd></>)}
-                <dt>Opened</dt><dd>{stamp(panel.deal.created_at)}</dd>
-                {panel.company?.domain ? (<><dt>Domain</dt><dd>{String(panel.company.domain)}</dd></>) : null}
-                {panel.company?.country ? (<><dt>Country</dt><dd>{String(panel.company.country)}</dd></>) : null}
-              </dl>
-              <div className="eyebrow">Contacts</div>
-              {panel.contacts.length ? panel.contacts.map((c, k) => (
-                <div key={k} className="t-13">
-                  <strong>{c.full_name || c.email}</strong> {c.role ? <span className="c-3">· {c.role}</span> : null}
-                  <div className="c-3 t-12">{c.email}{c.opted_out ? " · opted out" : ""}</div>
-                </div>
-              )) : <p className="c-3 t-13">None on file.</p>}
-            </div>
-          </div>
-        </section>
-      )}
-
-      <div className="board">
-        {STAGES.map(([k, label]) => {
-          const g = groups.get(k) ?? [];
-          return (
-            <section key={k} className="panel board-col" aria-label={label}>
-              <div className="panel-head">
-                <h2>{label}</h2>
-                <span className="more c-3 t-12">{g.length}{g.length ? ` · ${money(g.reduce((s, d) => s + Number(d.value_usd ?? 0), 0))}` : ""}</span>
-              </div>
-              <div className="list-rows" style={{ padding: "0 12px 12px" }}>
-                {g.slice(0, 60).map((d) => {
-                  const days = Math.max(0, Math.floor((now.getTime() - Date.parse(d.updated_at || d.created_at)) / 86_400_000));
-                  const tone = days > 14 ? "c-bad" : days > 7 ? "c-warn" : "c-3";
-                  return (
-                    <Link key={d.id} href={href({ channel, deal: d.id })} aria-current={d.id === dealId ? "true" : undefined}>
-                      <span className="grow">
-                        <span className="w-600 t-13 truncate" style={{ display: "block" }}>{one(d.companies)?.name ?? d.title}</span>
-                        <span className="c-3 t-12 truncate" style={{ display: "block" }}>
-                          {CH_LABEL[d.source_channel] ?? d.source_channel}
-                          {d.strategy ? ` · ${STRATEGY_TAG[d.strategy] ?? d.strategy}` : ""}
-                          {latest.get(d.id) ? ` · ${latest.get(d.id)}` : ""}
-                        </span>
-                      </span>
-                      <span className="t-12" style={{ textAlign: "right" }}>
-                        <span style={{ display: "block" }}>{d.value_usd != null ? money(Number(d.value_usd)) : ""}</span>
-                        <span className={tone}>{days}d</span>
-                      </span>
-                    </Link>
-                  );
-                })}
-                {!g.length && <p className="c-3 t-12" style={{ padding: "8px 4px" }}>None.</p>}
-                {g.length > 60 && <p className="c-3 t-12" style={{ padding: "8px 4px" }}>{g.length - 60} more not shown.</p>}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+      <PipelineTable
+        rows={rows}
+        initialChannel={channel}
+        selected={dealId}
+        detail={detail}
+        kpis={
+          <section className="kpi4" aria-label="Pipeline numbers">
+            <KpiTile
+              label="New leads · 14 d"
+              value={nNew}
+              context={nNew ? `${Math.round(nNew / Math.max(1, activeDays))} / day` : "none in 14 days"}
+              delta={weekDelta(newLeads)}
+              series={newLeads}
+              error={Boolean(deals.error)}
+            />
+            <KpiTile
+              label="Human replies · 14 d"
+              value={human.length}
+              context={sent.length ? `${((human.length / sent.length) * 100).toFixed(1)}% of ${sent.length} sent` : "nothing sent in 14 days"}
+              series={replies}
+              error={Boolean(recent.error)}
+            />
+            <KpiTile
+              label="Quotes out"
+              value={quotes.length}
+              context={quotes.length ? <><Money value={quotedUsd} currency="USD" /> on the table</> : "none out"}
+              error={Boolean(deals.error)}
+            />
+            <KpiTile
+              label={`Won since ${dayMonth(`${periodStart}T12:00:00+05:00`)}`}
+              value={<Money value={wonUsd} currency="USD" />}
+              context={wonPeriod.length ? `${wonPeriod.length} deal${wonPeriod.length === 1 ? "" : "s"}` : firstQuote ? `first quote out ${dayMonth(firstQuote)}` : "no quote out yet"}
+              error={Boolean(deals.error)}
+            />
+          </section>
+        }
+      />
     </>
   );
 }

@@ -1,0 +1,200 @@
+/* Admin pages, Phase 2 (design review 2026-10-15): Pipeline, Opportunities, the client page and list, and the six list
+   pages (Intake, Proposals, Invoices, Reports, Updates, Testimonials). Hand-written; admin-theme.css (generated) holds
+   the mockup page rules (.ptable, .stagebar, .stats4, .proj, .lower, .act, .inv, .ppl) and is not edited. Every selector
+   is scoped to :root[data-site="admin"]; tokens only, no new colours. */
+
+/* ---- small layout helpers used by the Phase 2 pages ---- */
+:root[data-site="admin"] .gap-6 {gap: 6px;}
+:root[data-site="admin"] .gap-8 {gap: 8px;}
+:root[data-site="admin"] .gap-10 {gap: 10px;}
+:root[data-site="admin"] .gap-12 {gap: 12px;}
+:root[data-site="admin"] .mt-12 {margin-top: 12px;}
+:root[data-site="admin"] .mb-8 {margin-bottom: 8px;}
+:root[data-site="admin"] .block {display: block;}
+:root[data-site="admin"] .nowrap {white-space: nowrap;}
+:root[data-site="admin"] .pre-wrap {white-space: pre-wrap; overflow-wrap: anywhere;}
+:root[data-site="admin"] .grid-flush {margin-top: 0;}
+:root[data-site="admin"] .table th.num-col, :root[data-site="admin"] .table td.num-col {text-align: right;}
+:root[data-site="admin"] .mono-num {font-family: var(--font-mono); font-variant-numeric: tabular-nums;}
+:root[data-site="admin"] .bullets {margin: 6px 0 0; padding-left: 18px; font-size: var(--t-13); line-height: 1.6; color: var(--text-2);}
+:root[data-site="admin"] .is-pending {opacity: .55; transition: opacity var(--d) var(--ease);}
+:root[data-site="admin"] .route-tabs.is-pending + * {opacity: .55;}
+:root[data-site="admin"] .sheet-label {margin-bottom: 8px;}
+:root[data-site="admin"] .sheet-hint {margin-top: 8px;}
+:root[data-site="admin"] .sheet-body > .hint:first-child {margin-top: -6px;}
+/* a panel (RetainerPanel) inside a sheet loses its own frame */
+:root[data-site="admin"] .sheet-body > .panel {box-shadow: none; background: transparent; border-radius: 0; margin: 0 -24px;}
+
+/* ---- list pages: tabs bar inside the panel ---- */
+:root[data-site="admin"] .list-panel {overflow: hidden;}
+:root[data-site="admin"] .list-tools {display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line);}
+:root[data-site="admin"] .list-tools .tabs {max-width: 100%; overflow-x: auto; scrollbar-width: none;}
+:root[data-site="admin"] .jobs-strip {margin-bottom: 12px;}
+:root[data-site="admin"] .jobs-strip .list-rows {padding: 4px 12px 8px;}
+:root[data-site="admin"] .table-wrap + .table-wrap, :root[data-site="admin"] .table-wrap + .panel, :root[data-site="admin"] .panel + .table-wrap {margin-top: 12px;}
+
+/* ---- Pipeline / Opportunities tools row ---- */
+:root[data-site="admin"] .ptools {flex-wrap: wrap;}
+:root[data-site="admin"] .ptools .tabs {min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none;}
+:root[data-site="admin"] .ptools-r {margin-left: auto; display: flex; align-items: center; gap: 8px;}
+:root[data-site="admin"] .ptools .search-t {margin-left: 0;}
+:root[data-site="admin"] .search-t:focus-within {border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);}
+:root[data-site="admin"] .search-t input {flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--ink); font: inherit; outline: none;}
+:root[data-site="admin"] .search-t input::placeholder {color: var(--text-3);}
+:root[data-site="admin"] .search-t input::-webkit-search-cancel-button {display: none;}
+:root[data-site="admin"] .select-sm {height: 34px; padding-top: 0; padding-bottom: 0; font-size: var(--t-13); border-radius: 8px;}
+
+/* ---- the deal / tender table ---- */
+:root[data-site="admin"] .ptable-scroll {overflow-x: auto;}
+:root[data-site="admin"] .ptable col.c-co {width: 27%;}
+:root[data-site="admin"] .ptable col.c-st {width: 13%;}
+:root[data-site="admin"] .ptable col.c-sg {width: 13%;}
+:root[data-site="admin"] .ptable col.c-age {width: 9%;}
+:root[data-site="admin"] .ptable col.c-amt {width: 12%;}
+:root[data-site="admin"] .ptable tbody tr:first-child td {border-top: 0;}
+:root[data-site="admin"] .ptable .row-btn {padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;}
+:root[data-site="admin"] .ptable .row-btn:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px;}
+:root[data-site="admin"] .ptable .pill {height: 22px; font-family: var(--font-mono); font-size: 10.5px;}
+:root[data-site="admin"] .ptable tr.dim td {opacity: .62;}
+:root[data-site="admin"] .ptable td.amt .money {font-family: var(--font-mono);}
+:root[data-site="admin"] .pfoot .c-warn {color: var(--warn);}
+:root[data-site="admin"] .pfoot .c-bad {color: var(--bad);}
+:root[data-site="admin"] .ptable-wrap .empty-inline {padding: 18px;}
+
+/* Opportunities: fit meter, the expanded row */
+:root[data-site="admin"] .otable col.c-fit {width: 112px;}
+:root[data-site="admin"] .otable col.c-el {width: 120px;}
+:root[data-site="admin"] .otable col.c-dl {width: 116px;}
+:root[data-site="admin"] .otable col.c-val {width: 120px;}
+:root[data-site="admin"] .otable col.c-src {width: 13%;}
+:root[data-site="admin"] .otable col.c-cty {width: 8%;}
+:root[data-site="admin"] .otable .co small {display: block; margin: 1px 0 0; overflow: hidden; text-overflow: ellipsis;}
+:root[data-site="admin"] .otable tbody td {height: 46px;}
+:root[data-site="admin"] .otable td.amt {font-family: var(--font-mono); font-size: var(--t-12);}
+:root[data-site="admin"] .fit {display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: var(--t-12);}
+:root[data-site="admin"] .fit .meter-t {width: 56px; flex: none;}
+:root[data-site="admin"] .fit .meter-t i[data-tone="hi"] {background: var(--good);}
+:root[data-site="admin"] .fit .meter-t i[data-tone="lo"] {background: var(--text-3);}
+:root[data-site="admin"] .fit b {font-weight: 500; color: var(--ink);}
+:root[data-site="admin"] .otable tr.x-row td {height: auto; padding: 0; white-space: normal; background: var(--surface-2); cursor: default;}
+:root[data-site="admin"] .otable tr.x-row:hover td {background: var(--surface-2);}
+:root[data-site="admin"] .x-body {display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 24px; padding: 14px 18px 16px;}
+:root[data-site="admin"] .x-why .bullets {margin-top: 0;}
+:root[data-site="admin"] .x-why .c-warn {margin-top: 8px;}
+:root[data-site="admin"] .x-acts {display: flex; flex-direction: column; gap: 10px;}
+:root[data-site="admin"] .x-links {gap: 6px; flex-wrap: wrap;}
+:root[data-site="admin"] .opp-acts {gap: 10px;}
+:root[data-site="admin"] .opp-detail {display: flex; flex-direction: column; gap: 18px;}
+
+/* ---- the deal sheet ---- */
+:root[data-site="admin"] #deal-sheet .sheet-head h2, :root[data-site="admin"] #opp-sheet .sheet-head h2 {font-size: var(--t-22); letter-spacing: -0.02em;}
+:root[data-site="admin"] .deal-m {display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; font-family: var(--font-mono); font-size: var(--t-12); color: var(--text-3);}
+:root[data-site="admin"] .deal-m .pill {height: 22px; font-size: 10.5px;}
+:root[data-site="admin"] .deal-body {display: flex; flex-direction: column; gap: 18px;}
+:root[data-site="admin"] .deal-body .next b {font-weight: 600;}
+:root[data-site="admin"] .deal-foot {flex: 1; gap: 6px; min-width: 0; flex-wrap: wrap;}
+:root[data-site="admin"] .deal-foot .kbd {margin: 0;}
+:root[data-site="admin"] .deal-skel {display: flex; flex-direction: column; gap: 12px; padding-top: 6px;}
+:root[data-site="admin"] .stage-strip {list-style: none; margin: 0; padding: 4px; border-radius: 8px; background: var(--surface-3);}
+:root[data-site="admin"] .stage-strip li {flex: 1; display: grid; place-items: center; height: 32px; border-radius: 6px; font-size: var(--t-13); font-weight: 500; color: var(--text-3);}
+:root[data-site="admin"] .stage-strip li.past {color: var(--text-2);}
+:root[data-site="admin"] .stage-strip li[aria-current="step"] {background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line), var(--shadow-sm);}
+:root[data-site="admin"] .ppl-flat {padding: 0;}
+:root[data-site="admin"] .ppl-flat li {padding: 8px 0;}
+:root[data-site="admin"] .tl .tl-x {margin-top: 8px;}
+:root[data-site="admin"] .sheet .kv dd {overflow-wrap: anywhere;}
+
+/* ---- client page ---- */
+:root[data-site="admin"] .stats4 {margin-bottom: 0;}
+:root[data-site="admin"] .stat-btn {border: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; transition: box-shadow var(--d) var(--ease);}
+:root[data-site="admin"] .stat-btn:hover {box-shadow: inset 0 0 0 1px var(--line-strong), var(--shadow-sm);}
+:root[data-site="admin"] .stat-btn:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px;}
+:root[data-site="admin"] .stat-btn > span:not(.ring) {display: block; min-width: 0;}
+:root[data-site="admin"] .stat-btn .k, :root[data-site="admin"] .stat-btn .v, :root[data-site="admin"] .stat-btn .d {display: block;}
+:root[data-site="admin"] .stat > div, :root[data-site="admin"] .stat > span:not(.ring) {min-width: 0;}
+:root[data-site="admin"] .stat .v .money .dec, :root[data-site="admin"] .amt .dec {font-size: .78em;}
+:root[data-site="admin"] .stat .ring .bar {transition: none;}
+:root[data-site="admin"] .projects-n {grid-template-columns: repeat(2, minmax(0, 1fr));}
+:root[data-site="admin"] .projects > .callout {grid-column: 1 / -1;}
+:root[data-site="admin"] .add-proj {min-height: 120px; cursor: pointer; font: inherit; padding: 16px; text-align: center;}
+:root[data-site="admin"] .add-proj:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px;}
+:root[data-site="admin"] .proj h3 {flex-wrap: wrap;}
+:root[data-site="admin"] .proj .pill {height: 22px; font-size: 10.5px; font-family: var(--font-mono);}
+:root[data-site="admin"] .lower > div > .callout {margin-bottom: 12px;}
+:root[data-site="admin"] .ph button.more {border: 0; background: none; padding: 0; cursor: pointer; text-decoration: none;}
+:root[data-site="admin"] .ph .more:hover {color: var(--ink);}
+:root[data-site="admin"] .fchips {flex-wrap: wrap; justify-content: flex-end;}
+/* activity and invoice rows are links: the grid moves onto the link */
+:root[data-site="admin"] .act li {display: block; padding: 0; min-height: 0;}
+:root[data-site="admin"] .act li > a, :root[data-site="admin"] .act li > div {display: grid; grid-template-columns: 64px 28px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 18px; min-height: 52px; color: inherit; text-decoration: none;}
+:root[data-site="admin"] .act li > a:focus-visible, :root[data-site="admin"] .inv li > a:focus-visible {outline: 2px solid var(--accent); outline-offset: -2px;}
+:root[data-site="admin"] .act .act-main {min-width: 0;}
+:root[data-site="admin"] .act .pill, :root[data-site="admin"] .inv .pill, :root[data-site="admin"] .ppl .pill {height: 22px; font-family: var(--font-mono); font-size: 10.5px;}
+:root[data-site="admin"] .inv li {display: block; padding: 0;}
+:root[data-site="admin"] .inv li > a {display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 10px 18px; color: inherit; text-decoration: none;}
+:root[data-site="admin"] .inv li > a:hover {background: var(--surface-2);}
+:root[data-site="admin"] .inv .m {white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+:root[data-site="admin"] .ppl .ppl-main {min-width: 0; flex: 1;}
+:root[data-site="admin"] .ppl .ppl-main .m {white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+:root[data-site="admin"] .ppl .role {margin-left: 0; flex: none;}
+:root[data-site="admin"] .ppl .stack {flex: none;}
+:root[data-site="admin"] .lower .panel .callout {margin: 12px 18px;}
+:root[data-site="admin"] .lower .empty-inline {padding: 14px 18px;}
+
+/* ---- responsive (plan: ≥1100 full; 960-1100 KPI 2×, rails stack; ≤960 drawer; ≤640 phone) ---- */
+@media (max-width: 1100px) {
+:root[data-site="admin"] .x-body {grid-template-columns: minmax(0, 1fr);}
+:root[data-site="admin"] .stagebar span {min-width: 0;}
+}
+@media (max-width: 960px) {
+:root[data-site="admin"] .ptools-r {margin-left: 0; width: 100%;}
+:root[data-site="admin"] .ptools .search-t {flex: 1; width: auto;}
+:root[data-site="admin"] .ptools .search-t .kbd {display: none;}
+:root[data-site="admin"] .stagebar {display: none;}
+:root[data-site="admin"] .ptable col.c-sg, :root[data-site="admin"] .ptable col.c-age {width: 0;}
+}
+@media (max-width: 640px) {
+:root[data-site="admin"] .stats4, :root[data-site="admin"] .kpi4 {grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;}
+:root[data-site="admin"] .kpi4 .tile, :root[data-site="admin"] .stat {padding: 12px 14px; flex-direction: column; align-items: flex-start; gap: 6px;}
+:root[data-site="admin"] .kpi4 .tile .l, :root[data-site="admin"] .kpi4 .tile .spark {width: 100%;}
+:root[data-site="admin"] .kpi4 .tile .spark {height: 24px;}
+:root[data-site="admin"] .kpi4 .tile .v, :root[data-site="admin"] .stat .v {font-size: var(--t-18);}
+:root[data-site="admin"] .stat .ring {width: 40px; height: 40px;}
+:root[data-site="admin"] .projects-n {grid-template-columns: minmax(0, 1fr);}
+:root[data-site="admin"] .proj {grid-template-columns: minmax(0, 1fr);}
+:root[data-site="admin"] .fchips {margin-left: 0; width: 100%; justify-content: flex-start;}
+:root[data-site="admin"] .ph {flex-wrap: wrap;}
+:root[data-site="admin"] .act li > a, :root[data-site="admin"] .act li > div {grid-template-columns: 28px minmax(0, 1fr) auto; padding: 10px 14px;}
+:root[data-site="admin"] .act .dt {display: none;}
+:root[data-site="admin"] .act .r .pill {max-width: 110px; overflow: hidden;}
+/* phone: the deal and tender tables keep company, stage, next / tender, deadline */
+:root[data-site="admin"] .ptable {table-layout: auto;}
+:root[data-site="admin"] .ptable colgroup {display: none;}
+:root[data-site="admin"] .ptable:not(.otable) th:nth-child(2), :root[data-site="admin"] .ptable:not(.otable) td:nth-child(2),
+:root[data-site="admin"] .ptable:not(.otable) th:nth-child(3), :root[data-site="admin"] .ptable:not(.otable) td:nth-child(3),
+:root[data-site="admin"] .ptable:not(.otable) th:nth-child(4), :root[data-site="admin"] .ptable:not(.otable) td:nth-child(4),
+:root[data-site="admin"] .ptable:not(.otable) th:nth-child(6), :root[data-site="admin"] .ptable:not(.otable) td:nth-child(6) {display: none;}
+:root[data-site="admin"] .ptable:not(.otable) td.nx {white-space: normal; width: 52%; font-size: var(--t-12); line-height: 1.35; padding-top: 8px; padding-bottom: 8px;}
+:root[data-site="admin"] .ptable .co {white-space: normal; padding-top: 8px; padding-bottom: 8px; line-height: 1.3;}
+:root[data-site="admin"] .ptable .co small {display: block; margin: 1px 0 0;}
+:root[data-site="admin"] .ptable td, :root[data-site="admin"] .ptable th {padding-left: 10px; padding-right: 10px;}
+:root[data-site="admin"] .otable th:nth-child(3), :root[data-site="admin"] .otable td:nth-child(3),
+:root[data-site="admin"] .otable th:nth-child(5), :root[data-site="admin"] .otable td:nth-child(5) {display: none;}
+:root[data-site="admin"] .otable tr.x-row td {display: table-cell;}
+:root[data-site="admin"] .otable .co .row-btn {white-space: normal; text-align: left; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;}
+:root[data-site="admin"] .fit .meter-t {display: none;}
+:root[data-site="admin"] .pfoot {flex-wrap: wrap; gap: 8px;}
+:root[data-site="admin"] .list-tools {padding: 10px;}
+}
+
+/* KPI tiles without a sparkline (D10) give the context line the full width, as in the mockup */
+:root[data-site="admin"] .kpi4 .tile .spark-flat {display: none;}
+:root[data-site="admin"] .sheet-note:empty {display: none;}
+:root[data-site="admin"] .x-row .input {background: var(--panel);}
+:root[data-site="admin"] .x-row .input:focus {box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);}
+/* form fields in sheets and expanded rows: the hairline field of the admin theme (surface-2 equals the panel in dark) */
+:root[data-site="admin"] .sheet :is(.input, .textarea, .select), :root[data-site="admin"] .x-row .input {border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line);}
+:root[data-site="admin"] .sheet :is(.input, .textarea, .select):focus {box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);}
+/* D11: values in mono (system.css sets .money in the display face) */
+:root[data-site="admin"] :is(.stat .v, .kpi4 .v, .amt, .num-col, .p-head .sub, .ptable, .inv-total, .kv dd) .money {font-family: var(--font-mono); letter-spacing: 0;}
+:root[data-site="admin"] .ph button.more {font-family: var(--font-mono); font-size: var(--t-11); color: var(--text-3);}

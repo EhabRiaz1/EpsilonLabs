@@ -4,6 +4,7 @@ import "./styles/system.css";
 import "./platform.css";
 import "./styles/admin-theme.css";
 import "./styles/admin-pages.css";
+import "./styles/admin-pages-2.css";
 import { MotionLoader } from "./components/MotionLoader";
 
 export const metadata: Metadata = {

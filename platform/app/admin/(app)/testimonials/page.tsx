@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Icon } from "@/app/components/Icon";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
+import { Sheet } from "@/app/components/Sheet";
+import { SheetButton } from "@/app/components/SheetButton";
 import { ActionButton, ActionForm, CopyButton } from "@/app/components/Forms";
 import { getSession } from "@/lib/session";
 import { dayMonth } from "@/lib/dates";
@@ -27,25 +31,39 @@ export default async function TestimonialsPage() {
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Testimonials</h1>
-            <div className="sub">Clients write or approve the wording in their portal. Copy an approved one into the site source yourself; nothing edits epsilon-labs.co automatically.</div>
-          </div>
-        </div>
-      </header>
-      <div className="grid-main" style={{ marginTop: 0 }}>
-        <div className="col">
+      <PageHeader
+        title="Testimonials"
+        sub={
+          <>
+            <span>{approved.length} approved by clients</span>
+            <span aria-hidden="true">·</span>
+            <span>copy an approved one into the site source yourself; nothing edits epsilon-labs.co automatically</span>
+          </>
+        }
+        actions={
+          <SheetButton sheet="testimonial-ask" className="btn btn-primary">
+            <Icon name="sparkle" className="i-sm" />
+            Ask for one
+          </SheetButton>
+        }
+      />
+      {ts.error && <Note retry>Couldn&apos;t load testimonials.</Note>}
+      <div className="stack gap-12">
           <section className="panel">
             <div className="panel-head"><h2>Approved by clients</h2><span className="c-3 t-12 more">{approved.length}</span></div>
             {approved.length === 0 && (
-              <div className="empty" style={{ padding: "36px 24px" }}>
-                <div className="orb"><span className="wave" /><span className="wave" /><span className="core"><Icon name="sparkle" className="i-lg" /></span></div>
-                <h2 className="display" style={{ fontSize: "var(--t-28)" }}>None yet</h2>
-                <p className="c-2" style={{ maxWidth: "40ch" }}>Ask a happy client from the form; referral asks after a project closes also point them to their Testimonial page.</p>
-              </div>
+              <Empty
+                icon="sparkle"
+                title="None yet"
+                action={
+                  <SheetButton sheet="testimonial-ask" className="btn btn-primary">
+                    <Icon name="sparkle" className="i-sm" />
+                    Ask for one
+                  </SheetButton>
+                }
+              >
+                <p>Referral asks after a project closes also point clients to their Testimonial page.</p>
+              </Empty>
             )}
             {approved.map((t) => {
               const org = one(t.organizations)?.name ?? "";
@@ -84,11 +102,9 @@ export default async function TestimonialsPage() {
               </div>
             </section>
           )}
-        </div>
-        <div className="col">
-          <section className="panel panel-pad">
-            <h2 className="t-16 w-600" style={{ marginBottom: 6 }}>Ask for a testimonial</h2>
-            <p className="hint" style={{ marginBottom: 12 }}>The client&apos;s team gets a portal notification and a Testimonial page with your suggested wording, which they can rewrite before approving.</p>
+      </div>
+
+      <Sheet id="testimonial-ask" title="Ask for a testimonial" sub="The client's team gets a portal notification and a Testimonial page with your suggested wording, which they can rewrite before approving.">
             <ActionForm action={requestTestimonial} submit="Send the request" icon="sparkle">
               <div className="stack" style={{ gap: 10 }}>
                 <div className="field">
@@ -111,9 +127,7 @@ export default async function TestimonialsPage() {
                 </div>
               </div>
             </ActionForm>
-          </section>
-        </div>
-      </div>
+      </Sheet>
     </>
   );
 }

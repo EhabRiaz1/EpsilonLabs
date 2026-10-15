@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@/app/components/Icon";
+import { Note } from "@/app/components/Note";
 import { decideOpportunity, type OppResult } from "./actions";
 
 // dashboard/actions.OPP_MOVES: which decisions each status allows
@@ -31,7 +31,7 @@ export function OppActions({ id, status }: { id: string; status: string }) {
       }
     });
   return (
-    <div className="stack" style={{ gap: 10 }}>
+    <div className="stack opp-acts">
       {moves.some(([a]) => a === "pass") && (
         <input className="input" type="text" maxLength={300} placeholder="Reason for passing (optional)" aria-label="Reason for passing" value={reason} onChange={(e) => setReason(e.target.value)} />
       )}
@@ -42,10 +42,8 @@ export function OppActions({ id, status }: { id: string; status: string }) {
           </button>
         ))}
       </div>
-      {r && !r.ok && (
-        <p className="auth-error" role="alert" style={{ marginTop: 0 }}><Icon name="alert" className="i-sm" />{r.message}</p>
-      )}
-      {r?.ok && <p className="ok-note" role="status"><Icon name="check" className="i-sm" />{r.message}</p>}
+      {r && !r.ok && <Note tone="error">{r.message}</Note>}
+      {r?.ok && <Note tone="ok">{r.message}</Note>}
     </div>
   );
 }

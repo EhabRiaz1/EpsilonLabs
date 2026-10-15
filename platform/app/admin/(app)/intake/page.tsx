@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Icon } from "@/app/components/Icon";
-import { MenuButton } from "@/app/components/ShellControls";
-import { AutoRefresh } from "@/app/components/AutoRefresh";
+import { PageHeader } from "@/app/components/PageHeader";
+import { RouteTabs } from "@/app/components/RouteTabs";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
 import { INTAKE_CHIP, INTAKE_STATUSES, type IntakeStatus } from "@/lib/intake";
 import { relativeDay } from "@/lib/tickets";
@@ -30,52 +31,45 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Intake</h1>
-            <div className="sub">Enquiries from epsilon-labs.co/start. Each one opened or joined an inbound lead in Pipeline.</div>
-          </div>
-        </div>
-        <AutoRefresh seconds={15} />
-      </header>
-      <section className="panel" style={{ overflow: "hidden" }}>
-        <div className="q-head">
-          <nav className="tabs" aria-label="Filter enquiries">
-            {VIEWS.map((v) => (
-              <Link key={v} className="tab" href={v === "new" ? "/intake" : `/intake?status=${v}`} aria-current={view === v ? "page" : undefined}>
-                {v === "all" ? "All" : INTAKE_CHIP[v].label} {v !== "all" && <span className="c-3">{n[v]}</span>}
-              </Link>
-            ))}
-          </nav>
+      <PageHeader
+        title="Intake"
+        sub={
+          <>
+            <span>{n.new} new</span>
+            <span aria-hidden="true">·</span>
+            <span>enquiries from epsilon-labs.co/start; each one opened or joined an inbound lead in Pipeline</span>
+          </>
+        }
+        refresh={15}
+      />
+      <section className="panel list-panel">
+        <div className="list-tools">
+          <RouteTabs
+            label="Filter enquiries"
+            value={view}
+            items={VIEWS.map((v) => ({ key: v, label: v === "all" ? "All" : INTAKE_CHIP[v].label, count: v === "all" ? undefined : n[v], href: v === "new" ? "/intake" : `/intake?status=${v}` }))}
+          />
         </div>
         {error ? (
-          <p className="c-bad t-13 panel-pad">Couldn&apos;t load enquiries. Reload to retry.</p>
+          <Note retry>Couldn&apos;t load enquiries.</Note>
         ) : rows.length === 0 ? (
-          <div className="empty">
-            <div className="orb">
-              <span className="wave" />
-              <span className="wave" />
-              <span className="core">
-                <Icon name={view === "new" ? "check" : "inbox"} className="i-lg" />
-              </span>
-            </div>
-            <h2 className="display">{view === "new" ? "All clear" : "Nothing here"}</h2>
-            <p className="c-2" style={{ maxWidth: "36ch" }}>
-              {view === "new" ? "No new enquiries. New ones appear here within 15 seconds, and you get an email." : "No enquiries with this status."}
-            </p>
-          </div>
+          view === "new" ? (
+            <Empty title="All clear">
+              <p>No new enquiries. New ones appear here within 15 seconds, and you get an email.</p>
+            </Empty>
+          ) : (
+            <Empty variant="inline">No enquiries with this status.</Empty>
+          )
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>From</th>
-                  <th className="hide-m">Wants</th>
-                  <th className="hide-m">Budget</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: "right" }}>Received</th>
+                  <th scope="col">From</th>
+                  <th scope="col" className="hide-m">Wants</th>
+                  <th scope="col" className="hide-m">Budget</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" className="num-col">Received</th>
                 </tr>
               </thead>
               <tbody>
@@ -98,9 +92,7 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
                         {INTAKE_CHIP[r.status]?.label ?? r.status}
                       </span>
                     </td>
-                    <td className="c-3 t-12" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                      {relativeDay(r.created_at, now)}
-                    </td>
+                    <td className="num-col c-3 t-12 nowrap">{relativeDay(r.created_at, now)}</td>
                   </tr>
                 ))}
               </tbody>

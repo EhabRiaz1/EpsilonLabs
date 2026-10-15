@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Icon } from "@/app/components/Icon";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
+import { Sheet } from "@/app/components/Sheet";
+import { SheetButton } from "@/app/components/SheetButton";
 import { ActionForm } from "@/app/components/Forms";
 import { UpdateBody } from "@/app/components/UpdateBody";
 import { getSession } from "@/lib/session";
@@ -45,30 +49,40 @@ export default async function UpdatesPage() {
 
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Updates</h1>
-            <div className="sub">Weekly updates are drafted by the Mac every Friday at 15:00 PKT. Nothing reaches a client until you publish it.</div>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Updates"
+        sub={
+          <>
+            <span>{ds.length} draft{ds.length === 1 ? "" : "s"} to review</span>
+            <span aria-hidden="true">·</span>
+            <span>weekly drafts arrive Fridays 15:00 PKT; nothing reaches a client until you publish</span>
+          </>
+        }
+        actions={
+          <>
+            <SheetButton sheet="update-write">
+              <Icon name="pencil" className="i-sm" />
+              Write one
+            </SheetButton>
+            <SheetButton sheet="update-queue" className="btn btn-primary">
+              <Icon name="send" className="i-sm" />
+              Draft this week&apos;s
+            </SheetButton>
+          </>
+        }
+      />
 
-      <div className="grid-main" style={{ marginTop: 0 }}>
-        <div className="col">
+      <div className="stack gap-12">
           <section className="panel">
             <div className="panel-head">
               <h2>Drafts to review</h2>
               <span className="c-3 t-12 more">{ds.length}</span>
             </div>
-            {drafts.error && <p className="c-bad t-13 panel-pad">Couldn&apos;t load drafts. Reload to retry.</p>}
+            {drafts.error && <Note retry>Couldn&apos;t load drafts.</Note>}
             {!drafts.error && ds.length === 0 && (
-              <div className="empty" style={{ padding: "36px 24px" }}>
-                <div className="orb"><span className="wave" /><span className="wave" /><span className="core"><Icon name="check" className="i-lg" /></span></div>
-                <h2 className="display" style={{ fontSize: "var(--t-28)" }}>All clear</h2>
-                <p className="c-2">No update drafts. Friday&apos;s drafts arrive here and in Approvals.</p>
-              </div>
+              <Empty title="All clear">
+                <p>No update drafts. Friday&apos;s drafts arrive here and in Approvals.</p>
+              </Empty>
             )}
             {ds.map((u) => {
               const inputs = u.inputs ?? {};
@@ -100,7 +114,8 @@ export default async function UpdatesPage() {
 
           <section className="panel">
             <div className="panel-head"><h2>Recently published or skipped</h2></div>
-            {rs.length === 0 && <p className="c-3 t-13" style={{ padding: "0 22px 16px" }}>Nothing yet.</p>}
+            {recent.error && <Note retry>Couldn&apos;t load published updates.</Note>}
+            {!recent.error && rs.length === 0 && <Empty variant="inline">Nothing published or skipped yet.</Empty>}
             {rs.map((u) => (
               <details key={u.id} style={{ borderTop: "1px solid var(--line)" }}>
                 <summary className="row" style={{ padding: "12px 22px", cursor: "pointer", listStyle: "none", gap: 10 }}>
@@ -110,46 +125,42 @@ export default async function UpdatesPage() {
                       {one(u.organizations)?.name} · {one(u.projects)?.name} · {u.status === "published" && u.published_at ? `published ${stamp(u.published_at)}` : `skipped${u.skipped_reason ? `: ${u.skipped_reason}` : ""}`}
                     </span>
                   </span>
-                  <span className={`pill ${u.status === "published" ? "pill-good" : ""}`}><span className="dot" />{u.status}</span>
+                  <span className={`pill ${u.status === "published" ? "pill-good" : ""}`}><span className="dot" />{u.status === "published" ? "Published" : "Skipped"}</span>
                 </summary>
                 <div style={{ padding: "0 22px 18px" }}><UpdateBody md={u.body_md} /></div>
               </details>
             ))}
           </section>
-        </div>
-
-        <div className="col">
-          <section className="panel panel-pad">
-            <h2 className="t-16 w-600" style={{ marginBottom: 6 }}>Draft this week&apos;s update now</h2>
-            <p className="hint" style={{ marginBottom: 12 }}>The Mac drafts it from the week&apos;s tickets, client-visible activity and EL-n commits. Your notes go to the drafter.</p>
-            <ActionForm action={queueWeekly} submit="Queue the draft" icon="send" secondary>
-              <div className="stack" style={{ gap: 10 }}>
-                {projectSelect("upd-project-q")}
-                <div className="field">
-                  <label className="label" htmlFor="upd-notes">Notes for the drafter <span className="c-3">(optional)</span></label>
-                  <textarea className="textarea" id="upd-notes" name="notes" rows={3} maxLength={2000} placeholder="e.g. Mention the CT clamp swap on hall 2" />
-                </div>
-              </div>
-            </ActionForm>
-          </section>
-          <section className="panel panel-pad">
-            <h2 className="t-16 w-600" style={{ marginBottom: 6 }}>Write an update yourself</h2>
-            <ActionForm action={createManualUpdate} submit="Save as draft" icon="plus" secondary>
-              <div className="stack" style={{ gap: 10 }}>
-                {projectSelect("upd-project-w")}
-                <div className="field">
-                  <label className="label" htmlFor="upd-title">Title</label>
-                  <input className="input" id="upd-title" name="title" maxLength={200} required />
-                </div>
-                <div className="field">
-                  <label className="label" htmlFor="upd-body">Update</label>
-                  <textarea className="textarea" id="upd-body" name="body" rows={8} maxLength={20000} defaultValue={"## Done this week\n- \n\n## Next\n- \n\n## Needs your input\n- Nothing this week."} />
-                </div>
-              </div>
-            </ActionForm>
-          </section>
-        </div>
       </div>
+
+      <Sheet id="update-queue" title="Draft this week's update now" sub="The Mac drafts it from the week's tickets, client-visible activity and EL-n commits.">
+        <ActionForm action={queueWeekly} submit="Queue the draft" icon="send">
+          <div className="stack gap-10">
+            {projectSelect("upd-project-q")}
+            <div className="field">
+              <label className="label" htmlFor="upd-notes">
+                Notes for the drafter <span className="c-3">(optional)</span>
+              </label>
+              <textarea className="textarea" id="upd-notes" name="notes" rows={3} maxLength={2000} placeholder="e.g. Mention the CT clamp swap on hall 2" />
+            </div>
+          </div>
+        </ActionForm>
+      </Sheet>
+      <Sheet id="update-write" title="Write an update yourself" sub="Saved as a draft; publish it from this page." wide>
+        <ActionForm action={createManualUpdate} submit="Save as draft" icon="plus">
+          <div className="stack gap-10">
+            {projectSelect("upd-project-w")}
+            <div className="field">
+              <label className="label" htmlFor="upd-title">Title</label>
+              <input className="input" id="upd-title" name="title" maxLength={200} required />
+            </div>
+            <div className="field">
+              <label className="label" htmlFor="upd-body">Update</label>
+              <textarea className="textarea" id="upd-body" name="body" rows={10} maxLength={20000} defaultValue={"## Done this week\n- \n\n## Next\n- \n\n## Needs your input\n- Nothing this week."} />
+            </div>
+          </div>
+        </ActionForm>
+      </Sheet>
     </>
   );
 }

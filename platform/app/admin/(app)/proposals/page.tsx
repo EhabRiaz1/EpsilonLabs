@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Icon } from "@/app/components/Icon";
 import { Money } from "@/app/components/Money";
 import { StatusPill } from "@/app/components/StatusPill";
-import { MenuButton } from "@/app/components/ShellControls";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
 import { dayMonth } from "@/lib/dates";
 
@@ -40,7 +42,7 @@ function Trail({ r }: { r: Row }) {
   return (
     <span className="trail">
       {steps.map(([label, at], i) => (
-        <span key={label} className="row" style={{ gap: 6 }}>
+        <span key={label} className="row gap-6">
           {i > 0 && <Icon name="chevR" className="i-sm" />}
           <span className={at ? "on" : undefined}>
             {label}
@@ -63,38 +65,40 @@ export default async function ProposalsPage() {
   const rows = (data ?? []) as Row[];
   return (
     <>
-      <header className="page-head">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1 className="display">Proposals</h1>
-            <div className="sub">Draft, approve and send; follow each link from sent to accepted.</div>
-          </div>
-        </div>
-        <Link className="btn btn-primary" href="/proposals/new">
-          <Icon name="plus" className="i-sm" />
-          New proposal
-        </Link>
-      </header>
+      <PageHeader
+        title="Proposals"
+        sub={
+          <>
+            <span>{rows.filter((r) => r.status === "sent" || r.status === "viewed").length} out</span>
+            <span aria-hidden="true">·</span>
+            <span>{rows.filter((r) => r.status === "accepted").length} accepted</span>
+            <span aria-hidden="true">·</span>
+            <span>draft, approve and send; follow each link from sent to accepted</span>
+          </>
+        }
+        actions={
+          <Link className="btn btn-primary" href="/proposals/new">
+            <Icon name="plus" className="i-sm" />
+            New proposal
+          </Link>
+        }
+      />
       {error ? (
-        <section className="panel panel-pad">
-          <p className="c-bad t-13">Couldn&apos;t load proposals. Reload to retry.</p>
-        </section>
+        <Note retry>Couldn&apos;t load proposals.</Note>
       ) : rows.length === 0 ? (
         <section className="panel">
-          <div className="empty">
-            <div className="orb">
-              <span className="wave" />
-              <span className="wave" />
-              <span className="core">
-                <Icon name="file" className="i-lg" />
-              </span>
-            </div>
-            <h2 className="display">No proposals yet</h2>
-            <p className="c-2" style={{ maxWidth: "40ch" }}>
-              Start one from a deal. Prices come from the catalogue.
-            </p>
-          </div>
+          <Empty
+            icon="file"
+            title="No proposals yet"
+            action={
+              <Link className="btn btn-primary" href="/proposals/new">
+                <Icon name="plus" className="i-sm" />
+                New proposal
+              </Link>
+            }
+          >
+            <p>Start one from a deal. Prices come from the catalogue.</p>
+          </Empty>
         </section>
       ) : (
         <section className="panel table-wrap">
@@ -104,7 +108,7 @@ export default async function ProposalsPage() {
                 <th>Proposal</th>
                 <th>Status</th>
                 <th>Trail</th>
-                <th style={{ textAlign: "right" }}>Total</th>
+                <th className="num-col">Total</th>
                 <th>Valid until</th>
               </tr>
             </thead>
@@ -125,10 +129,10 @@ export default async function ProposalsPage() {
                   <td>
                     <Trail r={r} />
                   </td>
-                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                  <td className="num-col nowrap">
                     <Money value={r.total} currency={r.currency} />
                   </td>
-                  <td className="c-3 t-12" style={{ whiteSpace: "nowrap" }}>
+                  <td className="c-3 t-12 nowrap">
                     {dayMonth(r.valid_until)}
                   </td>
                 </tr>
