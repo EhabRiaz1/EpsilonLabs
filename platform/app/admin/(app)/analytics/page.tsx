@@ -53,6 +53,14 @@ function Bars({ rows, empty }: { rows: { key: string; label: string; value: numb
 function StepFunnel({ rows }: { rows: FunnelRow[] }) {
   const [visits, ...steps] = rows;
   const top = Math.max(1, steps[0]?.sessions ?? 0);
+  if (!steps[0]?.sessions) {
+    return (
+      <div className="an-funnel">
+        <p className="an-funnel-head c-3 t-12 mono">{visits.sessions.toLocaleString("en-US")} visits · nobody has opened /start yet</p>
+        <p className="c-3 t-13">The steps appear here once someone starts the project form.</p>
+      </div>
+    );
+  }
   return (
     <div className="an-funnel">
       <p className="an-funnel-head c-3 t-12 mono">
@@ -61,7 +69,7 @@ function StepFunnel({ rows }: { rows: FunnelRow[] }) {
       <ol className="an-steps">
         {steps.map((r, i) => (
           <li key={r.key}>
-            {i > 0 && (
+            {i > 0 && steps[i - 1].sessions > 0 && (
               <div className="an-drop" aria-label={`${100 - (r.ofPrev ?? 0)}% dropped off`}>
                 <span aria-hidden="true">↓</span> {100 - (r.ofPrev ?? 0)}% drop-off
               </div>

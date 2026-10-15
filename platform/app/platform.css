@@ -333,3 +333,8 @@
 .confirm .callout { margin-top: 14px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 14px; font-size: var(--t-13); color: var(--bad); background: color-mix(in srgb, var(--bad) 9%, transparent); }
 .confirm .foot { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; flex-wrap: wrap; }
 .modal[hidden] { display: none; }
+/* the nav scrolls inside the sidebar so the worker chip, theme and user row stay in view at any window height */
+:root[data-site="admin"] .sidebar { display: flex; flex-direction: column; }
+:root[data-site="admin"] .sidebar .sb-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; margin: 0 -4px; padding: 0 4px; }
+:root[data-site="admin"] .sidebar .sb-nav::-webkit-scrollbar { display: none; }
+:root[data-site="admin"] .sidebar .sb-foot { flex: none; }

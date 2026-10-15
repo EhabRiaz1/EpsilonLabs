@@ -53,7 +53,7 @@ export function AdminNav(props: { groups: AdminNavGroup[]; counts: Record<string
 
   const orgs = props.ticketOrgs ?? [];
   return (
-    <>
+    <div className="sb-nav">
       {props.groups.map((g) => {
         const open = !closed[g.key] || g.key === currentGroup;
         const items = g.pages.map((p) => {
@@ -120,6 +120,6 @@ export function AdminNav(props: { groups: AdminNavGroup[]; counts: Record<string
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
