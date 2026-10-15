@@ -16,6 +16,7 @@ export {
   inlineLogos,
   LOGO_BLACK,
   LOGO_WHITE,
+  LOGO_BADGE,
   items,
   kv,
   layout,
