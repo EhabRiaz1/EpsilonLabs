@@ -12,7 +12,7 @@ const core = coreJs as unknown as {
   ipKey(ip: string, secret: string, now: Date): string;
   clientIp(h: Record<string, string>): string;
   supabaseHeaders(key: string): Record<string, string>;
-  ackEmail(v: Value): Mail;
+  ackEmail(v: Value, now?: Date): Mail;
   founderEmail(v: Value, id: string | null): Mail;
 };
 
@@ -103,9 +103,19 @@ describe("emails", () => {
   it("acknowledgement is a fixed template with the first name escaped", () => {
     const m = core.ackEmail(v);
     expect(m.subject).toBe("We have your enquiry · Epsilon Labs");
-    expect(m.html).toContain("Thanks, &lt;b&gt;Jonas&lt;/b&gt;");
+    expect(m.html).toContain("We have your enquiry, &lt;b&gt;Jonas&lt;/b&gt;");
     expect(m.html).not.toContain("<b>Jonas");
     expect(m.html).not.toContain("script");
+  });
+  it("acknowledgement never echoes the free-text answers (the form takes any address) and is branded", () => {
+    const m = core.ackEmail(v, new Date("2026-10-15T08:00:00Z"));
+    expect(m.html).not.toContain("A machine nobody can read");
+    expect(m.html).not.toContain("Protocol Decode Sprint");
+    expect(m.text).not.toContain("A machine nobody can read");
+    expect(m.html).toContain("Enquiry received · 15 Oct 2026");
+    expect(m.html).toContain('alt="Epsilon Labs"');
+    expect(m.html).toContain("SECP CUIN 0290150");
+    expect(m.text).toContain("SECP CUIN 0290150");
   });
   it("founder notice escapes everything the visitor typed and links to admin", () => {
     const m = core.founderEmail(v, "11111111-2222-3333-4444-555555555555");
