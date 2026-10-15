@@ -124,11 +124,13 @@ DAILY_ACTION = "feed_daily_fetched"
 
 
 def fetched_today(db, source: str, now: datetime) -> bool:
-    """A feed marked ONCE_A_DAY (a big crawl, e.g. ppra_epms) already ran successfully since PKT midnight."""
+    """A feed marked ONCE_A_DAY (a big crawl, e.g. ppra_epms) already ran successfully on `now`'s PKT day."""
     start = now.astimezone(ZoneInfo(config.TZ)).replace(hour=0, minute=0, second=0, microsecond=0)
+    end = start + timedelta(days=1)
     try:
-        return bool(db.select("actions", agent=AGENT, action=DAILY_ACTION, target_id=source,
-                              at=f"gte.{start.isoformat()}", limit=1))
+        rows = db.select("actions", agent=AGENT, action=DAILY_ACTION, target_id=source,
+                         at=f"gte.{start.isoformat()}", order="at.asc", limit=1)
+        return bool(rows) and datetime.fromisoformat(str(rows[0]["at"]).replace("Z", "+00:00")) < end
     except DBError:
         return False
 
@@ -173,7 +175,7 @@ def run(db: DB | None = None, llm=llm_mod, now: datetime | None = None, *, fetch
             report[s] = {"ok": True, "n": 0, "error": "", "skipped": "already read today"}
         elif not dry and report.get(s, {}).get("ok"):
             try:
-                ledger.action(db, AGENT, run_id, DAILY_ACTION, None, s, {"n": report[s]["n"]})
+                ledger.action(db, AGENT, run_id, DAILY_ACTION, None, s, {"n": report[s]["n"]}, at=now)
             except Exception:
                 pass  # a missing marker only means one extra polite crawl
     c["fetched"] = len(opps)

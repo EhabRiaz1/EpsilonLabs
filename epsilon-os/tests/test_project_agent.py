@@ -3,6 +3,7 @@ ticket, non-git -> manual only, worktree naming, the execute flow on a temporary
 push_preview, the manual commit scan, worktree cleanup and the daily token budget pause. Never runs the real `claude`
 and never touches a real project folder: HOME and the worktree root are moved into tmp_path."""
 import json
+import os
 import subprocess
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -26,8 +27,9 @@ REPORT = {"summary": "Added exportBatch.", "files_changed": ["src/export.js"], "
 USAGE = {"input_tokens": 1200, "output_tokens": 800, "cache_creation_input_tokens": 300, "cache_read_input_tokens": 90000}
 
 
-def sh(*args, cwd=None):
-    return subprocess.run(args, cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
+def sh(*args, cwd=None, env=None):
+    full = {**os.environ, **env} if env else None
+    return subprocess.run(args, cwd=cwd, check=True, capture_output=True, text=True, env=full).stdout.strip()
 
 
 @pytest.fixture
@@ -446,7 +448,10 @@ def test_commit_scan_adds_internal_events_once(env):
     other = seed(db, env["repo"], mode="agent", number=13)
     repo = env["repo"]
     for msg in ("EL-12: export selected recipes", "fix typo (refs el-12, EL-13)", "EL-120 unrelated", "no ref"):
-        sh("git", "-c", "user.name=t", "-c", "user.email=t@x", "commit", "-q", "--allow-empty", "-m", msg, cwd=repo)
+        # dated at the test's fixed clock, not the wall clock, so the [since, now) window cannot rot
+        at = (NOW - timedelta(hours=1)).isoformat()
+        sh("git", "-c", "user.name=t", "-c", "user.email=t@x", "commit", "-q", "--allow-empty", "-m", msg, cwd=repo,
+           env={"GIT_AUTHOR_DATE": at, "GIT_COMMITTER_DATE": at})
     c = pa.scan_commits(db, NOW + timedelta(days=1))
     ev = db.rows("ticket_events", ticket_id=ids["ticket"], kind="commit")
     assert c["commits"] == 2 and sorted(e["body"] for e in ev) == ["EL-12: export selected recipes", "fix typo (refs el-12, EL-13)"]
