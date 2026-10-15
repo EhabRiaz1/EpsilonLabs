@@ -110,7 +110,6 @@ export default async function AdminToday() {
   const elapsedPct = Math.max(0, Math.min(100, ((now.getTime() - startMs) / Math.max(1, endMs - startMs)) * 100));
   const wonPct = (wonUsd / GOAL_USD) * 100;
   const perWeek = daysLeft ? Math.max(0, GOAL_USD - wonUsd) / Math.max(1, daysLeft / 7) : 0;
-  const goalLine = `Q4 goal · $100k signed by 31 Dec · ${daysLeft} days · ${money(quotedUsd)} quoted, ${money(wonUsd)} won`;
 
   // chores (D1) then money items (D6); each hidden at zero
   const pendingRows = (pendingQ.data ?? []) as { created_at: string; kind: string | null; held: boolean }[];
@@ -307,7 +306,7 @@ export default async function AdminToday() {
             <h2>
               Funnel <span className="c-3">· 30 days</span>
             </h2>
-            <span className="sub">{wonUsd > 0 ? "cold email · Mac outbox" : goalLine}</span>
+            <span className="sub">cold email · Mac outbox</span>
             <Link className="more hide-m" href="/pipeline">
               Pipeline →
             </Link>
