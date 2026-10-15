@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
+import { ask } from "@/app/components/Confirm";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
 import { inviteMember, removeMember, revokeInvite, switchOrg, updateName, type Result } from "../actions";
@@ -124,8 +125,8 @@ export function TeamAction({ kind, orgId, id, label, confirmText }: { kind: "rev
         className="btn btn-ghost btn-sm"
         type="button"
         disabled={pending}
-        onClick={() => {
-          if (!window.confirm(confirmText)) return;
+        onClick={async () => {
+          if (!(await ask({ title: confirmText, confirm: label, tone: "danger" }))) return;
           start(async () => {
             const res = kind === "revoke" ? await revokeInvite(id) : await removeMember(orgId, id);
             setR(res);

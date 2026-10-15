@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ask } from "@/app/components/Confirm";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
 import { eps } from "@/app/components/eps";
@@ -37,8 +38,8 @@ export function UpdateDraft({ id, title, body }: { id: string; title: string; bo
           className="btn btn-primary"
           type="button"
           disabled={pending}
-          onClick={() => {
-            if (!window.confirm("Publish this update to the client's portal? Their team is notified.")) return;
+          onClick={async () => {
+            if (!(await ask({ title: "Publish this update to the client's portal?", body: "Their team is notified.", confirm: dirty ? "Save and publish" : "Publish", icon: "send" }))) return;
             run(async () => {
               if (dirty) {
                 const saved = await saveUpdate(id, t, b);

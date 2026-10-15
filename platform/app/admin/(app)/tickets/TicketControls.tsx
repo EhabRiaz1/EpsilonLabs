@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
 import { eps } from "@/app/components/eps";
+import { ask } from "@/app/components/Confirm";
 import { STATUSES, staffStatus } from "@/lib/tickets";
 import { replyToTicket, sendNoteToClient, setTicketStatus, type TicketResult } from "./actions";
 
@@ -63,9 +64,9 @@ export function ReplyComposer({ id, clientName }: { id: string; clientName: stri
   const [body, setBody] = useState("");
   const [r, setR] = useState<TicketResult>(undefined);
   const [pending, start] = useTransition();
-  function send() {
+  async function send() {
     if (!body.trim()) return;
-    if (mode === "client" && !window.confirm(`Send this reply to ${clientName}? They see it in the portal straight away.`)) return;
+    if (mode === "client" && !(await ask({ title: `Send this reply to ${clientName}?`, body: "They see it in the portal straight away and get a notification.", confirm: "Send to client", icon: "send" }))) return;
     start(async () => {
       const res = await replyToTicket(id, body, mode === "client");
       setR(res);
@@ -88,7 +89,7 @@ export function ReplyComposer({ id, clientName }: { id: string; clientName: stri
         value={body}
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send();
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void send();
         }}
         placeholder={mode === "client" ? `${clientName} sees it in the portal and gets a notification.` : "Only you see internal notes."}
       />
@@ -101,7 +102,7 @@ export function ReplyComposer({ id, clientName }: { id: string; clientName: stri
             Internal note
           </button>
         </div>
-        <button className="btn btn-primary btn-sm" type="button" disabled={pending || !body.trim()} onClick={send}>
+        <button className="btn btn-primary btn-sm" type="button" disabled={pending || !body.trim()} onClick={() => void send()}>
           {pending ? <span className="spinner" /> : <Icon name={mode === "client" ? "send" : "pencil"} className="i-sm" />}
           {mode === "client" ? "Send to client" : "Save note"}
         </button>
@@ -114,45 +115,48 @@ export function ReplyComposer({ id, clientName }: { id: string; clientName: stri
 
 export function SendNoteButton({ ticketId, eventId }: { ticketId: string; eventId: string }) {
   const router = useRouter();
-  const [pending, start] = useTransition();
-  const [r, setR] = useState<TicketResult>(undefined);
   return (
     <span className="row" style={{ gap: 8 }}>
       <button
         className="btn btn-ghost btn-sm"
         type="button"
-        disabled={pending}
-        onClick={() => {
-          if (!window.confirm("Send this internal note to the client as written?")) return;
-          start(async () => {
-            setR(await sendNoteToClient(ticketId, eventId));
+        onClick={async () => {
+          // the dialog runs the send and stays open with the error if it fails
+          if (await ask({ title: "Send this internal note to the client?", body: "It goes out as written; they see it in the portal.", confirm: "Send to client", icon: "send", run: () => sendNoteToClient(ticketId, eventId) }))
             router.refresh();
-          });
         }}
       >
-        {pending ? <span className="spinner" /> : <Icon name="send" className="i-sm" />}
+        <Icon name="send" className="i-sm" />
         Send to client
       </button>
-      <Msg r={r} />
     </span>
   );
 }
 
-export function TimelineFilter({ children }: { children: React.ReactNode }) {
+/** The Timeline panel's All / Client / Internal filter. On phones the timeline sits behind a toggle under the reply
+ *  box (design review: Reply first). */
+export function TimelineFilter({ children, count }: { children: React.ReactNode; count?: number }) {
   const [f, setF] = useState<"all" | "client" | "internal">("all");
+  const [shown, setShown] = useState(false);
   return (
-    <div data-tl-filter={f}>
+    <div data-tl-filter={f} data-tl-shown={shown ? "" : undefined} className="tl-wrap">
       <div className="panel-head">
-        <h2>Timeline</h2>
-        <div className="seg more" data-manual role="group" aria-label="Show">
+        <h2>
+          Timeline{count !== undefined && <span className="c-3"> · {count}</span>}
+        </h2>
+        <div className="seg more tl-seg" data-manual role="group" aria-label="Show">
           {(["all", "client", "internal"] as const).map((v) => (
             <button key={v} type="button" aria-pressed={f === v} onClick={() => setF(v)}>
               {v === "all" ? "All" : v === "client" ? "Client" : "Internal"}
             </button>
           ))}
         </div>
+        <button className="btn btn-secondary btn-sm tl-toggle" type="button" aria-expanded={shown} onClick={() => setShown((x) => !x)}>
+          {shown ? "Hide" : "Show"}
+          <Icon name="chevD" className="i-sm" />
+        </button>
       </div>
-      {children}
+      <div className="tl-body">{children}</div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ask } from "@/app/components/Confirm";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
 import type { ActionState } from "../actions";
@@ -18,7 +19,7 @@ export function ProposalActions({ id, status, email }: { id: string; status: str
   const editable = status === "draft" || status === "approved";
 
   async function run(kind: Kind, fn: (id: string) => Promise<ActionState>, confirmText?: string) {
-    if (confirmText && !window.confirm(confirmText)) return;
+    if (confirmText && !(await ask({ title: confirmText, tone: kind === "void" ? "danger" : "primary" }))) return;
     setBusy(kind);
     setState(undefined);
     try {

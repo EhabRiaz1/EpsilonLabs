@@ -7,6 +7,7 @@ import { ago, fmtBytes, fmtDetail, pktDate, pktMidnight, usagePct, usageTone } f
 import { AGENT_CATALOG, type Beat } from "@/lib/admin-agents";
 import { fmtTokens } from "@/lib/pipeline";
 import { AgentBudgetForm } from "./AgentBudget";
+import { QueueVolume } from "../approvals/QueueVolume";
 
 export const metadata: Metadata = { title: "Health" };
 
@@ -94,6 +95,9 @@ export default async function HealthPage() {
         </div>
         <TrendChart labels={labels} series={[{ name: "Calls", data: llm }]} aria="LLM calls per day, last 14 days" />
       </section>
+
+      {/* moved here from Approvals (design review D5) */}
+      <QueueVolume />
 
       <section className="panel chart-panel" style={{ marginTop: 14 }} aria-label="Project agent tokens per day">
         <div className="row between wrap" style={{ gap: 10 }}>

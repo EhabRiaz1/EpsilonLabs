@@ -16,10 +16,12 @@ type EpsApi = {
   theme: { get(): Theme; set(t: Theme): void };
   open(id: string): void;
   close(id: string): void;
-  cmdk: { open(): void; isOpen(): boolean; register(items: CmdItem[]): void };
+  /** register returns off(), which removes exactly those items */
+  cmdk: { open(): void; isOpen(): boolean; register(items: CmdItem[]): (() => void) | void };
   /** msg is inserted as HTML by motion.js: pass only escaped text (lib/html esc). */
   toast(msg: string, opts?: ToastOpts): { close(): void };
-  keys(map: Record<string, (e: KeyboardEvent) => void>): void;
+  /** returns off(), which restores what those keys did before */
+  keys(map: Record<string, (e: KeyboardEvent) => void>): (() => void) | void;
   reduced(): boolean;
   sparkline(el: HTMLElement, data: number[]): void;
   lines(el: HTMLElement, cfg: { labels: string[]; series: { name: string; color: string; data: number[] }[]; marker?: number; badge?: string; aria?: string; height?: number }): void;

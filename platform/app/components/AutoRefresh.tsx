@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 /** Re-renders the page from the server every `seconds` while the tab is visible (admin lists, Phase 1 "live"). */
-export function AutoRefresh({ seconds = 15 }: { seconds?: number }) {
+/** `quiet`: refresh without the "Live" pill (Today shows the worker chip in its place). */
+export function AutoRefresh({ seconds = 15, quiet }: { seconds?: number; quiet?: boolean }) {
   const router = useRouter();
   const [at, setAt] = useState<string>("");
   useEffect(() => {
@@ -21,6 +22,7 @@ export function AutoRefresh({ seconds = 15 }: { seconds?: number }) {
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [router, seconds]);
+  if (quiet) return null;
   return (
     <span className="pill pill-white" title={`Refreshes every ${seconds} s while this tab is open`}>
       <span className="dot live c-good" />

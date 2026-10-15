@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
+import { ask } from "@/app/components/Confirm";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
 import { slugify } from "@/lib/slug";
@@ -119,8 +120,8 @@ export function RowAction({ kind, orgId, id, label, confirmText }: { kind: "revo
         className="btn btn-ghost btn-sm"
         type="button"
         disabled={pending}
-        onClick={() => {
-          if (!window.confirm(confirmText)) return;
+        onClick={async () => {
+          if (!(await ask({ title: confirmText, confirm: label, tone: "danger" }))) return;
           start(async () => {
             setR(kind === "revoke" ? await revokeInviteAdmin(orgId, id) : await removeMemberAdmin(orgId, id));
             router.refresh();

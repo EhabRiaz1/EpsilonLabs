@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ask } from "@/app/components/Confirm";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
 import { eps } from "@/app/components/eps";
@@ -45,8 +46,8 @@ export function ReportEditor({ id, status, text, periodLabel }: { id: string; st
               className="btn btn-primary"
               type="button"
               disabled={pending}
-              onClick={() => {
-                if (!window.confirm("Publish this report? The PDF is stored once and the client's team is emailed now. It can't be edited afterwards.")) return;
+              onClick={async () => {
+                if (!(await ask({ title: "Publish this report?", body: "The PDF is stored once and the client's team is emailed now. It can't be edited afterwards.", confirm: "Publish" }))) return;
                 run(async () => {
                   if (dirty) {
                     const saved = await saveReport(id, label, t);
@@ -59,7 +60,7 @@ export function ReportEditor({ id, status, text, periodLabel }: { id: string; st
               {pending ? <span className="spinner" /> : <Icon name="send" className="i-sm" />}
               {status === "approved" ? "Retry publish" : dirty ? "Save, approve & publish" : "Approve & publish"}
             </button>
-            <button className="btn btn-ghost" type="button" disabled={pending} onClick={() => { if (window.confirm("Void this report?")) run(() => voidReport(id)); }}>
+            <button className="btn btn-ghost" type="button" disabled={pending} onClick={async () => { if (await ask({ title: "Void this report?", confirm: "Void", tone: "danger" })) run(() => voidReport(id)); }}>
               Void
             </button>
           </div>
@@ -73,7 +74,7 @@ export function ReportEditor({ id, status, text, periodLabel }: { id: string; st
           {status === "published" && (
             <>
               <a className="btn btn-primary" href={`/reports/${id}/pdf`}><Icon name="download" className="i-sm" />Download PDF</a>
-              <button className="btn btn-ghost" type="button" disabled={pending} onClick={() => { if (window.confirm("Void this published report? The client stops seeing it.")) run(() => voidReport(id)); }}>
+              <button className="btn btn-ghost" type="button" disabled={pending} onClick={async () => { if (await ask({ title: "Void this published report?", body: "The client stops seeing it.", confirm: "Void", tone: "danger" })) run(() => voidReport(id)); }}>
                 Void
               </button>
             </>

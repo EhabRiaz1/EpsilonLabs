@@ -326,3 +326,11 @@
 /* the chart tooltip shows on hover only; at rest the Today badge and marker are enough */
 :root[data-site="admin"] .chart:not(:hover) .tip { opacity: 0; }
 :root[data-site="admin"] .chart .tip { transition: opacity var(--d-fast) var(--ease); }
+
+/* ---- Confirm dialog (components/Confirm.tsx, used by both portals): the .modal-card body ---- */
+.confirm { padding: 24px; }
+.confirm h2 { display: flex; align-items: center; gap: 10px; font-size: var(--t-18); }
+.confirm .confirm-body { color: var(--text-2); margin-top: 8px; line-height: 1.6; font-size: var(--t-13); }
+.confirm .callout { margin-top: 14px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 14px; font-size: var(--t-13); color: var(--bad); background: color-mix(in srgb, var(--bad) 9%, transparent); }
+.confirm .foot { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; flex-wrap: wrap; }
+.modal[hidden] { display: none; }
