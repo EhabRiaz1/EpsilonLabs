@@ -1,0 +1,213 @@
+/* Admin pages, Phase 1 (design review 2026-10-15): the primitives (PageHeader, KpiTile, Tabs, Confirm, Sheet, Empty,
+   Note, skeletons) and the Today, Approvals and Ticket pages. Hand-written; styles/admin-theme.css is generated from
+   the mockups and is not edited. Every selector is scoped to :root[data-site="admin"]; tokens only, no new colours. */
+
+/* ---- shell ---- */
+/* overflow: hidden on .app makes it the scroll container of every sticky child, so nothing ever sticks; clip keeps the
+   rounded frame without that (the ticket rail and the sidebar are sticky). */
+:root[data-site="admin"] .app {overflow: clip;}
+
+/* ---- PageHeader ---- */
+:root[data-site="admin"] .crumbs-row {gap: 12px; align-items: center;}
+:root[data-site="admin"] .crumbs-t .crumb {display: inline-flex; align-items: center; gap: 8px; min-width: 0;}
+:root[data-site="admin"] .crumbs-t .sep {opacity: .5;}
+:root[data-site="admin"] .crumbs-t a, :root[data-site="admin"] .crumbs-t .here {white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 32ch;}
+:root[data-site="admin"] .p-head-l {gap: 12px; align-items: flex-start; min-width: 0; flex: 1;}
+:root[data-site="admin"] .p-head-t {min-width: 0;}
+:root[data-site="admin"] .p-head h1 {overflow-wrap: anywhere;}
+:root[data-site="admin"] .p-head .eyebrow {display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; font-family: var(--font-mono); font-size: var(--t-12); color: var(--text-3);}
+:root[data-site="admin"] .p-head .pills {display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;}
+:root[data-site="admin"] .p-head .pills .i {width: 12px; height: 12px;}
+:root[data-site="admin"] .greet-l {gap: 12px; align-items: flex-start;}
+:root[data-site="admin"] .greet .ring-sm {margin-top: 10px;}
+:root[data-site="admin"] .worker-pill.off .dot {background: var(--warn);}
+@media (max-width: 960px) {
+:root[data-site="admin"] .p-head {flex-direction: column; padding-bottom: 12px;}
+:root[data-site="admin"] .p-head h1 {font-size: var(--t-22);}
+:root[data-site="admin"] .p-head .actions {justify-content: flex-start;}
+}
+
+/* ---- Note (.callout; .note is taken by the review card) ---- */
+:root[data-site="admin"] .callout {display: flex; align-items: center; gap: 8px; padding: 10px 14px; margin: 0 0 12px; border-radius: var(--r-sm); font-size: var(--t-13); line-height: 1.45;}
+:root[data-site="admin"] .callout .i {flex: none;}
+:root[data-site="admin"] .callout[data-tone="error"] {color: var(--bad); background: color-mix(in srgb, var(--bad) 9%, transparent);}
+:root[data-site="admin"] .callout[data-tone="warn"] {color: var(--warn); background: color-mix(in srgb, var(--warn) 10%, transparent);}
+:root[data-site="admin"] .callout[data-tone="ok"] {color: var(--good); background: color-mix(in srgb, var(--good) 10%, transparent);}
+:root[data-site="admin"] .callout .link-btn {color: inherit; text-decoration: underline; font-weight: 600;}
+:root[data-site="admin"] .stack > .callout, :root[data-site="admin"] .sheet-note .callout {margin: 0;}
+:root[data-site="admin"] .confirm .callout {margin: 14px 0 0;}
+:root[data-site="admin"] .mt-8 {margin-top: 8px;}
+
+/* ---- Empty ---- */
+:root[data-site="admin"] .empty {padding: 48px 24px;}
+:root[data-site="admin"] .empty h2 {font-size: var(--t-22); font-weight: 600; letter-spacing: -0.02em;}
+:root[data-site="admin"] .empty .empty-body {display: flex; flex-direction: column; gap: 4px; max-width: 44ch;}
+:root[data-site="admin"] .empty-inline {display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0; padding: 12px 16px; font-family: var(--font-mono); font-size: var(--t-12); color: var(--text-3);}
+:root[data-site="admin"] .empty-inline a, :root[data-site="admin"] .empty-inline button {color: var(--accent-text); font-weight: 500;}
+
+/* ---- Tabs (sliding ink) ---- */
+:root[data-site="admin"] .tabs[data-ink] {border-radius: var(--r-sm); padding: 3px; background: var(--surface-3);}
+:root[data-site="admin"] .tabs[data-ink] .tab {height: 30px; padding: 0 12px; border-radius: 6px; font-size: var(--t-12);}
+:root[data-site="admin"] .tabs[data-ink] .tab[aria-selected="true"] {background: none; box-shadow: none;}
+:root[data-site="admin"] .tabs[data-ink] .tabs-ink {top: 3px; bottom: 3px; border-radius: 6px; opacity: 0; box-shadow: inset 0 0 0 1px var(--line), var(--shadow-sm);}
+:root[data-site="admin"] .tabs .tab .n {font-family: var(--font-mono); font-size: var(--t-11); color: var(--text-3); font-weight: 500;}
+:root[data-site="admin"] .tab:focus-visible, :root[data-site="admin"] .btn:focus-visible, :root[data-site="admin"] .need:focus-visible, :root[data-site="admin"] .mode button:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px;}
+
+/* ---- Confirm (structure in platform.css .confirm, shared with the portal) ---- */
+:root[data-site="admin"] .confirm {border-radius: var(--r-lg); box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lg);}
+:root[data-site="admin"] .confirm h2 {font-size: var(--t-18); font-weight: 600; letter-spacing: -0.01em;}
+
+/* ---- Sheet ---- */
+:root[data-site="admin"] .sheet {background: var(--panel); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lg);}
+:root[data-site="admin"] .sheet-wide {width: min(720px, calc(100vw - 28px));}
+:root[data-site="admin"] .sheet-head h2 {font-size: var(--t-18); font-weight: 600;}
+:root[data-site="admin"] .sheet-note {flex: 1; min-width: 0;}
+
+/* ---- KpiTile ---- */
+:root[data-site="admin"] .tile .d .delta.up {color: var(--good);}
+:root[data-site="admin"] .tile .d .delta.down {color: var(--bad);}
+:root[data-site="admin"] .tile .d .delta.flat {color: var(--text-3);}
+:root[data-site="admin"] .tile .d .link-btn {font: inherit; color: var(--accent-text);}
+:root[data-site="admin"] .funnel .kpi .tile .spark-flat {width: 100%; height: 32px; position: relative;}
+:root[data-site="admin"] .funnel .kpi .tile .spark-flat::after {content: ""; position: absolute; left: 0; right: 0; bottom: 4px; height: 1px; background: var(--line);}
+
+/* ---- Today ---- */
+/* platform.css .needs is the portal's banner; reset its padding for the admin tile grid */
+:root[data-site="admin"] .needs {padding: 0; align-items: stretch;}
+:root[data-site="admin"] .needs .need {min-width: 0;}
+:root[data-site="admin"] .need.bad .n {color: var(--bad);}
+:root[data-site="admin"] .funnel .sec-head {padding-top: 0;}
+:root[data-site="admin"] .funnel .sec-head .sub {overflow: hidden; text-overflow: ellipsis; min-width: 0;}
+:root[data-site="admin"] .goal-line .goal-body {grid-template-columns: minmax(0, 1fr);}
+/* admin-theme.css carries both the 3-up and the stacked .stats rules; the approved mockup is the stacked one */
+:root[data-site="admin"] .goal .stats {grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 0; padding-top: 0; border-top: 0;}
+:root[data-site="admin"] .goal .stats .v {margin-top: 0;}
+:root[data-site="admin"] .agents .col {gap: 0;}
+/* the approved 1440 mockup's goal column (admin-theme.css has both 440 and 360; the later 360 squeezes the stats) */
+@media (min-width: 1101px) {
+:root[data-site="admin"] .mid {grid-template-columns: 440px minmax(0, 1fr);}
+}
+:root[data-site="admin"] .rows a {border-radius: 0;}
+:root[data-site="admin"] .goal .due .empty-inline {padding: 12px 0;}
+:root[data-site="admin"] .agent {color: var(--text-2);}
+:root[data-site="admin"] .agent:hover .name {text-decoration: underline; text-underline-offset: 3px;}
+:root[data-site="admin"] .agent .hist {margin-top: 0;}
+:root[data-site="admin"] .agent.bad .dot {background: var(--bad);}
+:root[data-site="admin"] .agent.bad .name, :root[data-site="admin"] .agent.bad .last {color: var(--bad);}
+:root[data-site="admin"] .agent.idle .dot {background: var(--text-3);}
+:root[data-site="admin"] .rows .grow > span {display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+:root[data-site="admin"] .panel-foot {display: flex; align-items: center; flex-wrap: wrap;}
+@media (max-width: 960px) {
+:root[data-site="admin"] .funnel .sec-head .sub {display: none;}
+}
+
+/* ---- Approvals ---- */
+:root[data-site="admin"] .q-panel {margin-top: 0;}
+:root[data-site="admin"] .q-head h2 {font-size: var(--t-13); font-weight: 600;}
+:root[data-site="admin"] .draft {border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line);}
+/* AI briefs and plans: the copper-tinted card (admin-queue.html .brief, re-tinted per D13) */
+:root[data-site="admin"] .brief {padding: 14px 18px; border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 6%, var(--panel)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, var(--line)); font-size: var(--t-13); line-height: 1.65;}
+:root[data-site="admin"] .brief .tag {display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; font: 500 10.5px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text);}
+:root[data-site="admin"] .handoff {width: min(420px, 100%); margin-top: 12px; text-align: left;}
+:root[data-site="admin"] .handoff-h {font: 500 10.5px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); padding: 0 12px 8px;}
+:root[data-site="admin"] .handoff .rows {padding: 0; border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line);}
+@media (max-width: 960px) {
+:root[data-site="admin"] .q-bar {border-radius: var(--r-lg); background: var(--panel); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lg);}
+:root[data-site="admin"] .q-bar .btn {height: 44px; min-height: 44px;}
+}
+
+/* ---- Ticket (D8) ---- */
+:root[data-site="admin"] .ask {display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;}
+:root[data-site="admin"] .ask .ask-pill {height: 32px; padding: 0 12px 0 10px; font-size: var(--t-12);}
+:root[data-site="admin"] .pipe {padding: 16px 20px 12px; margin-bottom: 12px;}
+:root[data-site="admin"] .pipe-head {margin-bottom: 10px;}
+:root[data-site="admin"] .t-grid {grid-template-columns: minmax(0, 1fr) 360px; gap: 12px;}
+:root[data-site="admin"] #work:empty {display: none;}
+:root[data-site="admin"] .built .pane {padding: 16px 22px 20px;}
+:root[data-site="admin"] .built-tabs > .tabs {margin: 14px 16px 0;}
+:root[data-site="admin"] .built-meta {gap: 8px; margin-bottom: 12px; flex-wrap: wrap;}
+:root[data-site="admin"] .built .who {display: flex; align-items: center; gap: 10px; margin-bottom: 12px;}
+:root[data-site="admin"] .attach-list {margin-top: 12px;}
+:root[data-site="admin"] .mode {display: grid; grid-template-columns: 1fr 1fr; gap: 10px;}
+:root[data-site="admin"] .mode button {text-align: left; padding: 12px 14px; border: 0; border-radius: var(--r-md); background: var(--panel); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; font: inherit; transition: box-shadow var(--d) var(--ease);}
+:root[data-site="admin"] .mode button:hover:not(:disabled) {box-shadow: inset 0 0 0 1px var(--line-strong);}
+:root[data-site="admin"] .mode button[aria-checked="true"] {box-shadow: inset 0 0 0 2px var(--accent);}
+:root[data-site="admin"] .mode button:disabled {opacity: .55; cursor: not-allowed;}
+:root[data-site="admin"] .mode button strong {display: flex; align-items: center; gap: 8px; font-size: var(--t-13); font-weight: 600;}
+:root[data-site="admin"] .mode button > span {display: block; margin-top: 4px; font-size: var(--t-12); color: var(--text-3); line-height: 1.5;}
+:root[data-site="admin"] .mode-pick {gap: 12px;}
+:root[data-site="admin"] .mode-go {gap: 10px; align-items: center;}
+:root[data-site="admin"] .switch-mode, :root[data-site="admin"] .status-hint {margin-top: 10px;}
+:root[data-site="admin"] .manual-pane {gap: 10px;}
+:root[data-site="admin"] .manual-acts {gap: 8px;}
+:root[data-site="admin"] .merged-bar {display: flex; align-items: center; gap: 10px; padding: 16px 22px; animation: enter var(--d-slow) var(--ease) both;}
+:root[data-site="admin"] .retainer {padding: 8px 22px 6px;}
+:root[data-site="admin"] .retainer .gauge {max-width: 200px; margin: 6px auto 0;}
+:root[data-site="admin"] .retainer .gauge .val .big {font-family: var(--font-mono); font-size: var(--t-22); font-weight: 500;}
+:root[data-site="admin"] .retainer .hint {text-align: center; margin-top: 4px;}
+:root[data-site="admin"] .entries {display: flex; flex-direction: column; padding: 4px 22px 8px;}
+:root[data-site="admin"] .entries > div {display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: var(--t-12); color: var(--text-2);}
+:root[data-site="admin"] .entries > div:first-child {border-top: 0;}
+:root[data-site="admin"] .entries .entry-t {width: 64px; flex: none; color: var(--ink);}
+:root[data-site="admin"] .entries .entry-n {display: flex; flex-direction: column; min-width: 0;}
+:root[data-site="admin"] .time-form {border-top: 1px solid var(--line); padding-top: 14px;}
+:root[data-site="admin"] .time-fields {gap: 10px;}
+:root[data-site="admin"] .time-fields .f-time {width: 110px;}
+:root[data-site="admin"] .time-fields .f-day {width: 160px;}
+:root[data-site="admin"] .time-fields .f-note {min-width: 180px;}
+:root[data-site="admin"] .time-bill {gap: 8px; margin-top: 8px;}
+/* right rail: Reply on top, Timeline under it, both sticky on wide screens */
+:root[data-site="admin"] .rail .composer {padding-top: 10px;}
+:root[data-site="admin"] .rail .tl {padding: 10px 20px 20px;}
+:root[data-site="admin"] .rail .tl-body-x {margin-top: 8px;}
+:root[data-site="admin"] .tl-wrap .panel-head {flex-wrap: wrap; gap: 8px;}
+:root[data-site="admin"] .tl-toggle {display: none;}
+:root[data-site="admin"] .tl-seg button {height: 28px; font: 500 var(--t-12)/1 var(--font-sans);}
+@media (min-width: 1101px) {
+:root[data-site="admin"] .rail {position: sticky; top: 16px; max-height: calc(100vh - 32px); align-self: start;}
+:root[data-site="admin"] .rail-reply {flex: none;}
+:root[data-site="admin"] .rail-tl {flex: 1 1 auto; min-height: 120px; overflow-y: auto; overscroll-behavior: contain;}
+}
+@media (max-width: 1100px) {
+:root[data-site="admin"] .t-grid {grid-template-columns: minmax(0, 1fr);}
+}
+@media (max-width: 640px) {
+:root[data-site="admin"] .mode {grid-template-columns: 1fr;}
+:root[data-site="admin"] .tl-toggle {display: inline-flex; margin-left: auto;}
+:root[data-site="admin"] .tl-wrap .tl-seg {display: none;}
+:root[data-site="admin"] .tl-wrap[data-tl-shown] .tl-seg {display: inline-flex; order: 3;}
+:root[data-site="admin"] .tl-wrap:not([data-tl-shown]) .tl-body {display: none;}
+:root[data-site="admin"] .time-fields .f-time, :root[data-site="admin"] .time-fields .f-day, :root[data-site="admin"] .time-fields .f-note {width: 100%; min-width: 0;}
+:root[data-site="admin"] .ask {justify-content: flex-start;}
+}
+
+/* ---- Health ---- */
+:root[data-site="admin"] .queue-volume {margin-top: 14px;}
+
+/* ---- loading skeletons ---- */
+:root[data-site="admin"] .skel-page {display: flex; flex-direction: column; gap: 12px;}
+:root[data-site="admin"] .skel-head {display: flex; align-items: flex-start; gap: 16px; padding: 6px 4px 8px;}
+:root[data-site="admin"] .skel-head .grow {display: flex; flex-direction: column; gap: 10px;}
+:root[data-site="admin"] .skel.title {height: 24px; width: min(320px, 70%);}
+:root[data-site="admin"] .skel.line {height: 10px;}
+:root[data-site="admin"] .skel.line.sm {height: 8px;}
+:root[data-site="admin"] .skel.num {height: 26px; width: 56px;}
+:root[data-site="admin"] .skel.btn-s {height: 32px; width: 120px; border-radius: var(--r-sm);}
+:root[data-site="admin"] .skel.ic {width: 24px; height: 24px; border-radius: 6px; flex: none;}
+:root[data-site="admin"] .skel.w-70 {width: 70%;} :root[data-site="admin"] .skel.w-60 {width: 60%;} :root[data-site="admin"] .skel.w-50 {width: 50%;}
+:root[data-site="admin"] .skel.w-40 {width: 40%;} :root[data-site="admin"] .skel.w-30 {width: 30%;} :root[data-site="admin"] .skel.w-10 {width: 48px;}
+:root[data-site="admin"] .skel-tiles {display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 10px;}
+:root[data-site="admin"] .skel-tile {display: flex; flex-direction: column; gap: 10px; padding: 16px;}
+:root[data-site="admin"] .skel-tile.tall {padding-bottom: 46px;}
+:root[data-site="admin"] .skel-rows {padding: 4px 0 8px;}
+:root[data-site="admin"] .skel-rows .skel-ph {margin: 12px 16px;}
+:root[data-site="admin"] .skel-row {display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--line);}
+:root[data-site="admin"] .skel-row .grow {display: flex; flex-direction: column; gap: 6px;}
+:root[data-site="admin"] .skel-panel {padding: 16px;}
+:root[data-site="admin"] .skel-split {display: grid; grid-template-columns: 440px minmax(0, 1fr); gap: 12px;}
+:root[data-site="admin"] .skel-split.rev {grid-template-columns: minmax(0, 1fr) 380px;}
+:root[data-site="admin"] .skel-stack {display: flex; flex-direction: column; gap: 12px; min-width: 0;}
+@media (max-width: 1100px) {
+:root[data-site="admin"] .skel-split, :root[data-site="admin"] .skel-split.rev {grid-template-columns: minmax(0, 1fr);}
+:root[data-site="admin"] .skel-tiles {grid-template-columns: repeat(2, minmax(0, 1fr));}
+}

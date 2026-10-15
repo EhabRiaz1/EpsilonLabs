@@ -1,8 +1,13 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
+import { Tabs } from "@/app/components/Tabs";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
+import { usePageCommands } from "@/app/components/AdminPalette";
 import type { IconName } from "@/app/components/icons";
 import { eps } from "@/app/components/eps";
 import { esc } from "@/lib/html";
@@ -21,8 +26,10 @@ export type Card = {
   source?: "deck" | "update" | "report" | "brief" | "plan"; href?: string;
 };
 export type View = "all" | "cold" | "replies" | "held";
+/** What else waits, listed under All clear (design review D5). */
+export type Handoff = { label: string; n: number; href: string; icon: IconName };
 const TABS: [View, string][] = [["all", "All"], ["cold", "Cold email"], ["replies", "Replies"], ["held", "Held"]];
-const UNDO_SECONDS = 10;
+const UNDO_SECONDS = 8; // design review: 8 s undo (the Mac outbox waits longer before it sends)
 
 const ICON: Record<string, IconName> = { outbound: "send", reply: "mail", ack: "check", quote: "receipt", optout_confirm: "x", referral: "users", update: "file", report: "chart", brief: "sparkle", plan: "cpu" };
 /** Cards approved on their own page (the queue only opens it). */
@@ -33,6 +40,7 @@ const SENT_MSG: Record<string, string> = {
   edited_approved: "Edited and approved · sends from the Mac outbox",
   edited_pending_lint: "Approved · re-linted on the Mac, then sent",
 };
+const QUEUED_MSG = "Approved · queued, sends when the Mac is back";
 
 function toast(msg: string, opts: Parameters<NonNullable<ReturnType<typeof eps>>["toast"]>[1] = {}) {
   const e = eps();
@@ -40,8 +48,12 @@ function toast(msg: string, opts: Parameters<NonNullable<ReturnType<typeof eps>>
   else if (!opts.seconds) window.alert(msg);
 }
 
-/** The Superhuman-style approval queue (admin-queue.html): J/K/A/E/R/L, inline edit, 10 s undo, All clear. */
-export function ApprovalQueue({ ready, held, initialView, decidedToday }: { ready: Card[]; held: Card[]; initialView: View; decidedToday: number }) {
+/** The Superhuman-style approval queue (admin-queue.html): J/K/A/E/R/L, inline edit, 8 s undo, All clear. With the Mac
+ *  worker offline, approving still records the decision; the button says "Approve · queued" and the toast says when it
+ *  sends. The same commands are in ⌘K. */
+export function ApprovalQueue({ ready, held, initialView, decidedToday, online = true, handoff = [], lastBeat = null }: {
+  ready: Card[]; held: Card[]; initialView: View; decidedToday: number; online?: boolean; handoff?: Handoff[]; lastBeat?: string | null;
+}) {
   const router = useRouter();
   const [view, setView] = useState<View>(initialView);
   const [ks, setKs] = useState(initialQueueState);
@@ -92,7 +104,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     setConfirm(null);
     setKs((s) => ({ ...s, editing: false }));
     leave(c.id, "right");
-    toast(SENT_MSG[r.status ?? ""] ?? "Approved", {
+    toast(online ? (SENT_MSG[r.status ?? ""] ?? "Approved") : QUEUED_MSG, {
       icon: "check",
       seconds: UNDO_SECONDS,
       action: "Undo",
@@ -227,6 +239,26 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     return () => document.removeEventListener("keydown", on);
   }, []);
 
+  // ⌘K: the same commands as the keys (the reducer above handles the keys themselves)
+  const step = (d: number) => {
+    if (!visible.length) return;
+    setKs((s) => ({ ...s, editing: false, sel: (clampSel(s.sel, visible.length) + d + visible.length) % visible.length }));
+    setConfirm(null);
+  };
+  usePageCommands(
+    "Approvals",
+    [
+      { label: "Approve", icon: "check", keys: "A", run: () => run("approve", cur) },
+      { label: "Edit the draft", icon: "pencil", keys: "E", run: () => run("edit", cur) },
+      { label: "Reject", icon: "x", keys: "R", run: () => run("reject", cur) },
+      { label: "Hold · release a held draft", icon: "pause", keys: "H", run: () => run("hold", cur) },
+      { label: "Later · move to the end", icon: "clock", keys: "L", run: () => run("hold", cur) },
+      { label: "Next item", icon: "chevD", keys: "J", run: () => step(1) },
+      { label: "Previous item", icon: "chevR", keys: "K", run: () => step(-1) },
+    ],
+    "approvals",
+  );
+
   function pick(i: number) {
     if (i !== sel) {
       setKs((s) => ({ ...s, sel: i, editing: false }));
@@ -262,7 +294,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     ) : (
       <>
         <button className="btn btn-primary" type="button" disabled={busy} onClick={() => run("approve", c)}>
-          {opens(c) ? "Open to review" : c.source === "update" ? "Publish" : confirm?.id === c.id ? "Send anyway" : "Approve"}
+          {opens(c) ? "Open to review" : c.source === "update" ? "Publish" : confirm?.id === c.id ? "Send anyway" : online ? "Approve" : "Approve · queued"}
           {withKeys && <span className="kbd">A</span>}
         </button>
         <button className="btn btn-secondary" type="button" disabled={busy} onClick={() => run("edit", c)}>
@@ -283,13 +315,13 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
     <section className="panel q-panel" aria-label="Approvals">
       <div className="q-head">
         <h2>Queue</h2>
-        <div className="tabs" role="tablist" aria-label="Filter">
-          {TABS.map(([v, label]) => (
-            <button key={v} className="tab" role="tab" type="button" aria-selected={view === v} onClick={() => tab(v)}>
-              {label} <span className="c-3">{count(v)}</span>
-            </button>
-          ))}
-        </div>
+        <Tabs label="Filter" value={view} onChange={(v) => tab(v as View)} items={TABS.map(([v, label]) => ({ key: v, label, count: count(v) }))} />
+        {!online && (
+          <span className="pill pill-warn" title={lastBeat ? `Last heartbeat ${lastBeat}` : "The Mac worker has not reported"}>
+            <span className="dot" />
+            Mac offline · approvals queue
+          </span>
+        )}
         <div className="keys" aria-hidden="true">
           <span><span className="kbd-group"><span className="kbd">J</span><span className="kbd">K</span></span>move</span>
           <span><span className="kbd">A</span>approve</span>
@@ -300,19 +332,12 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
       </div>
 
       {!cur ? (
-        <div className="empty">
-          <div className="orb">
-            <span className="wave" />
-            <span className="wave" />
-            <span className="core"><Icon name="check" className="i-lg" /></span>
-          </div>
-          <h2 className="display" style={{ fontSize: "var(--t-28)" }}>All clear</h2>
-          <p className="c-2" style={{ maxWidth: "36ch" }}>
-            {view === "held" ? "No held drafts." : `Nothing waits on you. ${decidedToday} decided today.`}
+        <Empty title="All clear" action={<HandoffList items={handoff} />}>
+          <p className="c-2">
+            {view === "held" ? "No held drafts." : `Nothing waits on you here. ${decidedToday} decided today.`}
             {view !== "all" && waiting ? ` ${waiting} waiting in other tabs.` : ""}
           </p>
-          <p className="c-3 t-12">New drafts arrive from the Mac agents; this page refreshes every 30 s.</p>
-        </div>
+        </Empty>
       ) : (
         <table className="table">
           <thead>
@@ -357,12 +382,7 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
                           {open && (
                             <div className={`detail-body q-card${out}`} id="card">
                               <div className="stack" style={{ gap: 10, minWidth: 0 }}>
-                                {c.held && (
-                                  <div className="auth-error" style={{ marginTop: 0 }}>
-                                    <Icon name="alert" className="i-sm" />
-                                    Held: {c.heldReason || "needs a look"}
-                                  </div>
-                                )}
+                                {c.held && <Note tone="warn">Held: {c.heldReason || "needs a look"}</Note>}
                                 {c.theyWrote && (
                                   <div className="untrusted">
                                     <div className="untrusted-tag"><Icon name="alert" className="i-sm" />{c.kind === "outbound" ? "Research notes · untrusted" : `${c.who} wrote · untrusted`}</div>
@@ -375,7 +395,13 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
                                     <div className="pre t-13 c-2">{c.ours}</div>
                                   </details>
                                 )}
-                                <div className="draft">
+                                <div className={c.source === "brief" || c.source === "plan" ? "draft brief" : "draft"}>
+                                  {(c.source === "brief" || c.source === "plan") && (
+                                    <div className="tag">
+                                      <Icon name="sparkle" className="i-sm" />
+                                      {c.source === "brief" ? "AI brief · you approve the wording" : "Read-only plan · you approve the files and steps"}
+                                    </div>
+                                  )}
                                   <div className="to"><Icon name={c.source && c.source !== "deck" ? "users" : "mail"} className="i-sm" />{c.source && c.source !== "deck" ? c.to : `To ${c.to || "(no address)"}`}</div>
                                   {c.thread && <div className="subj">{c.thread}</div>}
                                   {ks.editing ? (
@@ -442,5 +468,32 @@ export function ApprovalQueue({ ready, held, initialView, decidedToday }: { read
       )}
       {cur && <div className="q-bar">{actionButtons(cur, false)}</div>}
     </section>
+  );
+}
+
+/** Under All clear: the other places that wait on the founder (only the non-zero ones). */
+function HandoffList({ items }: { items: Handoff[] }) {
+  const open = items.filter((x) => x.n > 0);
+  if (!open.length) return <p className="c-3 t-12 mono">Nothing else waits either. New drafts arrive from the Mac agents.</p>;
+  return (
+    <div className="handoff">
+      <div className="handoff-h">Also waiting</div>
+      <div className="rows">
+        {open.map((x) => (
+          <Link key={x.label} href={x.href}>
+            <span className="ic">
+              <Icon name={x.icon} className="i-sm" />
+            </span>
+            <span className="grow">
+              <span className="t">{x.label}</span>
+            </span>
+            <span className="when">
+              <strong>{x.n}</strong>
+            </span>
+            <Icon name="chevR" className="i-sm c-3" />
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }

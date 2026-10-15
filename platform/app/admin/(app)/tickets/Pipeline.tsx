@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState, useMemo, useState, useTransition } from "react";
+import { useActionState, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
 import type { IconName } from "@/app/components/icons";
 import { eps } from "@/app/components/eps";
 import { Note, type FormResult } from "@/app/components/Forms";
+import { ask } from "@/app/components/Confirm";
+import { usePageCommands } from "@/app/components/AdminPalette";
 import { baseName, diffTotals, highlight, langFor, parseUnifiedDiff, type DiffFile } from "@/lib/diff";
 import type { Step } from "@/lib/pipeline";
 
@@ -49,8 +51,22 @@ export function Stepper({ steps }: { steps: Step[] }) {
   );
 }
 
-/** One button for a bound server action, with an optional confirm. */
-export function Act({ action, label, icon, cls = "btn btn-secondary", confirmText, kbd }: { action: () => Promise<FormResult>; label: string; icon?: IconName; cls?: string; confirmText?: string; kbd?: string }) {
+/** Asks in the Confirm dialog, which runs the action itself (it stays open with the error on failure), then re-reads
+ *  the page. Resolves true when it ran. */
+export async function confirmRun(
+  router: ReturnType<typeof useRouter>,
+  opts: { title: string; body?: ReactNode; confirm: string; tone?: "primary" | "danger"; icon?: IconName; run: () => Promise<FormResult> },
+): Promise<boolean> {
+  const ok = await ask(opts);
+  if (ok) router.refresh();
+  return ok;
+}
+
+/** One button for a bound server action, with an optional confirm (the Confirm dialog, not the browser prompt). */
+export function Act({ action, label, icon, cls = "btn btn-secondary", confirmText, confirmTitle, kbd }: {
+  action: () => Promise<FormResult>; label: string; icon?: IconName; cls?: string; confirmText?: string; confirmTitle?: string; kbd?: string;
+}) {
+  const router = useRouter();
   const { pending, r, go } = useRun();
   return (
     <>
@@ -59,8 +75,15 @@ export function Act({ action, label, icon, cls = "btn btn-secondary", confirmTex
         type="button"
         disabled={pending}
         onClick={() => {
-          if (confirmText && !window.confirm(confirmText)) return;
-          go(action, icon ?? "check");
+          if (!confirmText) return go(action, icon ?? "check");
+          void confirmRun(router, {
+            title: confirmTitle ?? confirmText,
+            body: confirmTitle ? confirmText : undefined,
+            confirm: label,
+            tone: cls.includes("btn-danger") ? "danger" : "primary",
+            icon,
+            run: action,
+          });
         }}
       >
         {pending ? <span className="spinner" /> : icon ? <Icon name={icon} className="i-sm" /> : null}
@@ -139,7 +162,7 @@ export function BriefCard({ brief, approve, edit, redraft, editable }: {
         <div className="row wrap" style={{ gap: 8, marginTop: 14 }}>
           {approve && <Act action={approve} label="Approve brief" icon="check" cls="btn btn-primary btn-sm" />}
           {edit && <button className="btn btn-secondary btn-sm" type="button" onClick={() => setEditing(true)}><Icon name="pencil" className="i-sm" />Edit</button>}
-          {redraft && <Act action={redraft} label="Redraft" icon="undo" cls="btn btn-ghost btn-sm" confirmText="Draft a new brief? This one is set aside." />}
+          {redraft && <Act action={redraft} label="Redraft" icon="undo" cls="btn btn-ghost btn-sm" confirmTitle="Draft a new brief?" confirmText="This one is set aside and the Mac drafts a new one, tool-less, from the ticket text." />}
         </div>
       )}
     </div>
@@ -205,25 +228,52 @@ export function PlanCard({ plan, approve, edit, redo, editable, touched }: {
         <div className="row wrap" style={{ gap: 8, marginTop: 14 }}>
           {approve && <Act action={approve} label="Approve plan" icon="check" cls="btn btn-primary btn-sm" />}
           {edit && <button className="btn btn-secondary btn-sm" type="button" onClick={() => setEditing(true)}><Icon name="pencil" className="i-sm" />Edit</button>}
-          {redo && <Act action={redo} label="Re-plan" icon="undo" cls="btn btn-ghost btn-sm" confirmText="Run the read-only plan again? This plan is set aside." />}
+          {redo && <Act action={redo} label="Re-plan" icon="undo" cls="btn btn-ghost btn-sm" confirmTitle="Run the read-only plan again?" confirmText="This plan is set aside and the read-only agent plans again from the approved brief." />}
         </div>
       )}
     </div>
   );
 }
 
-export function ModePicker({ agent, manual, agentOk, agentReason }: { agent: () => Promise<FormResult>; manual: () => Promise<FormResult>; agentOk: boolean; agentReason: string }) {
+/** Agent or Manual as two selectable cards (design review D8, admin-queue.html .mode); the button commits the choice.
+ *  Manual asks first, because the client sees "In progress". */
+export function ModePicker({ agent, manual, agentOk, agentReason, ticketRef }: {
+  agent: () => Promise<FormResult>; manual: () => Promise<FormResult>; agentOk: boolean; agentReason: string; ticketRef?: string;
+}) {
+  const router = useRouter();
+  const [pick, setPick] = useState<"agent" | "manual">(agentOk ? "agent" : "manual");
+  const { pending, r, go } = useRun();
+  const branch = ticketRef ? `ticket/${ticketRef}` : "ticket/EL-n";
+  function commit() {
+    if (pick === "agent") return go(agent, "cpu");
+    void confirmRun(router, {
+      title: "Work on it yourself?",
+      body: `The client sees "In progress". Commits that mention ${ticketRef ?? "the ticket"} are added to the timeline every 10 minutes.`,
+      confirm: "Work on it myself",
+      icon: "terminal",
+      run: manual,
+    });
+  }
   return (
-    <div className="stack" style={{ gap: 10 }}>
-      <div className="row wrap" style={{ gap: 8 }}>
-        {agentOk ? (
-          <Act action={agent} label="Agent" icon="cpu" cls="btn btn-primary" />
-        ) : (
-          <button className="btn btn-primary" type="button" disabled title={agentReason}><Icon name="cpu" className="i-sm" />Agent</button>
-        )}
-        <Act action={manual} label="Manual" icon="pencil" cls="btn btn-secondary" confirmText={'Work on it yourself? The client sees "In progress".'} />
+    <div className="stack mode-pick">
+      <div className="mode" role="radiogroup" aria-label="How should this get built?">
+        <button type="button" role="radio" aria-checked={pick === "agent"} disabled={!agentOk} title={agentOk ? undefined : agentReason} onClick={() => setPick("agent")}>
+          <strong><Icon name="cpu" className="i-sm" />Let the agent do it</strong>
+          <span>{agentOk ? <>Fresh worktree on <span className="mono">{branch}</span>. {agentReason}.</> : agentReason}</span>
+        </button>
+        <button type="button" role="radio" aria-checked={pick === "manual"} onClick={() => setPick("manual")}>
+          <strong><Icon name="terminal" className="i-sm" />I&apos;ll do it myself</strong>
+          <span>Commits mentioning {ticketRef ?? "the ticket"} are picked up every 10 min.</span>
+        </button>
       </div>
-      <p className="hint">{agentOk ? `Agent edits only in a git worktree on ticket/EL-n. ${agentReason}.` : agentReason} Manual: commits that mention the ticket are added to the timeline every 10 min.</p>
+      <div className="row wrap mode-go">
+        <button className="btn btn-primary" type="button" disabled={pending || (pick === "agent" && !agentOk)} onClick={commit}>
+          {pending ? <span className="spinner" /> : <Icon name={pick === "agent" ? "cpu" : "pencil"} className="i-sm" />}
+          {pick === "agent" ? "Use the agent" : "Work on it myself"}
+        </button>
+        <span className="hint">The agent edits only in a git worktree; nothing merges or deploys on its own.</span>
+      </div>
+      <Note r={r} />
     </div>
   );
 }
@@ -334,27 +384,79 @@ export function ReviewActions({ branch, merge, push, discard, sendBack, attach, 
   sendBack: (notes: string) => Promise<FormResult>; attach: (url: string, toClient: boolean) => Promise<FormResult>;
   pushed: boolean; pushError: string | null; previewUrl: string | null; pushRequested: boolean; clientName: string;
 }) {
+  const router = useRouter();
   const [back, setBack] = useState(false);
   const [notes, setNotes] = useState("");
   const [url, setUrl] = useState(previewUrl ?? "");
   const [toClient, setToClient] = useState(false);
   const b = useRun();
   const a = useRun();
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+
+  const askMerge = () =>
+    confirmRun(router, {
+      title: `Mark ${branch} as merged?`,
+      body: <>Merge it yourself on your Mac first: nothing merges automatically. The ticket becomes Done and {clientName} sees it.</>,
+      confirm: "I merged it",
+      icon: "merge",
+      run: merge,
+    });
+  const askPush = () =>
+    confirmRun(router, {
+      title: `Push ${branch} for a preview?`,
+      body: <>The Mac runs <span className="mono">git push origin {branch}</span>. Nothing else is pushed.</>,
+      confirm: pushed ? "Push again" : "Push branch",
+      icon: "upload",
+      run: push,
+    });
+  const askDiscard = () =>
+    confirmRun(router, {
+      title: "Discard this run?",
+      body: <>The Mac deletes the worktree and {branch}. Your working copy is untouched and nothing is sent to {clientName}.</>,
+      confirm: "Discard worktree",
+      tone: "danger",
+      icon: "trash",
+      run: discard,
+    });
+  const toggleBack = () => {
+    setBack((x) => !x);
+    window.setTimeout(() => notesRef.current?.focus(), 30);
+  };
+  // M / P / N on this page (the key badges were dead before), only when no input has focus
+  usePageCommands(
+    "Ticket",
+    [
+      { label: "I merged it", icon: "merge", keys: "M", bind: "m", run: () => void askMerge() },
+      { label: pushed ? "Push again" : "Push branch for preview", icon: "upload", keys: "P", bind: "p", run: () => void askPush() },
+      { label: "Send back with notes", icon: "undo", keys: "N", bind: "n", run: toggleBack },
+      { label: "Discard worktree", icon: "trash", run: () => void askDiscard() },
+    ],
+    `review-${pushed}`,
+  );
+
   return (
     <div className="panel" id="action-card">
       <div className="actions">
-        <Act action={merge} label="I merged it" icon="merge" cls="btn btn-primary" kbd="M"
-          confirmText={`Mark ${branch} as merged? Merge it yourself on your Mac first (nothing merges automatically). The ticket becomes Done and ${clientName} sees it.`} />
-        <Act action={push} label={pushed ? "Push again" : pushRequested ? "Push queued" : "Push branch for preview"} icon="upload" cls="btn btn-secondary" kbd="P"
-          confirmText={`The Mac will run: git push origin ${branch}. Nothing else is pushed. Continue?`} />
-        <button className="btn btn-ghost" type="button" onClick={() => setBack((x) => !x)}><Icon name="undo" className="i-sm" />Send back with notes<span className="kbd">N</span></button>
+        <button className="btn btn-primary" type="button" onClick={() => void askMerge()}>
+          <Icon name="merge" className="i-sm" />I merged it<span className="kbd">M</span>
+        </button>
+        <button className="btn btn-secondary" type="button" onClick={() => void askPush()}>
+          <Icon name="upload" className="i-sm" />
+          {pushed ? "Push again" : pushRequested ? "Push queued" : "Push branch for preview"}
+          <span className="kbd">P</span>
+        </button>
+        <button className="btn btn-ghost" type="button" aria-expanded={back} onClick={toggleBack}>
+          <Icon name="undo" className="i-sm" />Send back with notes<span className="kbd">N</span>
+        </button>
         <span className="spacer" />
-        <Act action={discard} label="Discard worktree" icon="trash" cls="btn btn-danger" confirmText={`Discard this run? The Mac deletes the worktree and ${branch}.`} />
+        <button className="btn btn-danger" type="button" onClick={() => void askDiscard()}>
+          <Icon name="trash" className="i-sm" />Discard worktree
+        </button>
         <span className="note">Merge is done by you, on your Mac. Push runs plain <span className="mono">git push origin {branch}</span> from the worker. The AI never pushes or deploys.</span>
       </div>
       {back && (
         <div className="composer" style={{ paddingTop: 0 }}>
-          <textarea className="textarea" placeholder="What should change? The agent continues on the same branch." maxLength={4000} value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <textarea ref={notesRef} className="textarea" placeholder="What should change? The agent continues on the same branch." maxLength={4000} value={notes} onChange={(e) => setNotes(e.target.value)} />
           <div className="row" style={{ gap: 8 }}>
             <button className="btn btn-primary btn-sm" type="button" disabled={b.pending || !notes.trim()} onClick={() => b.go(() => sendBack(notes), "undo")}>
               {b.pending ? <span className="spinner" /> : <Icon name="send" className="i-sm" />}Send back
@@ -371,12 +473,39 @@ export function ReviewActions({ branch, merge, push, discard, sendBack, attach, 
           <input className="input" style={{ maxWidth: 280, height: 36 }} placeholder="https://…vercel.app" value={url} onChange={(e) => setUrl(e.target.value)} />
           <label className="row t-12" style={{ gap: 6 }}><input type="checkbox" checked={toClient} onChange={(e) => setToClient(e.target.checked)} />Send to {clientName}</label>
           <button className="btn btn-secondary btn-sm" type="button" disabled={a.pending || !url.trim()} onClick={() => {
-            if (toClient && !window.confirm(`Send this preview link to ${clientName}? They see it in the portal.`)) return;
-            a.go(() => attach(url, toClient), "globe");
+            if (!toClient) return a.go(() => attach(url, false), "globe");
+            void confirmRun(router, {
+              title: `Send this preview link to ${clientName}?`,
+              body: "They see it in the portal straight away.",
+              confirm: "Attach and send",
+              icon: "globe",
+              run: () => attach(url, true),
+            });
           }}>{a.pending ? <span className="spinner" /> : null}Attach</button>
           <Note r={a.r} />
         </div>
       )}
+    </div>
+  );
+}
+
+/** The Done state after "I merged it" (ticket.html .merged-bar). */
+export function MergedBar({ branch, base, sha, clientName, merged }: { branch: string; base: string; sha: string | null; clientName: string; merged: boolean }) {
+  return (
+    <div className="panel" id="action-card">
+      <div className="merged-bar">
+        <span className={`pill ${merged ? "pill-good" : ""}`}><span className="dot" />{merged ? "Merged" : "Done"}</span>
+        <span className="t-13 grow">
+          {merged ? (
+            <>
+              {branch} → {base}
+              {sha ? <> @ <span className="mono">{sha.slice(0, 7)}</span></> : null} · &quot;Status → Done&quot; sent to {clientName}
+            </>
+          ) : (
+            <>Closed as Done · {clientName} sees it in the portal</>
+          )}
+        </span>
+      </div>
     </div>
   );
 }

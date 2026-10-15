@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./styles/system.css";
 import "./platform.css";
 import "./styles/admin-theme.css";
+import "./styles/admin-pages.css";
 import { MotionLoader } from "./components/MotionLoader";
 
 export const metadata: Metadata = {

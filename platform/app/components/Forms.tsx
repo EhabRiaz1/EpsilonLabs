@@ -4,6 +4,7 @@ import { useActionState, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "./Icon";
 import { eps } from "./eps";
+import { ask } from "./Confirm";
 
 export type FormResult = { ok?: string; error?: string } | undefined;
 
@@ -51,7 +52,8 @@ export function ActionForm({
   );
 }
 
-/** One button calling a bound server action, with an optional confirm and a toast on success. */
+/** One button calling a bound server action, with an optional confirm and a toast on success. With `confirmText`
+ *  the Confirm dialog asks and runs the action (it stays open with the error on failure). */
 export function ActionButton({
   action, label, confirmText, className, toast,
 }: {
@@ -70,8 +72,20 @@ export function ActionButton({
         className={className ?? "btn btn-secondary"}
         type="button"
         disabled={pending}
-        onClick={() => {
-          if (confirmText && !window.confirm(confirmText)) return;
+        onClick={async () => {
+          if (confirmText) {
+            const ok = await ask({
+              title: confirmText,
+              confirm: label,
+              tone: /btn-danger/.test(className ?? "") ? "danger" : "primary",
+              run: async () => {
+                const res = await action();
+                return toast === false && res?.ok ? undefined : res;
+              },
+            });
+            if (ok) router.refresh();
+            return;
+          }
           start(async () => {
             let res: FormResult;
             try {

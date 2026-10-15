@@ -268,7 +268,8 @@
   /* ---- command palette ---- */
   var cmd = { items: [], el: null, input: null, list: null, sel: 0, filtered: [] };
   Eps.cmdk = {
-    register: function (items) { cmd.items = cmd.items.concat(items); },
+    /* returns off(): removes exactly these items again (page commands registered per page) */
+    register: function (items) { cmd.items = cmd.items.concat(items); return function () { cmd.items = cmd.items.filter(function (it) { return items.indexOf(it) < 0; }); }; },
     isOpen: function () { return !!(cmd.el && cmd.el.hasAttribute("data-open")); },
     open: function () { build(); cmd.el.setAttribute("data-open", ""); getScrim().setAttribute("data-open", ""); cmd.input.value = ""; render(""); setTimeout(function () { cmd.input.focus(); }, ms(40)); },
     close: function () { if (!cmd.el) return; cmd.el.removeAttribute("data-open"); if (!openEls.length) { getScrim().removeAttribute("data-open"); } },
@@ -312,8 +313,13 @@
 
   /* ---- keys: single keys and two-key sequences ("g h") ---- */
   var keymap = {}, pending = null, pendingTimer;
-  Eps.keys = function (map) { Object.keys(map).forEach(function (k) { keymap[k] = map[k]; }); };
-  function typing(e) { var t = e.target; return t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable); }
+  /* returns off(): restores what each key did before (a page's keys shadow the global ones while it is mounted) */
+  Eps.keys = function (map) {
+    var prev = {};
+    Object.keys(map).forEach(function (k) { prev[k] = keymap[k]; keymap[k] = map[k]; });
+    return function () { Object.keys(map).forEach(function (k) { if (keymap[k] !== map[k]) return; if (prev[k]) keymap[k] = prev[k]; else delete keymap[k]; }); };
+  };
+  function typing(e) { var t = e.target; return t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable); }
   addEventListener("keydown", function (e) {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); Eps.cmdk.toggle(); return; }
     if (e.key === "Escape") { if (Eps.cmdk.isOpen()) { Eps.cmdk.close(); return; } if (openEls.length) { closeOverlay(openEls[openEls.length - 1]); return; } }

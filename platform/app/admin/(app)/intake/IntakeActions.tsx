@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ask } from "@/app/components/Confirm";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
 import type { IntakeStatus } from "@/lib/intake";
@@ -12,8 +13,8 @@ export function IntakeActions({ id, status, email }: { id: string; status: Intak
   const [busy, setBusy] = useState<string | null>(null);
   const [r, setR] = useState<IntakeResult>(undefined);
 
-  function run(kind: string, fn: () => Promise<IntakeResult>, confirmText?: string) {
-    if (confirmText && !window.confirm(confirmText)) return;
+  async function run(kind: string, fn: () => Promise<IntakeResult>, confirmText?: string) {
+    if (confirmText && !(await ask({ title: confirmText }))) return;
     setBusy(kind);
     start(async () => {
       try {

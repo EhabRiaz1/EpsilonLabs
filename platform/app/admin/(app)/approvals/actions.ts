@@ -45,7 +45,7 @@ export async function undoDecision(id: string): Promise<DeckResult> {
   return deck("undo_decision", { p_id: id });
 }
 
-/** Called only when the 10 s undo toast runs out (the undo itself never reaches the server). */
+/** Called only when the 8 s undo toast runs out (the undo itself never reaches the server). */
 export async function rejectDraft(id: string, reason: string): Promise<DeckResult> {
   return deck("reject_draft", { p_id: id, p_reason: String(reason ?? "").slice(0, 300) || null });
 }

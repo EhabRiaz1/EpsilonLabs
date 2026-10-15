@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { MenuButton } from "@/app/components/ShellControls";
-import { AutoRefresh } from "@/app/components/AutoRefresh";
-import { TrendChart } from "@/app/components/TrendChart";
+import { PageHeader } from "@/app/components/PageHeader";
+import { Note } from "@/app/components/Note";
 import { getSession } from "@/lib/session";
 import { relativeDay } from "@/lib/tickets";
-import { dayMonth } from "@/lib/dates";
-import { deckOrder, kindLabel, pktDate, pktMidnight } from "@/lib/admin-ops";
-import { ApprovalQueue, type Card, type View } from "./ApprovalQueue";
+import { deckOrder, hhmm, kindLabel, pktMidnight, workerOnline } from "@/lib/admin-ops";
+import { ApprovalQueue, type Card, type Handoff, type View } from "./ApprovalQueue";
 
 export const metadata: Metadata = { title: "Approvals" };
 
@@ -33,8 +31,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
   const { supabase } = await getSession();
   const now = new Date();
   const midnight = pktMidnight(now);
-  const since14 = pktMidnight(now, 13);
-  const [q, later, decided, sentToday, spend, created14, decided14, upd, reps, agentRuns] = await Promise.all([
+  const [q, later, decided, sentToday, spend, upd, reps, agentRuns, worker, intakeN, ticketsN, overdueN, viewedN] = await Promise.all([
     supabase
       .from("approval_queue")
       .select("id, agent, kind, status, held, held_reason, to_email, subject, draft, final_text, lint, deal_id, contact_id, in_reply_to_touch_id, sequence_step, sequence_parent, created_at")
@@ -45,13 +42,18 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
     supabase.from("approval_queue").select("id", { count: "exact", head: true }).gte("decided_at", midnight),
     supabase.from("touches").select("id", { count: "exact", head: true }).eq("type", "sent").gte("occurred_at", midnight),
     supabase.from("actions").select("cost_usd").eq("action", "llm_call").gte("at", midnight).limit(1000),
-    supabase.from("approval_queue").select("created_at").gte("created_at", since14).limit(1000),
-    supabase.from("approval_queue").select("decided_at").gte("decided_at", since14).limit(1000),
     supabase.from("updates").select("id, title, body_md, source, week_of, inputs, lint, created_at, projects(name), organizations(name)").eq("status", "draft").order("created_at").limit(100),
     supabase.from("reports").select("id, title, period_label, content, created_at, projects(name), organizations(name)").eq("status", "draft").order("created_at").limit(50),
     // 015: briefs and plans waiting for the founder (staff-only RLS)
     supabase.from("ticket_runs").select("id, stage, output, created_at, finished_at, ticket_id, tickets(ref, title, organizations(name), projects(name))")
       .eq("status", "ready").in("stage", ["brief", "plan"]).order("created_at").limit(100),
+    // worker heartbeat: offline means approvals queue on the server and send when the Mac is back
+    supabase.from("agent_heartbeats").select("last_run").eq("agent", "worker").order("last_run", { ascending: false }).limit(1).maybeSingle(),
+    // D5: the All-clear hands off to what else waits
+    supabase.from("intake").select("id", { count: "exact", head: true }).eq("status", "new"),
+    supabase.from("tickets").select("id", { count: "exact", head: true }).in("status", ["new", "triaged", "briefed", "planned", "approved", "in_progress"]),
+    supabase.from("invoices").select("id", { count: "exact", head: true }).eq("status", "overdue"),
+    supabase.from("proposals").select("id", { count: "exact", head: true }).in("status", ["sent", "viewed"]).not("viewed_at", "is", null),
   ]);
   const rows = (q.data ?? []) as Row[];
   const laterAt = new Map(((later.data ?? []) as { target_id: string; at: string }[]).map((a) => [a.target_id, a.at]));
@@ -140,52 +142,33 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
   const held = rows.filter((r) => r.held).map(toCard);
   const cost = ((spend.data ?? []) as { cost_usd: number | null }[]).reduce((s, a) => s + Number(a.cost_usd ?? 0), 0);
 
-  // queue volume, last 14 days (PKT days)
-  const days = Array.from({ length: 14 }, (_, i) => pktDate(new Date(now.getTime() - (13 - i) * 86_400_000)));
-  const per = (list: (string | null)[]) => days.map((day) => list.filter((x) => x && pktDate(new Date(x)) === day).length);
-  const received = per(((created14.data ?? []) as { created_at: string }[]).map((r) => r.created_at));
-  const done = per(((decided14.data ?? []) as { decided_at: string | null }[]).map((r) => r.decided_at));
+  const online = workerOnline((worker.data as { last_run: string } | null)?.last_run, now);
+  const handoff: Handoff[] = [
+    { label: "New enquiries", n: intakeN.count ?? 0, href: "/intake", icon: "zap" },
+    { label: "Client tickets waiting on you", n: ticketsN.count ?? 0, href: "/tickets", icon: "ticket" },
+    { label: "Proposals viewed, not signed", n: viewedN.count ?? 0, href: "/proposals", icon: "file" },
+    { label: "Invoices overdue", n: overdueN.count ?? 0, href: "/invoices", icon: "receipt" },
+  ];
+  // D5: the KPI tiles collapse into the subtitle
+  const sub = [
+    ready.length ? `${ready.length} waiting` : "nothing waiting",
+    ready[0] ? `oldest ${ready[0].when}` : "",
+    `${decided.count ?? 0} decided today`,
+    `${sentToday.count ?? 0} sent`,
+    `$${cost.toFixed(2)} AI`,
+    held.length ? `${held.length} held` : "",
+    online ? "" : "Mac offline: approvals send when it is back",
+  ].filter(Boolean).join(" · ");
 
   return (
     <>
-      <header className="greet">
-        <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-          <MenuButton />
-          <div>
-            <h1>Approvals</h1>
-            <div className="date">
-              {ready.length ? `${ready.length} waiting` : "nothing waiting"} · {decided.count ?? 0} decided today · {held.length} held
-            </div>
-          </div>
-        </div>
-        <div className="actions">
-          <AutoRefresh seconds={30} />
-        </div>
-      </header>
-
-      <div className="top-grid">
-        <section className="kpi kpi-2">
-          <div className="panel tile"><div className="l"><div className="k">Waiting on you</div><div className="v big num">{ready.length}</div><div className="d">{ready[0] ? `oldest ${ready[0].when}` : "all clear"}</div></div></div>
-          <div className="panel tile"><div className="l"><div className="k">Decided today</div><div className="v big num">{decided.count ?? 0}</div><div className="d">{held.length} held for a look</div></div></div>
-          <div className="panel tile"><div className="l"><div className="k">Sent today</div><div className="v big num">{sentToday.count ?? 0}</div><div className="d">from the Mac outbox</div></div></div>
-          <div className="panel tile"><div className="l"><div className="k">AI spend today</div><div className="v big num">${Math.floor(cost)}<span className="dec">.{String(Math.round((cost % 1) * 100)).padStart(2, "0")}</span></div><div className="d">llm calls since midnight PKT</div></div></div>
-        </section>
-        <section className="panel chart-panel" aria-label="Queue volume">
-          <div className="row between">
-            <h2 className="t-16" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>Queue · last 14 days</h2>
-          </div>
-          <TrendChart
-            labels={days.map((d, i) => (i === 0 || i === 7 ? dayMonth(d) : i === 13 ? "Today" : ""))}
-            series={[{ name: "Received", data: received }, { name: "Decided", data: done }]}
-            aria="Queue items received and decided per day, last 14 days"
-          />
-        </section>
-      </div>
-
+      <PageHeader title="Approvals" sub={sub} refresh={30} />
       {q.error ? (
-        <section className="panel q-panel"><p className="c-bad t-13 panel-pad">Couldn&apos;t load the queue. Reload to retry.</p></section>
+        <Note tone="error" retry>
+          Couldn&apos;t load the queue.
+        </Note>
       ) : (
-        <ApprovalQueue ready={ready} held={held} initialView={view} decidedToday={decided.count ?? 0} />
+        <ApprovalQueue ready={ready} held={held} initialView={view} decidedToday={decided.count ?? 0} online={online} handoff={handoff} lastBeat={worker.data ? hhmm((worker.data as { last_run: string }).last_run) : null} />
       )}
     </>
   );
