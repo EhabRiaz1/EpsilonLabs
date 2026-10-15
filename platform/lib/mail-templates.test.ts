@@ -57,8 +57,8 @@ describe("mail templates", () => {
 
   it("brands every mail: logo with alt, header label, preheader, legal line, text part", () => {
     for (const [name, m] of Object.entries(all("x"))) {
-      expect(m.html, name).toContain(`<img src="${ASSET}logo-white@2x.png" width="129" height="20" alt="Epsilon Labs"`);
-      expect(m.html, name).toContain(`src="${ASSET}logo-ink@2x.png"`);
+      expect(m.html, name).toContain(`<img src="${ASSET}logo-white@4x.png" width="142" height="22" alt="Epsilon Labs"`);
+      expect(m.html, name).toContain(`src="${ASSET}logo-black@4x.png"`);
       expect(m.html, name).toMatch(/<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">[^<&]+&#847;/);
       expect(m.html, name).toContain(COMPANY_LINE);
       expect(m.html, name).toContain('<meta name="color-scheme" content="light dark">');
@@ -71,7 +71,7 @@ describe("mail templates", () => {
 
   it("labels the header band by kind of mail", () => {
     const m = all("x");
-    const label = (x: Mail) => /color:#F0B98E;white-space:nowrap">([^<]+)<\/td>/.exec(x.html)?.[1];
+    const label = (x: Mail) => /color:#A3A3A3;white-space:nowrap">([^<]+)<\/td>/.exec(x.html)?.[1];
     expect(label(m.acceptCode)).toBe("Verification");
     expect(label(m.proposal)).toBe("Proposal");
     expect(label(m.portalReady)).toBe("Client portal");
@@ -95,7 +95,22 @@ describe("mail templates", () => {
 
   it("shows the invoice amount with greyed decimals", () => {
     const m = portalReadyEmail({ contactName: "Jonas", company: "Northwind", loginUrl: "https://client.epsilon-labs.co/login", invoiceNumber: "EL-2026-004", invoiceAmount: "$7,200.00" });
-    expect(m.html).toContain('$7,200<span class="faint" style="color:#8A8F92">.00</span>');
+    expect(m.html).toContain('$7,200<span class="faint" style="color:#9A9A9A">.00</span>');
     expect(m.text).toContain("EL-2026-004");
+  });
+});
+
+describe("inline logos", () => {
+  it("swaps the hosted lockups for cid images and attaches them", async () => {
+    const { inlineLogos, LOGO_WHITE, LOGO_BLACK } = await import("./email/layout");
+    const { inviteEmail } = await import("./mail-templates");
+    const m = inviteEmail({ orgName: "FabricPort", inviter: "Ehab Riaz", link: "https://client.epsilon-labs.co/invite/x", expiresOn: "22 Oct 2026", role: "member" });
+    expect(m.html).toContain(LOGO_WHITE);
+    const { html, attachments } = inlineLogos(m.html);
+    expect(html).not.toContain(LOGO_WHITE);
+    expect(html).not.toContain(LOGO_BLACK);
+    expect(html).toContain("cid:logo-white-4x-png@epsilon-labs.co");
+    expect(attachments.map((a) => a.filename).sort()).toEqual(["logo-black@4x.png", "logo-white@4x.png"]);
+    expect(attachments.every((a) => a.contentDisposition === "inline" && a.content.length > 1000)).toBe(true);
   });
 });

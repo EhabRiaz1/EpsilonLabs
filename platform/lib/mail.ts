@@ -1,6 +1,7 @@
 import "server-only";
 import nodemailer, { type Transporter } from "nodemailer";
 import type { Mail } from "./mail-templates";
+import { inlineLogos } from "./email/layout";
 
 export const FROM = "Epsilon Labs <notifications@epsilon-labs.co>";
 export const FOUNDER_EMAIL = "er@epsilon-labs.co";
@@ -18,7 +19,8 @@ function smtp(): Transporter {
 
 /** Sends through Zoho as notifications@ (F9). Throws on failure; callers decide what the user is told. */
 export async function sendMail(to: string, mail: Mail, replyTo = FOUNDER_EMAIL): Promise<void> {
-  await smtp().sendMail({ from: FROM, to, replyTo, subject: mail.subject, html: mail.html, text: mail.text });
+  const { html, attachments } = inlineLogos(mail.html); // the logo travels with the mail, not as a remote image
+  await smtp().sendMail({ from: FROM, to, replyTo, subject: mail.subject, html, text: mail.text, attachments });
 }
 
 /** For notices whose failure must not change the outcome (the action already happened). Logs, never throws. */

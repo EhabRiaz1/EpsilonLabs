@@ -55,7 +55,8 @@ async function mail(to, m, replyTo, what) {
   const t = smtp();
   if (!t) { console.error(`intake: SMTP not configured, ${what} not sent`); return false; }
   try {
-    await t.sendMail({ from: FROM, to, replyTo, subject: m.subject, html: m.html, text: m.text });
+    const { html, attachments } = require('./_email-layout.js').inlineLogos(m.html); // logo inline, not remote
+    await t.sendMail({ from: FROM, to, replyTo, subject: m.subject, html, text: m.text, attachments });
     return true;
   } catch (e) {
     console.error(`intake: ${what} failed:`, e && e.message ? e.message : e);
