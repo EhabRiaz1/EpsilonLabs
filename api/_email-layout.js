@@ -32,7 +32,7 @@ const MONO = "'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace";
 const COMPANY_LINE =
   "Epsilon Labs AI Solutions (SMC-PVT) Ltd. · SECP CUIN 0290150 · 21-A Zahoor Afridi Rd., Cantt, Lahore, Pakistan";
 /** Logo PNGs and web fonts, served by the site deploy from assets/brand/email/. */
-const ASSET = "https://epsilon-labs.co/assets/brand/email/";
+const ASSET = "https://www.epsilon-labs.co/assets/brand/email/";
 const SITE_URL = "https://epsilon-labs.co";
 const PORTAL_URL = "https://client.epsilon-labs.co";
 const CONTACT = "er@epsilon-labs.co";
