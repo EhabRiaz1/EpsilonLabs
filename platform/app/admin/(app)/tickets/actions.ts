@@ -42,7 +42,40 @@ export async function sendNoteToClient(ticketId: string, eventId: string): Promi
   const { supabase } = await requireStaff();
   if (!UUID.test(ticketId) || !UUID.test(eventId)) return { error: "Unknown note." };
   const { error } = await supabase.rpc("publish_ticket_event", { p_event_id: eventId });
-  if (error) return { error: "That note couldn't be sent." };
+  if (error) return { error: /internal/.test(error.message) ? "This ticket is internal. Share it with the client first." : "That note couldn't be sent." };
   revalidatePath(`/tickets/${ticketId}`);
   return { ok: "Sent to the client." };
+}
+
+/** 017: "Send as reply" on a Claude Code draft, optionally edited first. send_draft_reply publishes it through
+ *  publish_ticket_event: the same client-visible reply, notification and email digest as any founder reply. */
+export async function sendDraftReply(ticketId: string, eventId: string, body: string | null): Promise<TicketResult> {
+  const { supabase } = await requireStaff();
+  if (!UUID.test(ticketId) || !UUID.test(eventId)) return { error: "Unknown draft." };
+  const text = body === null ? null : String(body).trim();
+  if (text !== null && !text) return { error: "Write something first." };
+  if (text !== null && text.length > 10000) return { error: "Keep it under 10,000 characters." };
+  const { error } = await supabase.rpc("send_draft_reply", { p_event_id: eventId, p_body: text });
+  if (error) {
+    console.error("send_draft_reply failed:", error.message);
+    if (/internal/.test(error.message)) return { error: "This ticket is internal. Share it with the client first." };
+    return { error: "That draft couldn't be sent. Reload and try again." };
+  }
+  revalidatePath(`/tickets/${ticketId}`);
+  revalidatePath("/tickets");
+  return { ok: "Sent to the client." };
+}
+
+/** 017: an internal ticket (opened from Claude Code) becomes visible to the client. One way. */
+export async function shareTicket(ticketId: string): Promise<TicketResult> {
+  const { supabase } = await requireStaff();
+  if (!UUID.test(ticketId)) return { error: "Unknown ticket." };
+  const { error } = await supabase.rpc("share_ticket_with_client", { p_ticket_id: ticketId });
+  if (error) {
+    console.error("share_ticket_with_client failed:", error.message);
+    return { error: "The ticket couldn't be shared. Reload and try again." };
+  }
+  revalidatePath(`/tickets/${ticketId}`);
+  revalidatePath("/tickets");
+  return { ok: "Shared. The client sees the ticket now." };
 }

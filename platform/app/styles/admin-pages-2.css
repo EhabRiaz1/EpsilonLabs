@@ -201,3 +201,13 @@
 /* D11: values in mono (system.css sets .money in the display face) */
 :root[data-site="admin"] :is(.stat .v, .kpi4 .v, .amt, .num-col, .p-head .sub, .ptable, .inv-total, .kv dd) .money {font-family: var(--font-mono); letter-spacing: 0;}
 :root[data-site="admin"] .ph button.more {font-family: var(--font-mono); font-size: var(--t-11); color: var(--text-3);}
+
+/* 017 "Connect Claude Code" sheet (client page project card) and Claude Code draft replies (ticket timeline) */
+:root[data-site="admin"] .cc-once {display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line);}
+:root[data-site="admin"] .cc-cmd {margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); white-space: pre-wrap; overflow-wrap: anywhere; user-select: all;}
+:root[data-site="admin"] .cc-head {margin-bottom: 4px;}
+:root[data-site="admin"] .cc-list > div > .grow {display: flex; flex-direction: column; gap: 2px;}
+:root[data-site="admin"] .cc-list > div[data-revoked] {opacity: .6;}
+:root[data-site="admin"] .cc-dot {width: 6px; height: 6px; border-radius: 50%; background: var(--good); display: inline-block;}
+:root[data-site="admin"] .draft-edit {margin-top: 8px;}
+:root[data-site="admin"] .draft-edit .textarea {min-height: 120px;}

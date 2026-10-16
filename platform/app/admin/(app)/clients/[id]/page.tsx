@@ -18,6 +18,7 @@ import { formatMoney } from "@/lib/money";
 import { InviteForm, ProjectForm, RowAction } from "../ClientForms";
 import { RetainerPanel } from "../RetainerPanel";
 import { ProjectAgentForm } from "../ProjectAgentForm";
+import { ConnectClaude, type ProjectToken } from "../ConnectClaude";
 import { Activity, type ActItem } from "./Activity";
 
 export const metadata: Metadata = { title: "Client" };
@@ -53,7 +54,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const { supabase } = await getSession();
   const { data: org } = await supabase.from("organizations").select("id, name, slug, domain, status, is_test, created_at, companies(name)").eq("id", id).maybeSingle();
   if (!org) notFound();
-  const [team, projects, paths, tickets, usage, agentRows, reports, updates, invoices] = await Promise.all([
+  const [team, projects, paths, tickets, usage, agentRows, reports, updates, invoices, tokenRows] = await Promise.all([
     supabase.rpc("org_team", { p_org_id: id }),
     // repo_path is not granted to `authenticated` (clients must never see it); staff read it via staff_project_paths()
     supabase.from("projects").select("id, name, status, summary, progress, next_milestone, next_milestone_on").eq("org_id", id).order("created_at"),
@@ -65,7 +66,10 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
     supabase.from("reports").select("id, title, period_label, status, created_at, published_at").eq("org_id", id).order("created_at", { ascending: false }).limit(30),
     supabase.from("updates").select("id, title, status, source, week_of, created_at, published_at").eq("org_id", id).order("created_at", { ascending: false }).limit(30),
     supabase.from("invoices").select("id, number, kind, project_label, total, currency, status, due_date, issued_at, paid_at, created_at").eq("org_id", id).order("created_at", { ascending: false }).limit(60),
+    // 017: Claude Code project tokens (never the hash)
+    supabase.rpc("staff_project_tokens", { p_org_id: id }),
   ]);
+  const tokensOf = (pid: string) => ((tokenRows.data ?? []) as ProjectToken[]).filter((k) => k.project_id === pid);
   const agentOf = new Map(((agentRows.data ?? []) as AgentRow[]).map((r) => [r.id, r]));
   const t = (team.data ?? { members: [], invites: [] }) as Team;
   const pathOf = new Map(((paths.data ?? []) as { id: string; repo_path: string | null }[]).map((r) => [r.id, r.repo_path]));
@@ -298,6 +302,11 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
                   <Icon name="cpu" className="i-sm" />
                   {a?.agent_enabled ? "Agent settings" : "Enable agent"}
                 </SheetButton>
+                <SheetButton sheet={`cc-${p.id}`} className="btn btn-ghost btn-sm">
+                  <Icon name="terminal" className="i-sm" />
+                  Connect Claude Code
+                  {tokensOf(p.id).some((k) => !k.revoked_at) ? <span className="cc-dot" aria-label="connected" /> : null}
+                </SheetButton>
               </div>
             </article>
           );
@@ -438,6 +447,11 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
       <Sheet id="proj-new" title="Add a project" sub={org.name as string} wide>
         <ProjectForm key={`new-${ps.length}`} orgId={id} p={{ id: null, name: "", status: "active", summary: "", repo_path: "", progress: "", next_milestone: "", next_milestone_on: "" }} />
       </Sheet>
+      {ps.map((p) => (
+        <Sheet key={`cc-${p.id}`} id={`cc-${p.id}`} title="Connect Claude Code" sub={`${p.name} · Epsilon MCP project token`} wide>
+          <ConnectClaude orgId={id} projectId={p.id} folder={p.repo_path} tokens={tokensOf(p.id)} loadError={Boolean(tokenRows.error)} />
+        </Sheet>
+      ))}
       {ps.map((p) => (
         <Sheet key={p.id} id={`proj-${p.id}`} title={p.name} sub="Project and agent settings" wide>
           <ProjectForm

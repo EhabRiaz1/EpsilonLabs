@@ -1,3 +1,7 @@
 httpx==0.28.1
 jsonschema==4.23.0
 pytest==8.3.4
+# Epsilon MCP (mcp/epsilon_mcp): the official SDK, v1 line (FastMCP). cryptography is pinned because its newest
+# release ships only an sdist for x86_64 macOS (needs a Rust toolchain to build).
+mcp==1.30.0
+cryptography==48.0.1

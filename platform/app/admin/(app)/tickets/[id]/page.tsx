@@ -13,20 +13,23 @@ import { clientStatus, PRIORITY_LABEL, staffStatus, TYPE_LABEL } from "@/lib/tic
 import { dayMonth, stamp } from "@/lib/dates";
 import { prettySize } from "@/lib/files";
 import type { Usage } from "@/lib/retainers";
-import { ReplyComposer, SendNoteButton, StatusControl, TimelineFilter } from "../TicketControls";
+import { DraftReply, ReplyComposer, SendNoteButton, StatusControl, TimelineFilter } from "../TicketControls";
 import { TimePanel, type TimeEntry } from "../TimePanel";
 import { agentAvailability, approvedRun, canPlan, fmtTokens, latestRun, pipelineStage, pipelineSteps, type ProjectAgent, type Stage } from "@/lib/pipeline";
 import { BriefCard, DiffViewer, MergedBar, ModePicker, PlanCard, ReviewActions, StartRun, Stepper, TestLog, Act, type Brief, type Plan, type TestResult } from "../Pipeline";
 import { TicketCommands } from "./TicketCommands";
 import * as P from "../pipeline-actions";
+import { shareTicket } from "../actions";
 
 export const metadata: Metadata = { title: "Ticket" };
 
 type Ticket = {
   id: string; ref: string; org_id: string; project_id: string; number: number; mode: string | null; title: string; body: string; type: string; priority: string; status: string; author_id: string | null;
   created_at: string; updated_at: string; organizations: { name: string } | { name: string }[] | null; projects: { name: string } | { name: string }[] | null;
+  /** 017; undefined before the migration (treated as visible) */
+  client_visible?: boolean;
 };
-type Event = { id: string; kind: string; body: string | null; data: { from?: string; to?: string; sha?: string } | null; client_visible: boolean; actor: string | null; created_at: string };
+type Event = { id: string; kind: string; body: string | null; data: { from?: string; to?: string; sha?: string; draft?: boolean; source?: string } | null; client_visible: boolean; actor: string | null; created_at: string };
 type RunRow = {
   id: string; stage: "brief" | "plan" | "execute"; status: string; output: Record<string, unknown> | null; notes: string | null;
   diff_stat: { files_changed?: number; added?: number; removed?: number; truncated?: boolean; files?: { path: string }[] } | null; diff: string | null;
@@ -47,7 +50,8 @@ export default async function AdminTicket({ params }: { params: Promise<{ id: st
   const { supabase } = await getSession();
   const { data } = await supabase
     .from("tickets")
-    .select("id, ref, org_id, project_id, number, mode, title, body, type, priority, status, author_id, created_at, updated_at, organizations(name), projects(name)")
+    // `*`: includes client_visible (017) once the migration is applied, without breaking the page before it
+    .select("*, organizations(name), projects(name)")
     .eq("id", id)
     .maybeSingle();
   if (!data) notFound();
@@ -85,21 +89,27 @@ export default async function AdminTicket({ params }: { params: Promise<{ id: st
   const org = one(t.organizations)?.name ?? "";
   const project = one(t.projects)?.name ?? "";
   const s = staffStatus(t.status);
+  const internal = t.client_visible === false;
 
-  type Item = { key: string; at: string; vis: "client" | "internal"; kind: string; title: string; pill: string; body?: string; untrusted?: boolean; publish?: string };
+  type Item = { key: string; at: string; vis: "client" | "internal"; kind: string; title: string; pill: string; body?: string; untrusted?: boolean; publish?: string; draft?: string };
   const items: Item[] = [
     { key: "open", at: t.created_at, vis: "client" as const, kind: "client", title: `${author} opened the ticket`, pill: "client" },
     ...events.map((e): Item => {
       const staffActor = Boolean(e.actor && people.get(e.actor)?.staff);
       if (e.kind === "status")
         return { key: e.id, at: e.created_at, vis: "client", kind: e.data?.to === "done" ? "done" : "client", title: `Status → ${staffStatus(e.data?.to ?? "").label} (client sees "${clientStatus(e.data?.to ?? "").label}")`, pill: "client · auto" };
+      // 017: Claude Code (Epsilon MCP) writes as the token's creator; data.source tells it apart
+      if (e.kind === "comment" && e.data?.source === "claude_code" && !e.client_visible)
+        return e.data.draft
+          ? { key: e.id, at: e.created_at, vis: "internal", kind: "internal", title: "Claude Code drafted a reply", pill: "draft · Claude Code", body: e.body ?? "", draft: e.id }
+          : { key: e.id, at: e.created_at, vis: "internal", kind: "internal", title: "Claude Code note", pill: "internal · Claude Code", body: e.body ?? "" };
       if (e.kind === "comment")
         return {
           key: e.id,
           at: e.created_at,
           vis: e.client_visible ? "client" : "internal",
           kind: e.client_visible ? "client" : "internal",
-          title: staffActor ? (e.client_visible ? "You replied" : "Internal note") : `${name(e.actor)} commented`,
+          title: staffActor ? (e.client_visible ? (e.data?.source === "claude_code" ? "You replied (from Claude Code)" : "You replied") : "Internal note") : `${name(e.actor)} commented`,
           pill: e.client_visible ? "client" : "internal",
           body: e.body ?? "",
           untrusted: !staffActor,
@@ -115,7 +125,7 @@ export default async function AdminTicket({ params }: { params: Promise<{ id: st
   ].sort((a, b) => a.at.localeCompare(b.at));
   const unanswered = (() => {
     const lastClient = [...items].reverse().find((i) => i.untrusted);
-    const lastReply = [...items].reverse().find((i) => i.title === "You replied");
+    const lastReply = [...items].reverse().find((i) => i.title.startsWith("You replied"));
     return lastClient && (!lastReply || lastReply.at < lastClient.at) ? lastClient.key : null;
   })();
 
@@ -239,6 +249,12 @@ export default async function AdminTicket({ params }: { params: Promise<{ id: st
               </span>
             )}
             {unanswered && <span className="pill pill-warn"><span className="dot" />{clientFirst} is waiting for a reply</span>}
+            {internal && (
+              <span className="pill pill-white">
+                <Icon name="lock" className="i-sm" />
+                Internal · the client can&apos;t see this ticket
+              </span>
+            )}
           </>
         }
         sub={`opened ${dayMonth(t.created_at)} by ${author} · updated ${stamp(t.updated_at)}`}
@@ -435,9 +451,19 @@ export default async function AdminTicket({ params }: { params: Promise<{ id: st
             </div>
             <div className="pane">
               <StatusControl id={t.id} status={t.status} />
-              <p className="hint status-hint">
-                Every change is shown to {org} and notifies its people. &quot;With client&quot; asks them for input and is flagged urgent.
-              </p>
+              {internal ? (
+                <div className="stack g-8 status-hint">
+                  <p className="hint m-0">Internal ticket (opened from Claude Code): status changes stay internal and notify nobody until you share it.</p>
+                  <span>
+                    <Act action={shareTicket.bind(null, t.id)} label="Share with client" icon="eye" cls="btn btn-secondary btn-sm"
+                      confirmTitle={`Show ${t.ref} to ${org}?`} confirmText="They see the ticket, its status and anything you send from now on. Internal notes stay internal." />
+                  </span>
+                </div>
+              ) : (
+                <p className="hint status-hint">
+                  Every change is shown to {org} and notifies its people. &quot;With client&quot; asks them for input and is flagged urgent.
+                </p>
+              )}
             </div>
           </section>
           <TimePanel ticketId={t.id} entries={(te ?? []) as TimeEntry[]} hasRetainer={Boolean(ret?.length)} usage={usage} />
@@ -475,7 +501,8 @@ export default async function AdminTicket({ params }: { params: Promise<{ id: st
                       {stamp(it.at)}
                       {unanswered === it.key && <span className="c-warn">unanswered</span>}
                     </div>
-                    {it.publish && <SendNoteButton ticketId={t.id} eventId={it.publish} />}
+                    {it.publish && !internal && <SendNoteButton ticketId={t.id} eventId={it.publish} />}
+                    {it.draft && <DraftReply ticketId={t.id} eventId={it.draft} body={it.body ?? ""} clientName={clientFirst} internal={internal} />}
                   </li>
                 ))}
               </ol>
