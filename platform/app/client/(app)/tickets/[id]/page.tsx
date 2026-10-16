@@ -5,7 +5,8 @@ import { Icon } from "@/app/components/Icon";
 import { MenuButton } from "@/app/components/ShellControls";
 import { portalContext } from "@/lib/portal-context";
 import { peopleById, personName, TICKET_COLUMNS, type Ticket } from "@/lib/portal";
-import { clientStatus, isOpen, PRIORITY_LABEL, TYPE_LABEL } from "@/lib/tickets";
+import { clientStatus, isOpen, NEEDS_CLIENT, PRIORITY_LABEL, TYPE_LABEL } from "@/lib/tickets";
+import { clientPill } from "../../_ui/pill";
 import { dayMonth, stamp } from "@/lib/dates";
 import { prettySize } from "@/lib/files";
 import { AttachFiles, ThreadComposer } from "../../_ui/ThreadComposer";
@@ -49,19 +50,17 @@ export default async function TicketThread({ params }: { params: Promise<{ id: s
     <>
       <div className="row" style={{ gap: 12, marginBottom: 6 }}>
         <MenuButton />
-        <Link className="btn btn-ghost btn-sm" href="/">
+        <Link className="btn btn-ghost btn-sm" href="/tickets">
           <Icon name="arrowL" className="i-sm" />
-          Home
+          Requests
         </Link>
       </div>
       <header className="t-head">
         <div style={{ minWidth: 0 }}>
-          <span className="mono c-3 t-13">{ticket.ref}</span>
-          <h1 className="display" style={{ overflowWrap: "anywhere" }}>
-            {ticket.title}
-          </h1>
+          <span className="t-ref">{ticket.ref}</span>
+          <h1 style={{ overflowWrap: "anywhere" }}>{ticket.title}</h1>
           <div className="pills">
-            <span className={`pill ${status.tone}`}>
+            <span className={`pill ${clientPill(status.tone, NEEDS_CLIENT.has(ticket.status))}`}>
               <span className="dot" />
               {status.label}
             </span>
@@ -136,7 +135,7 @@ export default async function TicketThread({ params }: { params: Promise<{ id: s
           <section className="panel" id="reply-panel">
             <div className="panel-head">
               <h2>Reply</h2>
-              <span className="c-3 t-12 more">Ehab is notified</span>
+              <span className="c-3 t-12 more">Ehab replies within two working days</span>
             </div>
             <ThreadComposer ticketId={ticket.id} readOnly={!isOpen(ticket.status)} />
           </section>

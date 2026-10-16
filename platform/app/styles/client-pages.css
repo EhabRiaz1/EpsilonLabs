@@ -1,0 +1,176 @@
+/* Client portal pages (design review 2026-10-16, approved mockups in
+   ~/.gstack/projects/epsilon-labs/designs/admin-v3-20261015/client/). Hand-written; styles/client-theme.css is
+   generated from the mockups by scripts/build-theme.py and is not edited. Every selector is scoped to
+   :root[data-site="client"]; the doubled :root:root is used where a rule must beat the theme's light/dark rules
+   (they carry one more attribute). Tokens only, no new colours: ink is the action colour, copper only marks
+   "waiting on you". */
+
+/* ---- shell ---- */
+/* clip, not hidden: keeps the rounded frame without making .app the scroll container of sticky children */
+:root[data-site="client"] .app {overflow: clip;}
+:root[data-site="client"] .sidebar {display: flex; flex-direction: column;}
+:root[data-site="client"] .nav-item.nav-btn {width: 100%; border: 0; background: none; text-align: left; cursor: pointer; font: inherit;}
+:root[data-site="client"] .sidebar .nav-label {cursor: default; margin-top: 10px; padding-left: 10px;}
+:root[data-site="client"] .sb-user form {flex: none;}
+:root[data-site="client"] .sb-brand .brand-word span {white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+:root[data-site="client"] .greet .row > div {min-width: 0;}
+:root[data-site="client"] .bell .ping {pointer-events: none;}
+
+/* the demo portal's banner: ink strip, mono, on every screen */
+:root[data-site="client"] .demo-banner {font: 500 var(--t-11)/1.4 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; padding: 9px 16px;}
+:root[data-site="client"] .demo-banner a {text-transform: none; letter-spacing: .02em; text-underline-offset: 3px;}
+
+/* ---- primitives shared with admin, re-themed for the portal ---- */
+:root[data-site="client"] .empty {padding: 48px 24px;}
+:root[data-site="client"] .empty h2 {font-size: var(--t-22); font-weight: 600; letter-spacing: -0.02em;}
+:root[data-site="client"] .empty .empty-body {display: flex; flex-direction: column; gap: 4px; max-width: 44ch; color: var(--text-2); font-size: var(--t-13); line-height: 1.55;}
+:root[data-site="client"] .empty-inline {display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0; padding: 12px 16px; font-family: var(--font-mono); font-size: var(--t-12); color: var(--text-3);}
+:root[data-site="client"] .callout {display: flex; align-items: center; gap: 8px; padding: 10px 14px; margin: 0 0 12px; border-radius: var(--r-sm); font-size: var(--t-13); line-height: 1.45;}
+:root[data-site="client"] .callout .i {flex: none;}
+:root[data-site="client"] .callout[data-tone="error"] {color: var(--bad); background: color-mix(in srgb, var(--bad) 9%, transparent);}
+:root[data-site="client"] .callout[data-tone="warn"] {color: var(--warn); background: color-mix(in srgb, var(--warn) 10%, transparent);}
+:root[data-site="client"] .callout[data-tone="ok"] {color: var(--good); background: color-mix(in srgb, var(--good) 10%, transparent);}
+:root[data-site="client"] .callout .link-btn {color: inherit; font-weight: 600;}
+:root[data-site="client"] .panel-pad > .callout {margin: 0;}
+:root[data-site="client"] .auth-error, :root[data-site="client"] .ok-note {border-radius: var(--r-sm);}
+:root[data-site="client"] .confirm {border-radius: var(--r-lg); box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lg);}
+:root[data-site="client"] .confirm h2 {font-size: var(--t-18); font-weight: 600; letter-spacing: -0.01em;}
+:root[data-site="client"] .modal-card {box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lg);}
+
+/* sheets (Files, New request, bell): flat panel, hairline edge */
+:root[data-site="client"] .sheet {background: var(--panel); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lg);}
+:root[data-site="client"] .sheet-head {border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 8px;}
+:root[data-site="client"] .sheet-head h2 {font-size: var(--t-18); font-weight: 600; letter-spacing: -0.01em;}
+:root[data-site="client"] .sheet-head .c-3 {font-family: var(--font-mono); font-size: var(--t-12); margin-top: 2px;}
+:root[data-site="client"] .sheet-foot .c-3 {font-family: var(--font-mono);}
+:root[data-site="client"] .cat .catcard {border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line), var(--shadow-sm);}
+:root[data-site="client"] .cat .catcard:hover {transform: none; box-shadow: inset 0 0 0 1px var(--line-strong), var(--shadow-md);}
+:root[data-site="client"] .cat .catcard span {font-family: var(--font-mono);}
+:root[data-site="client"] .list-rows > a:hover, :root[data-site="client"] .list-rows > button:hover {border-radius: 0;}
+:root[data-site="client"] .list-rows .c-3.t-12 {font-family: var(--font-mono);}
+:root[data-site="client"] .unread-dot {background: var(--ink);}
+:root[data-site="client"] .chips > div {border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--line);}
+:root[data-site="client"] .drop {border-radius: var(--r-md);}
+:root[data-site="client"] .success h3 {font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.02em;}
+
+/* ---- home ---- */
+:root[data-site="client"] .eyebrow-t:first-of-type {margin-top: 4px;}
+:root[data-site="client"] .eyebrow-t .more {text-decoration: none;}
+:root[data-site="client"] .eyebrow-t .more:hover {color: var(--ink);}
+:root:root[data-site="client"] .needs-c.calm {grid-template-columns: minmax(0, 1fr);}
+:root:root[data-site="client"] .needs-c.calm h2 {margin-top: 0; font-size: var(--t-16);}
+:root[data-site="client"] .proj-c .top > .pill {flex: none;}
+:root[data-site="client"] .prog-none {color: var(--text-3); font-size: var(--t-13);}
+:root[data-site="client"] .proj-more {display: flex; flex-direction: column; border-top: 1px solid var(--line); padding-top: 4px;}
+:root[data-site="client"] .proj-more > div {display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: var(--t-13); color: var(--text-2);}
+:root[data-site="client"] .proj-more > div + div {border-top: 1px solid var(--line);}
+:root[data-site="client"] .proj-more .mono {font-size: var(--t-12);}
+
+/* the right column's document cards: the title is the link (stretched over the card); the PDF button sits above */
+:root[data-site="client"] .doc {position: relative; text-decoration: none;}
+:root[data-site="client"] .doc .t.stretch {display: block; color: inherit; text-decoration: none;}
+:root[data-site="client"] .doc .t.stretch::after {content: ""; position: absolute; inset: 0; border-radius: inherit;}
+:root[data-site="client"] .doc .t.stretch:focus-visible {outline: none;}
+:root[data-site="client"] .doc:has(.stretch:focus-visible) {outline: 2px solid var(--ink); outline-offset: 2px;}
+:root[data-site="client"] .doc .over {position: relative; z-index: 1;}
+:root:root[data-site="client"] .doc.quiet:hover {box-shadow: inset 0 0 0 1px var(--line), var(--shadow-sm);}
+:root[data-site="client"] .doc.quiet .t {color: var(--text-3); font-weight: 500;}
+:root[data-site="client"] .doc .amt small.c-bad {color: var(--bad);}
+:root[data-site="client"] .doc-list {display: flex; flex-direction: column; gap: 10px;}
+
+/* weekly update card */
+:root[data-site="client"] .upd .head .grow {min-width: 0;}
+:root[data-site="client"] .upd .head .pill {flex: none;}
+:root[data-site="client"] .upd .col-u .none {margin: 0; font-size: var(--t-13); color: var(--text-3);}
+:root[data-site="client"] .upd li strong {color: var(--ink); font-weight: 600;}
+:root[data-site="client"] .upd-body {padding: 14px 18px 16px; font-size: var(--t-13); line-height: 1.6;}
+:root[data-site="client"] .upd-list {display: flex; flex-direction: column; gap: 12px;}
+
+/* request rows (home + Requests) */
+:root:root[data-site="client"] .tk .table tr.rowx[aria-expanded="true"] td {border-top-color: var(--line);}
+:root[data-site="client"] .tk .table thead th:last-child {width: 36px;}
+:root[data-site="client"] .tk .detail-body .fields dd {font-weight: 400; overflow-wrap: anywhere;}
+:root[data-site="client"] .tk .reply {white-space: pre-wrap; overflow-wrap: anywhere;}
+:root[data-site="client"] .tk .reply .who {white-space: normal;}
+:root[data-site="client"] .tk .reply.none {margin: 0; color: var(--text-3); font-family: var(--font-mono); font-size: var(--t-12);}
+:root[data-site="client"] .tk .detail-actions {flex-wrap: wrap;}
+:root[data-site="client"] .tk .panel-foot a {text-decoration: none;}
+:root[data-site="client"] .tk .panel-foot a:hover {color: var(--ink);}
+:root[data-site="client"] .tk-head .tabs {max-width: 100%; overflow-x: auto; scrollbar-width: none;}
+:root[data-site="client"] .tk .empty {padding: 40px 24px;}
+@media (max-width: 960px) {
+  :root[data-site="client"] .tk .show-s {display: inline;}
+  :root[data-site="client"] .tk-head {padding: 10px;}
+  :root[data-site="client"] .tk .detail-actions .note-t {margin-left: 0; flex-basis: 100%;}
+}
+
+/* ---- ticket thread ---- */
+:root[data-site="client"] .t-head {padding: 6px 0 18px;}
+:root[data-site="client"] .t-head .t-ref {font-family: var(--font-mono); font-size: var(--t-12); color: var(--text-3);}
+:root[data-site="client"] .t-head h1 {font-size: 26px; font-weight: 600; letter-spacing: -0.025em; margin-top: 6px;}
+:root[data-site="client"] .t-head .opened {font-family: var(--font-mono); font-size: var(--t-12);}
+:root[data-site="client"] .t-head .opened strong {font-family: var(--font-sans); font-size: var(--t-13);}
+:root[data-site="client"] .t-grid {gap: 12px;}
+:root[data-site="client"] .t-grid .col {gap: 12px;}
+:root[data-site="client"] .comment {border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line);}
+:root[data-site="client"] .tl-meta {font-family: var(--font-mono);}
+
+/* ---- page headers without the portal actions (report view, invoice view) ---- */
+:root[data-site="client"] .page-head h1 {font: 600 26px/1.15 var(--font-sans); letter-spacing: -0.025em; overflow-wrap: anywhere;}
+:root[data-site="client"] .page-head .sub {font-family: var(--font-mono); font-size: var(--t-12);}
+:root[data-site="client"] .sheet-frame {border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line), var(--shadow-md);}
+
+/* ---- account, retainer, testimonial: panel titles as in the mockups ---- */
+:root[data-site="client"] .panel-pad h2.t-16 {font: 500 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink); margin-bottom: 14px !important;}
+:root[data-site="client"] .proj-c > .row.between h2 {font: 500 11px/1 var(--font-mono) !important; letter-spacing: .14em; text-transform: uppercase;}
+:root[data-site="client"] .grid-main {gap: 12px;}
+:root[data-site="client"] .grid-main .col {gap: 12px;}
+
+/* ---- signed-out screens (login, sent, invite, demo entry) ---- */
+:root[data-site="client"] .auth {background: var(--canvas); border-radius: 10px; box-shadow: 0 0 0 1px var(--line);}
+:root[data-site="client"] .auth-card {border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line), var(--shadow-md);}
+:root[data-site="client"] .auth-title {font-size: 26px; font-weight: 600; letter-spacing: -0.025em;}
+:root[data-site="client"] .auth-foot .c-3 {font-family: var(--font-mono);}
+:root[data-site="client"] .resend-line {font-family: var(--font-mono);}
+@media (max-width: 960px) {
+  :root[data-site="client"] .auth {border-radius: 0; box-shadow: none;}
+}
+
+/* ---- proposal deal room (/p/<token>): the portal's chrome; flow and deal-room.css behaviour unchanged ---- */
+/* client-theme.css's .hero / .doc / .mid / .rows are portal components with the same names: reset them here */
+:root:root[data-site="client"] .dr .hero {display: block; padding: 56px 0 36px;}
+:root:root[data-site="client"] .dr .doc {display: flex; flex-direction: column; align-items: stretch; gap: 18px; padding: 0; grid-template-columns: none;}
+:root:root[data-site="client"] .dr .doc:hover {box-shadow: none;}
+:root[data-site="client"] .dr .dr-top .mid {margin: 0 auto;}
+:root[data-site="client"] .dr .price-card .rows {padding: 0;}
+:root[data-site="client"] .dr {border-radius: 10px; box-shadow: 0 0 0 1px var(--line);}
+:root[data-site="client"] .dr .dr-top {border-radius: var(--r-md); background: var(--panel); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: inset 0 0 0 1px var(--line), var(--shadow-sm);}
+:root[data-site="client"] .dr .brand {gap: 10px; min-width: 0;}
+:root[data-site="client"] .dr .brand-word span {font-weight: 400;}
+:root[data-site="client"] .dr .hero .eyebrow {font: 500 11px/1.4 var(--font-mono); letter-spacing: .14em; color: var(--text-3);}
+:root[data-site="client"] .dr .hero h1 {font-weight: 600; letter-spacing: -0.03em;}
+:root[data-site="client"] .dr .hero .meta {font-family: var(--font-mono); font-size: var(--t-12);}
+:root[data-site="client"] .dr .hero .meta .who {font-family: var(--font-sans); font-size: var(--t-13);}
+:root[data-site="client"] .dr .doc h2, :root[data-site="client"] .dr .acc h2 {font-weight: 600; letter-spacing: -0.02em;}
+:root[data-site="client"] .dr .doc .num .n, :root[data-site="client"] .dr .sched .pct, :root[data-site="client"] .dr .price-card .rows .pct {color: var(--text-3);}
+:root[data-site="client"] .dr .scope .item .i, :root[data-site="client"] .dr .fromyou .i {color: var(--ink);}
+:root[data-site="client"] .dr .scope .item, :root[data-site="client"] .dr .sched div, :root[data-site="client"] .dr .changes, :root[data-site="client"] .dr .acc .done .box {border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line);}
+:root[data-site="client"] .dr .not {border-radius: var(--r-md);}
+:root[data-site="client"] .dr .terms a, :root[data-site="client"] .dr .q a, :root[data-site="client"] .dr .acc .resend button {color: var(--ink); text-decoration: underline; text-underline-offset: 3px;}
+:root[data-site="client"] .dr .acc-steps span.on {background: var(--ink);}
+:root[data-site="client"] .dr .big, :root[data-site="client"] .dr .money {font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.03em;}
+:root[data-site="client"] .dr .pill-accent {color: var(--ink); background: var(--surface-3);}
+/* platform.css's portal .ms (milestone column) shares the timeline pill's class name */
+:root[data-site="client"] .dr .tl .ms {flex-direction: row; margin-top: 8px;}
+:root[data-site="client"] .dr .gone h1 {font-weight: 600; letter-spacing: -0.02em;}
+@media (max-width: 960px) {
+  :root[data-site="client"] .dr {border-radius: 0; box-shadow: none;}
+  :root:root[data-site="client"] .dr .hero {padding: 28px 0 20px;}
+  :root[data-site="client"] .dr .brand-word span {display: none;}
+  :root[data-site="client"] .dr .dr-top {gap: 8px;}
+  :root[data-site="client"] .dr .brand {flex: none;}
+  :root[data-site="client"] .dr .brand-word strong {overflow: visible;}
+  :root[data-site="client"] .dr .dr-top > .row {min-width: 0; flex-wrap: nowrap;}
+  :root[data-site="client"] .dr .dr-top > .row > .pill {min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: 26px;}
+  :root[data-site="client"] .dr .mobile-bar {border-radius: var(--r-md); background: var(--panel); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lg);}
+}

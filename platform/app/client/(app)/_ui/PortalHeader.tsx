@@ -26,7 +26,7 @@ export function PortalHeader({ title, sub, unread, canRequest }: { title: ReactN
 
   return (
     <header className="greet">
-      <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
+      <div className="row" style={{ gap: 12, alignItems: "center" }}>
         <MenuButton />
         <div>
           <h1>{title}</h1>
@@ -38,12 +38,10 @@ export function PortalHeader({ title, sub, unread, canRequest }: { title: ReactN
           <Icon name="layers" />
           Files
         </button>
-        <span className="bell-wrap">
-          <button className="btn btn-secondary btn-icon" type="button" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} onClick={() => eps()?.open("sheet-bell")}>
-            <Icon name="bell" />
-          </button>
-          {unread > 0 && <span className="badge" aria-hidden="true" />}
-        </span>
+        <button className="btn btn-secondary btn-icon bell" type="button" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} onClick={() => eps()?.open("sheet-bell")}>
+          <Icon name="bell" />
+          {unread > 0 && <span className="ping" aria-hidden="true" />}
+        </button>
         {canRequest && (
           <button className="btn btn-primary" type="button" onClick={() => eps()?.open("sheet-request")}>
             <Icon name="plus" />

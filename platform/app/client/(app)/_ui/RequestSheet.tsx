@@ -114,7 +114,7 @@ export function RequestSheet({ projects }: { projects: { id: string; name: strin
                 Request <span className="mono">{done.ref}</span> created
               </h3>
               <p className="c-2 t-13" style={{ maxWidth: "34ch" }}>
-                {done.project} · {done.kind.toLowerCase()}. Ehab sees it in his queue now and replies within one working day.
+                {done.project} · {done.kind.toLowerCase()}. Ehab sees it in his queue now and replies within two working days.
               </p>
               {done.failed.length > 0 && (
                 <p className="auth-error" role="alert" style={{ textAlign: "left" }}>
@@ -264,7 +264,7 @@ export function RequestSheet({ projects }: { projects: { id: string; name: strin
             )}
           </form>
           <div className="sheet-foot">
-            <span className="c-3 t-12 grow">Ehab replies within one working day.</span>
+            <span className="c-3 t-12 grow">Ehab replies within two working days.</span>
             <button className="btn btn-ghost" type="button" onClick={close}>
               Cancel
             </button>

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Icon } from "@/app/components/Icon";
-import { UpdateBody } from "@/app/components/UpdateBody";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { portalContext } from "@/lib/portal-context";
 import { dayMonthYear } from "@/lib/dates";
 import { PortalHeader } from "../_ui/PortalHeader";
 import { NoOrg } from "../_ui/NoOrg";
+import { UpdateCard } from "../_ui/UpdateCard";
 
 export const metadata: Metadata = { title: "Updates" };
 
@@ -26,28 +27,23 @@ export default async function UpdatesFeed() {
   return (
     <>
       <PortalHeader title="Updates" sub={`${org.name} · what changed, what's next, what we need from you`} unread={unread} canRequest={projects.length > 0} />
-      {error && <section className="panel panel-pad"><p className="c-bad t-13">Updates couldn&apos;t be loaded. Reload to try again.</p></section>}
+      {error && <Note retry>Updates couldn&apos;t be loaded.</Note>}
       {!error && rows.length === 0 && (
         <section className="panel">
-          <div className="empty">
-            <div className="orb"><span className="wave" /><span className="wave" /><span className="core"><Icon name="file" className="i-lg" /></span></div>
-            <h2 className="display">No updates yet</h2>
-            <p className="c-2" style={{ maxWidth: "40ch" }}>Ehab posts a short update on Fridays: done this week, what&apos;s next, and anything that needs you.</p>
-          </div>
+          <Empty icon="send" title="No updates yet">
+            <p>Ehab posts a short update on Fridays: done this week, what&apos;s next, and anything that needs you.</p>
+          </Empty>
         </section>
       )}
-      <div className="stack" style={{ gap: 14 }}>
+      <div className="upd-list">
         {rows.map((u) => (
-          <article key={u.id} className="panel panel-pad">
-            <div className="row between wrap" style={{ gap: 8, marginBottom: 10 }}>
-              <div>
-                <h2 className="t-16 w-600">{u.title}</h2>
-                <div className="c-3 t-12">{name.get(u.project_id) ?? "Project"} · {dayMonthYear(u.published_at)}</div>
-              </div>
-              <span className="pill"><span className="dot" />{u.source === "weekly" ? "Weekly update" : "Update"}</span>
-            </div>
-            <UpdateBody md={u.body_md} />
-          </article>
+          <UpdateCard
+            key={u.id}
+            title={u.title}
+            meta={`${u.source === "weekly" ? "weekly update" : "update"} · ${dayMonthYear(u.published_at)}`}
+            md={u.body_md}
+            aside={name.get(u.project_id) ? <span className="pill hide-m">{name.get(u.project_id)}</span> : undefined}
+          />
         ))}
       </div>
     </>

@@ -100,3 +100,26 @@ export function timelineView(md: string): { intro: string[]; steps: TimelineStep
   }
   return { intro, steps };
 }
+
+export type WeeklyView = { done: string[]; next: string[]; needs: string[] };
+
+/**
+ * A weekly update split into the portal's three columns (Done / Next / Needs you), from the sections the admin
+ * editor writes: "## Done this week", "## Next", "## Needs your input". Bullets, paragraphs and notes under each
+ * heading are its items. Null when the body has none of those sections (a free-form update renders as written).
+ */
+export function weeklyView(md: string): WeeklyView | null {
+  const v: WeeklyView = { done: [], next: [], needs: [] };
+  let cur: string[] | null = null;
+  let found = false;
+  for (const b of parseBlocks(md)) {
+    if (b.type === "h") {
+      const t = b.text.toLowerCase();
+      cur = /\bneeds?\b|from you|your input/.test(t) ? v.needs : /\bnext\b|coming up/.test(t) ? v.next : /\bdone\b|shipped/.test(t) ? v.done : null;
+      if (cur) found = true;
+    } else if (cur) {
+      cur.push(...(b.type === "ul" ? b.items : [b.text]).filter((x) => x.trim()));
+    }
+  }
+  return found ? v : null;
+}

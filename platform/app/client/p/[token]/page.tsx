@@ -88,10 +88,11 @@ function Gone({ icon, title, body }: { icon: "lock" | "layers" | "x" | "clock"; 
     <div className="dr">
       <header className="dr-top">
         <span className="brand">
-          <span className="mark" aria-hidden="true">
-            ε
+          <span className="brand-mark" aria-hidden="true" />
+          <span className="brand-word">
+            <strong>Epsilon Labs</strong>
+            <span>client.epsilon-labs.co</span>
           </span>
-          Epsilon Labs
         </span>
         <div className="row" style={{ marginLeft: "auto" }}>
           <ThemePill />

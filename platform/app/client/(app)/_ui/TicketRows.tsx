@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/app/components/Icon";
+import { clientPill } from "./pill";
 
 export type TicketRow = {
   id: string;
@@ -17,26 +18,27 @@ export type TicketRow = {
   waiting: boolean;
 };
 
-/** Ticket rows that expand inline (client-home.html): fields, the latest reply, and the thread link. */
+/** Request rows that expand inline (client-ticket mockup): details on the left, the latest reply on the right. */
 export function TicketRows({ rows, initiallyOpen }: { rows: TicketRow[]; initiallyOpen?: string | null }) {
   const [open, setOpen] = useState<string | null>(initiallyOpen ?? null);
   return (
     <table className="table">
       <thead>
         <tr>
-          <th className="hide-s">ID</th>
-          <th>Title</th>
+          <th>ID</th>
+          <th>Request</th>
           <th className="hide-m">Project</th>
           <th>Status</th>
           <th className="hide-m" style={{ textAlign: "right" }}>
             Updated
           </th>
-          <th style={{ width: 40 }} aria-label="Expand" />
+          <th style={{ width: 36 }} aria-label="Expand" />
         </tr>
       </thead>
       <tbody>
         {rows.map((r) => {
           const isOpen = open === r.id;
+          const tone = clientPill(r.status.tone, r.waiting);
           return (
             <Fragment key={r.id}>
               <tr
@@ -51,24 +53,22 @@ export function TicketRows({ rows, initiallyOpen }: { rows: TicketRow[]; initial
                   }
                 }}
               >
-                <td className="id hide-s">{r.ref}</td>
+                <td className="id">{r.ref}</td>
                 <td>
-                  <div className="ticket-title">{r.title}</div>
-                  <div className="ticket-sub">
-                    <span className="show-s mono">{r.ref} · </span>
+                  <div className="ttl">{r.title}</div>
+                  <div className="sub">
+                    <span className="show-s">{r.ref} · </span>
                     {r.sub}
                   </div>
                 </td>
                 <td className="hide-m c-2">{r.project}</td>
                 <td>
-                  <span className={`pill ${r.status.tone}`}>
-                    <span className="dot" />
+                  <span className={`pill ${tone}`}>
+                    <span className={tone === "pill-good" && r.status.label === "In progress" ? "dot live" : "dot"} />
                     {r.status.label}
                   </span>
                 </td>
-                <td className="hide-m c-3" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                  {r.updated}
-                </td>
+                <td className="hide-m when">{r.updated}</td>
                 <td>
                   <Icon name="chevD" className="chev" />
                 </td>
@@ -77,43 +77,39 @@ export function TicketRows({ rows, initiallyOpen }: { rows: TicketRow[]; initial
                 <td colSpan={6}>
                   <div className="collapse" data-open={isOpen ? "" : undefined}>
                     <div>
-                        <div className="detail-body" inert={!isOpen}>
-                          <dl className="fields">
-                            {r.fields.map(([k, v]) => (
-                              <Fragment key={k}>
-                                <dt>{k}</dt>
-                                <dd>{v}</dd>
-                              </Fragment>
-                            ))}
-                          </dl>
-                          <div className="side">
-                            {r.last ? (
-                              <div className="comment">
-                                <div className="who">
-                                  <span className="avatar avatar-xs">{r.last.initials}</span>
-                                  {r.last.who} · {r.last.when}
-                                </div>
-                                {r.last.body.length > 400 ? `${r.last.body.slice(0, 400)}…` : r.last.body}
+                      <div className="detail-body" inert={!isOpen}>
+                        <dl className="fields">
+                          {r.fields.map(([k, v]) => (
+                            <Fragment key={k}>
+                              <dt>{k}</dt>
+                              <dd>{v}</dd>
+                            </Fragment>
+                          ))}
+                        </dl>
+                        <div>
+                          {r.last ? (
+                            <div className="reply">
+                              <div className="who">
+                                <span className="avatar">{r.last.initials}</span>
+                                {r.last.who} · {r.last.when}
                               </div>
-                            ) : (
-                              <p className="c-3 t-12">No replies yet.</p>
-                            )}
-                          </div>
-                          <div className="detail-actions">
-                            <Link className="btn btn-primary" href={`/tickets/${r.id}`}>
-                              View thread
-                            </Link>
-                            <Link className="btn btn-secondary" href={`/tickets/${r.id}#reply`}>
-                              <Icon name="pencil" className="i-sm" />
-                              Add a note
-                            </Link>
-                            {r.waiting && (
-                              <span className="c-3 t-12" style={{ marginLeft: "auto" }}>
-                                Ehab is waiting on this
-                              </span>
-                            )}
-                          </div>
+                              {r.last.body.length > 400 ? `${r.last.body.slice(0, 400)}…` : r.last.body}
+                            </div>
+                          ) : (
+                            <p className="reply none">No replies yet.</p>
+                          )}
                         </div>
+                        <div className="detail-actions">
+                          <Link className="btn btn-primary" href={`/tickets/${r.id}`}>
+                            {r.waiting ? `Review ${r.ref}` : "View thread"}
+                          </Link>
+                          <Link className="btn btn-secondary" href={`/tickets/${r.id}#reply`}>
+                            <Icon name="send" className="i-sm" />
+                            Reply
+                          </Link>
+                          {r.waiting && <span className="note-t">Ehab is waiting on you</span>}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </td>

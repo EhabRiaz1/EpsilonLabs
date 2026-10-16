@@ -9,6 +9,8 @@ import { RequestSheet } from "./_ui/RequestSheet";
 import { FilesSheet, type SheetFile, type SheetInvoice } from "./_ui/FilesSheet";
 import { BellSheet, type Bell } from "./_ui/BellSheet";
 import { DEMO_NAME } from "@/lib/demo";
+import { NEEDS_CLIENT } from "@/lib/tickets";
+import { ClientNav } from "./_ui/ClientNav";
 
 /** On every screen of the demo portal (E3). */
 function DemoBanner() {
@@ -52,21 +54,32 @@ export default async function ClientAppLayout({ children }: { children: ReactNod
   }
   const bells: Bell[] = notifications.map((n) => ({ id: n.id, kind: n.kind, title: n.title, link: n.link, urgent: n.urgent, unread: !n.read_at, when: relativeDay(n.created_at, now) }));
   const projectChoices = projects.map((p) => ({ id: p.id, name: p.name }));
-  const retainer = org ? (await supabase.from("retainers").select("id").eq("org_id", org.orgId).neq("status", "ended").limit(1)).data?.length : 0;
+  const [retainer, waiting] = org
+    ? await Promise.all([
+        supabase.from("retainers").select("id").eq("org_id", org.orgId).neq("status", "ended").limit(1).then((r) => r.data?.length ?? 0),
+        // the hot count on Tickets: requests waiting on the client
+        supabase.from("tickets").select("id", { count: "exact", head: true }).eq("org_id", org.orgId).in("status", [...NEEDS_CLIENT]).then((r) => r.count ?? 0),
+      ])
+    : [0, 0];
 
   return (
     <Shell
-      orgName={org?.name ?? "Your portal"}
-      orgHost="client.epsilon-labs.co"
+      orgName="Epsilon Labs"
+      orgHost={`${org?.name ?? "Your portal"} · client portal`}
       searchLabel="Search or jump to…"
-      nav={[
-        { href: "/", label: "Home", icon: "home" },
-        { href: "/tickets", label: "Tickets", icon: "ticket" },
-        { href: "/updates", label: "Updates", icon: "file" },
-        { href: "/reports", label: "Reports", icon: "chart" },
-        ...(retainer ? [{ href: "/retainer", label: "Retainer", icon: "clock" as const }] : []),
-        { href: "/account", label: "Account & team", icon: "users" },
-      ]}
+      navigation={
+        <ClientNav
+          items={[
+            { href: "/", label: "Home", icon: "home" },
+            { href: "/tickets", label: "Tickets", icon: "ticket", ...(waiting ? { count: waiting, hot: true } : {}) },
+            { href: "/updates", label: "Updates", icon: "send" },
+            { href: "/reports", label: "Reports", icon: "chart" },
+            ...(retainer ? [{ href: "/retainer", label: "Retainer", icon: "clock" as const }] : []),
+          ]}
+          files={org ? sheetFiles.length : null}
+          more={[{ href: "/account", label: "Account & team", icon: "users" }]}
+        />
+      }
       user={{
         name,
         detail: demo ? "Read-only demo" : org ? `${org.role === "owner" ? "Owner" : "Member"} · ${org.name}` : (claims.email ?? ""),

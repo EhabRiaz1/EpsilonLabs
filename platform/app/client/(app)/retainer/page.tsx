@@ -5,7 +5,6 @@ import { dayMonth } from "@/lib/dates";
 import { hm, tierLabel, usageLine, type Usage } from "@/lib/retainers";
 import { PortalHeader } from "../_ui/PortalHeader";
 import { NoOrg } from "../_ui/NoOrg";
-import { Gauge } from "../_ui/Gauge";
 
 export const metadata: Metadata = { title: "Retainer" };
 
@@ -45,15 +44,26 @@ export default async function RetainerPage() {
       {r && (
         <div className="grid-main" style={{ marginTop: 0 }}>
           <div className="col">
-            <section className="panel gauge-panel" aria-label="This month">
+            <section className="panel proj-c" aria-label="This month">
               <div className="row between">
                 <h2 className="t-16" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>This month</h2>
                 {line && <span className={`pill ${line.over ? "pill-warn" : "pill-good"}`}><span className="dot" />{line.left}</span>}
               </div>
               {cur ? (
                 <>
-                  <Gauge pct={Math.min(100, Math.round(cur.pct))} label={`${hm(cur.used_minutes)} of ${hm(cur.included_minutes)} used`} />
-                  <p className="c-3 t-12" style={{ marginTop: 8 }}>Billable time logged by Ehab on your tickets. Anything over the included hours is shown here and discussed with you first; it is never billed automatically.</p>
+                  <div className="prog">
+                    <span className="pct">
+                      {Math.round(cur.pct)}
+                      <small>%</small>
+                    </span>
+                    <span className="lbl">
+                      {hm(cur.used_minutes)} of {hm(cur.included_minutes)} used
+                    </span>
+                  </div>
+                  <div className="bar-t" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.round(cur.pct))} aria-label="Hours used this month">
+                    <i style={{ width: `${Math.min(100, Math.max(0, cur.pct))}%` }} />
+                  </div>
+                  <p className="c-3 t-12">Billable time logged by Ehab on your tickets. Anything over the included hours is shown here and discussed with you first; it is never billed automatically.</p>
                 </>
               ) : (
                 <p className="c-3 t-13" style={{ marginTop: 10 }}>The retainer starts on {r.starts_on}.</p>

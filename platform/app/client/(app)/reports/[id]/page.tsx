@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/app/components/Icon";
+import { MenuButton } from "@/app/components/ShellControls";
 import { getSession } from "@/lib/session";
 import { dayMonthYear } from "@/lib/dates";
 import { normalise } from "@/lib/report-content";
@@ -24,9 +25,12 @@ export default async function ClientReport({ params }: { params: Promise<{ id: s
   return (
     <>
       <header className="page-head">
-        <div>
-          <h1 className="display">{r.title}</h1>
+        <div className="row" style={{ gap: 12, alignItems: "center", minWidth: 0 }}>
+          <MenuButton />
+          <div style={{ minWidth: 0 }}>
+          <h1>{r.title}</h1>
           <div className="sub">{[r.period_label, `published ${dayMonthYear(r.published_at)}`].filter(Boolean).join(" · ")}</div>
+          </div>
         </div>
         <div className="actions-bar">
           <Link className="btn btn-ghost" href="/reports"><Icon name="arrowL" className="i-sm" />Reports</Link>

@@ -1,45 +1,45 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/app/components/Icon";
-import { Money } from "@/app/components/Money";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { firstName } from "@/lib/session";
 import { portalContext } from "@/lib/portal-context";
 import { invoicesOf, lastComments, peopleById, personName, ticketsOf, type Invoice, type Project, type Ticket } from "@/lib/portal";
 import { clientStatus, isOpen, NEEDS_CLIENT, PRIORITY_LABEL, relativeDay, TYPE_LABEL } from "@/lib/tickets";
-import { dayMonth, daysUntil, stamp } from "@/lib/dates";
+import { dayMonth, daysUntil, greeting, longDate, stamp } from "@/lib/dates";
 import { splitMoney } from "@/lib/money";
+import { hm, type Usage } from "@/lib/retainers";
 import { initials } from "@/app/components/Shell";
 import { OpenRequestButton, PortalHeader } from "./_ui/PortalHeader";
-import { FanDeck, type FanCard } from "./_ui/FanDeck";
-import { Gauge } from "./_ui/Gauge";
 import { TicketRows, type TicketRow } from "./_ui/TicketRows";
+import { UpdateCard } from "./_ui/UpdateCard";
 import { NoOrg } from "./_ui/NoOrg";
 
 export const metadata: Metadata = { title: "Home" };
 
-function projectPill(p: Project, waiting: boolean): FanCard["pill"] {
+type Report = { id: string; title: string; period_label: string; published_at: string };
+type Update = { id: string; title: string; body_md: string; source: string; published_at: string };
+
+function projectPill(p: Project): { label: string; tone: string; live?: boolean } {
   if (p.status === "paused") return { label: "Paused", tone: "pill-warn" };
   if (p.status === "done") return { label: "Delivered", tone: "" };
-  if (waiting) return { label: "Needs review", tone: "pill-warn" };
   return { label: "On track", tone: "pill-good", live: true };
 }
 
-function invoiceCard(i: Invoice, now: Date): FanCard {
-  const left = i.due_date ? daysUntil(i.due_date, now) : null;
-  const overdue = i.status === "overdue" || (left !== null && left < 0);
-  return {
-    key: `i-${i.id}`,
-    kind: "invoice",
-    tone: "tone-amber",
-    pill: { label: overdue ? "Overdue" : i.due_date ? `Due ${dayMonth(i.due_date)}` : "Issued", tone: "" },
-    corner: `Invoice ${i.number ?? ""}`,
-    title: i.project_label || "Invoice",
-    sub: `${i.currency} · bank transfer or Wise`,
-    footKey: "Status",
-    footVal: left === null ? "Issued" : left > 1 ? `${left} days left` : left === 1 ? "Due tomorrow" : left === 0 ? "Due today" : `${-left} days overdue`,
-    big: splitMoney(i.total, i.currency),
-    href: `/invoices/${i.id}`,
-  };
+/** The milestone list: only what the project row records (started, delivered, the next milestone). */
+function milestones(p: Project): { key: string; s: "done" | "now" | ""; label: string; when: string }[] {
+  const out: { key: string; s: "done" | "now" | ""; label: string; when: string }[] = [{ key: "start", s: "done", label: "Project started", when: dayMonth(p.created_at) }];
+  if (p.status === "done") out.push({ key: "done", s: "done", label: "Delivered", when: "" });
+  else if (p.next_milestone) out.push({ key: "next", s: "now", label: p.next_milestone, when: p.next_milestone_on ? dayMonth(p.next_milestone_on) : "date to be set" });
+  else out.push({ key: "now", s: "now", label: p.status === "paused" ? "Paused" : "In progress", when: "now" });
+  return out;
+}
+
+function addMonth(isoDate: string): string {
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
 export default async function ClientHome() {
@@ -56,10 +56,25 @@ export default async function ClientHome() {
     console.error("client home:", e instanceof Error ? e.message : e);
     failed = true;
   }
+  // RLS: published reports and updates of this org only; the retainer RPC checks membership
+  const [{ data: rep }, { data: upd }, { data: prof }, { data: ret }] = await Promise.all([
+    supabase.from("reports").select("id, title, period_label, published_at").eq("org_id", org.orgId).eq("status", "published").order("published_at", { ascending: false }).limit(1),
+    supabase.from("updates").select("id, title, body_md, source, published_at").eq("org_id", org.orgId).eq("status", "published").order("published_at", { ascending: false }).limit(1),
+    supabase.from("profiles").select("timezone").eq("user_id", claims.sub).maybeSingle(),
+    supabase.rpc("retainer_usage", { p_org_id: org.orgId, p_months: 1, p_today: null }),
+  ]);
+  const report = ((rep ?? []) as Report[])[0] ?? null;
+  const update = ((upd ?? []) as Update[])[0] ?? null;
+  const tz = (prof as { timezone?: string } | null)?.timezone || "Asia/Karachi";
+  const usage = (ret ?? null) as Usage | null;
+  const period = usage?.retainer ? (usage.periods.find((p) => p.current) ?? null) : null;
+
   const open = tickets.filter((t) => isOpen(t.status));
   const waiting = open.filter((t) => NEEDS_CLIENT.has(t.status));
   const closed = tickets.length - open.length;
-  const outstanding = invoices.filter((i) => i.status === "sent" || i.status === "overdue");
+  const outstanding = invoices
+    .filter((i) => i.status === "sent" || i.status === "overdue")
+    .sort((a, b) => String(a.due_date ?? "9999").localeCompare(String(b.due_date ?? "9999")));
   const shown = open.slice(0, 20);
   const last = await lastComments(supabase, shown.map((t) => t.id));
   const people = await peopleById(supabase, [...shown.map((t) => t.author_id), ...[...last.values()].map((c) => c.actor)]);
@@ -70,32 +85,11 @@ export default async function ClientHome() {
   }
   const projectName = new Map(projects.map((p) => [p.id, p.name]));
 
-  // the front card: the first active project; invoices to the right of the projects
   const main = projects.find((p) => p.status === "active") ?? projects[0] ?? null;
-  const cards: FanCard[] = [
-    ...projects.map((p): FanCard => ({
-      key: `p-${p.id}`,
-      kind: "project",
-      tone: p.id === main?.id ? "tone-ink" : "",
-      pill: projectPill(p, waiting.some((t) => t.project_id === p.id)),
-      corner: "Project",
-      title: p.name,
-      sub: p.summary ?? `Started ${dayMonth(p.created_at)}`,
-      footKey: "Next",
-      footVal: p.next_milestone ? `${p.next_milestone}${p.next_milestone_on ? ` · ${dayMonth(p.next_milestone_on)}` : ""}` : "No milestone set",
-      big: p.progress === null ? null : { whole: String(p.progress), dec: "%" },
-    })),
-    ...outstanding.slice(0, 3).map((i) => invoiceCard(i, now)),
-  ];
-
-  const upcoming = projects
-    .filter((p) => p.next_milestone_on && daysUntil(p.next_milestone_on, now) >= 0)
-    .sort((a, b) => String(a.next_milestone_on).localeCompare(String(b.next_milestone_on)))[0];
-  const currencies = [...new Set(outstanding.map((i) => i.currency))];
-  const outstandingTotal = outstanding.reduce((s, i) => s + Number(i.total), 0);
-  const nextDue = outstanding.map((i) => i.due_date).filter((d): d is string => Boolean(d)).sort()[0];
+  const others = projects.filter((p) => p.id !== main?.id);
   const need = waiting[0];
   const needLast = need ? last.get(need.id) : undefined;
+  const invoice = outstanding[0] ?? null;
 
   const rows: TicketRow[] = shown.map((t) => {
     const c = last.get(t.id);
@@ -105,7 +99,7 @@ export default async function ClientHome() {
       id: t.id,
       ref: t.ref,
       title: t.title,
-      sub: [TYPE_LABEL[t.type] ?? t.type, files ? `${files} attachment${files > 1 ? "s" : ""}` : "", t.priority === "urgent" ? "urgent" : ""].filter(Boolean).join(" · "),
+      sub: [(TYPE_LABEL[t.type] ?? t.type).toLowerCase(), files ? `${files} attachment${files > 1 ? "s" : ""}` : "", t.priority === "urgent" ? "urgent" : ""].filter(Boolean).join(" · "),
       project: projectName.get(t.project_id) ?? "",
       status: clientStatus(t.status),
       updated: relativeDay(t.updated_at, now),
@@ -121,197 +115,239 @@ export default async function ClientHome() {
     };
   });
 
+  const invoiceLeft = invoice?.due_date ? daysUntil(invoice.due_date, now) : null;
+  const invoiceOverdue = invoice ? invoice.status === "overdue" || (invoiceLeft !== null && invoiceLeft < 0) : false;
+  const money = invoice ? splitMoney(invoice.total, invoice.currency) : null;
+
   return (
     <>
       <PortalHeader
-        title={org.isDemo ? "Welcome to the demo portal" : `Welcome back, ${firstName(claims)}`}
-        sub={`${org.name} · ${open.length ? `${open.length} open request${open.length > 1 ? "s" : ""}` : "no open requests"}`}
+        title={org.isDemo ? "Welcome to the demo portal" : `${greeting(now, tz)}, ${firstName(claims)}`}
+        sub={`${longDate(now, tz)} · ${org.name} · ${open.length ? `${open.length} open request${open.length > 1 ? "s" : ""}` : "no open requests"}`}
         unread={unread}
         canRequest={projects.length > 0}
       />
 
-      {failed && (
-        <section className="panel panel-pad" style={{ marginBottom: 14 }}>
-          <p className="c-bad t-13">Some of your data couldn&apos;t be loaded. Reload the page to try again.</p>
-        </section>
-      )}
+      {failed && <Note retry>Some of your data couldn&apos;t be loaded.</Note>}
 
-      {projects.length === 0 ? (
-        <section className="panel">
-          <div className="empty">
-            <div className="orb">
-              <span className="wave" />
-              <span className="wave" />
-              <span className="core">
-                <Icon name="folder" className="i-lg" />
-              </span>
-            </div>
-            <h2 className="display">Your projects will appear here</h2>
-            <p className="c-2" style={{ maxWidth: "40ch" }}>
-              Once your first project starts you can follow its progress, raise requests and share files from this page.
+      <div className="eyebrow-t">
+        Needs you <span className="c-3">· {waiting.length}</span>
+      </div>
+      {need ? (
+        <section className="panel needs-c" aria-label="Needs your input">
+          <div>
+            <span className="tag">
+              <span className="dot" />
+              Waiting on you · since {relativeDay(need.updated_at, now).toLowerCase()}
+            </span>
+            <h2>{need.title}</h2>
+            <p>
+              {needLast ? `${needLast.body.slice(0, 180)}${needLast.body.length > 180 ? "…" : ""}` : (
+                <>
+                  Ehab is waiting on your review of <span className="mono">{need.ref}</span>. Approve it, or tell him what to change.
+                </>
+              )}
+              {waiting.length > 1 ? ` (${waiting.length - 1} more waiting on you.)` : ""}
             </p>
+          </div>
+          <div className="actions">
+            <Link className="btn btn-primary" href={`/tickets/${need.id}`}>
+              Review {need.ref}
+            </Link>
+            <OpenRequestButton className="btn btn-secondary">Ask a question</OpenRequestButton>
           </div>
         </section>
       ) : (
-        <FanDeck cards={cards} initial={Math.max(0, cards.findIndex((c) => c.key === `p-${main?.id}`))} />
+        <section className="panel needs-c calm" aria-label="Needs your input">
+          <div>
+            <h2>Nothing needs you right now</h2>
+            <p>When Ehab needs a decision or a review from you, it shows here first.</p>
+          </div>
+        </section>
       )}
 
-      <section className="kpi kpi-3" style={{ marginTop: 18 }} aria-label="At a glance">
-        <div className="panel tile">
-          <div className="l">
-            <div className="k">Open tickets</div>
-            <div className="v big num">{open.length}</div>
-            <div className="d">{waiting.length ? `${waiting.length} waiting on you` : "none waiting on you"}</div>
-          </div>
-        </div>
-        <div className="panel tile">
-          <div className="l">
-            <div className="k">Next milestone</div>
-            {upcoming?.next_milestone_on ? (
-              <>
-                <div className="v big num">
-                  {daysUntil(upcoming.next_milestone_on, now)}
-                  <span className="dec"> {daysUntil(upcoming.next_milestone_on, now) === 1 ? "day" : "days"}</span>
-                </div>
-                <div className="d">
-                  {upcoming.next_milestone ?? upcoming.name} · {dayMonth(upcoming.next_milestone_on)}
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="v big num c-3">–</div>
-                <div className="d">none scheduled</div>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="panel tile">
-          <div className="l">
-            <div className="k">Outstanding</div>
-            {outstanding.length === 0 ? (
-              <>
-                <div className="v big num">
-                  0<span className="dec">.00</span>
-                </div>
-                <div className="d">nothing due</div>
-              </>
-            ) : (
-              <>
-                <div className="v big num">
-                  {currencies.length === 1 ? <Money value={outstandingTotal} currency={currencies[0]} className="num" /> : `${outstanding.length} invoices`}
-                </div>
-                <div className="d">
-                  {outstanding.length} invoice{outstanding.length > 1 ? "s" : ""}
-                  {nextDue ? ` · due ${dayMonth(nextDue)}` : ""}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <div className="grid-main">
-        <div className="col">
-          {need ? (
-            <section className="panel needs" aria-label="Needs your input">
-              <div className="grow">
-                <span className="pill pill-accent">
-                  <span className="dot" />
-                  Needs your input · since {dayMonth(need.updated_at)}
-                </span>
-                <h2>{need.title}</h2>
-                <p>
-                  {needLast ? `${needLast.body.slice(0, 180)}${needLast.body.length > 180 ? "…" : ""}` : `Ehab is waiting on your review of ${need.ref}.`}
-                  {waiting.length > 1 ? ` (${waiting.length - 1} more waiting on you.)` : ""}
-                </p>
+      <div className="eyebrow-t">{projects.length > 1 ? "Your projects" : "Your project"}</div>
+      {!main ? (
+        <section className="panel">
+          <Empty icon="folder" title="Your projects will appear here">
+            <p>Once your first project starts you can follow its progress, raise requests and share files from this page.</p>
+          </Empty>
+        </section>
+      ) : (
+        <div className="hero">
+          <section className="panel proj-c" aria-label={main.name}>
+            <div className="top">
+              <div style={{ minWidth: 0 }}>
+                <h3>{main.name}</h3>
+                {main.summary && <div className="sub">{main.summary}</div>}
               </div>
-              <div className="actions">
-                <Link className="btn btn-primary" href={`/tickets/${need.id}`}>
-                  Review {need.ref}
-                </Link>
-                <OpenRequestButton className="btn btn-secondary">Ask a question</OpenRequestButton>
-              </div>
-            </section>
-          ) : (
-            <section className="panel needs" aria-label="Needs your input">
-              <span className="avatar avatar-soft avatar-lg" aria-hidden="true">
-                <Icon name="check" />
-              </span>
-              <div className="grow">
-                <h2 style={{ marginTop: 0 }}>Nothing needs you right now</h2>
-                <p>When Ehab needs a decision or a review from you, it shows here first.</p>
-              </div>
-            </section>
-          )}
-        </div>
-        <div className="col">
-          {main && (
-            <section className="panel gauge-panel" aria-label={main.name}>
-              <div className="row between">
-                <h2 className="t-16" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>
-                  {main.name}
-                </h2>
-                <span className={`pill ${projectPill(main, waiting.some((t) => t.project_id === main.id)).tone}`}>
-                  <span className="dot" />
-                  {projectPill(main, waiting.some((t) => t.project_id === main.id)).label}
-                </span>
-              </div>
-              {main.progress !== null ? (
-                <Gauge pct={main.progress} label="of the build complete" />
-              ) : (
-                <p className="c-3 t-13" style={{ marginTop: 10 }}>
-                  Progress is shown here once the build starts.
-                </p>
-              )}
-              <div className="ms">
-                <div data-s="now">
-                  <span className="d" />
-                  {main.status === "done" ? "Delivered" : "In progress"}
-                  <span className="when">now</span>
-                </div>
-                {main.next_milestone && (
-                  <div>
-                    <span className="d" />
-                    {main.next_milestone}
-                    <span className="when">{main.next_milestone_on ? dayMonth(main.next_milestone_on) : "date to be set"}</span>
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
-        </div>
-      </div>
-
-      <section className="panel" id="tickets" style={{ marginTop: 14, overflow: "hidden" }}>
-        <div className="panel-head">
-          <h2>Open tickets</h2>
-          <span className="c-3 t-13">{open.length ? `${open.length} open` : ""}</span>
-          <Link className="btn btn-ghost btn-sm more" href="/tickets">
-            All tickets
-          </Link>
-        </div>
-        {rows.length ? (
-          <TicketRows rows={rows} initiallyOpen={need?.id ?? null} />
-        ) : (
-          <div className="empty" style={{ padding: "40px 24px" }}>
-            <div className="orb">
-              <span className="wave" />
-              <span className="wave" />
-              <span className="core">
-                <Icon name="ticket" className="i-lg" />
-              </span>
+              {(() => {
+                const pill = projectPill(main);
+                return (
+                  <span className={`pill ${pill.tone}`}>
+                    <span className={pill.live ? "dot live" : "dot"} />
+                    {pill.label}
+                  </span>
+                );
+              })()}
             </div>
-            <h2 className="display">No open tickets</h2>
-            <p className="c-2" style={{ maxWidth: "36ch" }}>
-              Bugs, changes and questions you raise show here with their status.
-            </p>
-            {projects.length > 0 && <OpenRequestButton className="btn btn-primary">New request</OpenRequestButton>}
+            {main.progress !== null ? (
+              <>
+                <div className="prog">
+                  <span className="pct">
+                    {main.progress}
+                    <small>%</small>
+                  </span>
+                  <span className="lbl">complete</span>
+                </div>
+                <div className="bar-t" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={main.progress} aria-label={`${main.name} progress`}>
+                  <i style={{ width: `${Math.max(0, Math.min(100, main.progress))}%` }} />
+                </div>
+              </>
+            ) : (
+              <p className="prog-none">Progress shows here once the build starts.</p>
+            )}
+            <div className="ms-t">
+              {milestones(main).map((m) => (
+                <div key={m.key} data-s={m.s || undefined}>
+                  <span className="d" />
+                  {m.label}
+                  <span className="when">{m.when}</span>
+                </div>
+              ))}
+            </div>
+            {others.length > 0 && (
+              <div className="proj-more">
+                {others.map((p) => {
+                  const pill = projectPill(p);
+                  return (
+                    <div key={p.id}>
+                      <span className="grow truncate">{p.name}</span>
+                      {p.progress !== null && <span className="mono c-3">{p.progress}%</span>}
+                      <span className={`pill ${pill.tone}`}>
+                        <span className="dot" />
+                        {pill.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <div className="stack-c">
+            {report ? (
+              <div className="panel doc">
+                <span className="ic" aria-hidden="true">
+                  <Icon name="chart" />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="k">Latest report</div>
+                  <Link className="t stretch" href={`/reports/${report.id}`}>
+                    {report.title}
+                  </Link>
+                  <div className="m">{[report.period_label, `published ${dayMonth(report.published_at)}`].filter(Boolean).join(" · ")}</div>
+                </div>
+                <a className="btn btn-ghost btn-icon btn-sm over" href={`/reports/${report.id}/pdf`} aria-label={`Download ${report.title} as PDF`}>
+                  <Icon name="download" className="i-sm" />
+                </a>
+              </div>
+            ) : (
+              <div className="panel doc quiet">
+                <span className="ic" aria-hidden="true">
+                  <Icon name="chart" />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="k">Latest report</div>
+                  <div className="t">None yet</div>
+                  <div className="m">published at the end of each release</div>
+                </div>
+              </div>
+            )}
+
+            {invoice && money ? (
+              <Link className="panel doc" href={`/invoices/${invoice.id}`}>
+                <span className="ic" aria-hidden="true">
+                  <Icon name="receipt" />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="k">Invoice{invoice.number ? ` · ${invoice.number}` : ""}</div>
+                  <div className="t">{invoice.project_label || "Invoice"}</div>
+                  <div className="m">{outstanding.length > 1 ? `${outstanding.length} invoices open` : "bank transfer or Wise"}</div>
+                </div>
+                <div className="amt">
+                  {money.whole}
+                  <span className="dec">{money.dec}</span>
+                  <small className={invoiceOverdue ? "c-bad" : undefined}>
+                    {invoiceOverdue ? "overdue" : invoice.due_date ? `due ${dayMonth(invoice.due_date)}` : invoice.currency}
+                  </small>
+                </div>
+              </Link>
+            ) : (
+              <div className="panel doc quiet">
+                <span className="ic" aria-hidden="true">
+                  <Icon name="receipt" />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="k">Invoices</div>
+                  <div className="t">Nothing due</div>
+                  <div className="m">{invoices.length ? `${invoices.length} in Files` : "none issued yet"}</div>
+                </div>
+              </div>
+            )}
+
+            {usage?.retainer && period && (
+              <Link className="panel doc" href="/retainer">
+                <span className="ic" aria-hidden="true">
+                  <Icon name="clock" />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="k">Retainer · {new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" }).format(new Date(`${period.starts_on}T00:00:00Z`))}</div>
+                  <div className="t">
+                    {hm(period.used_minutes)} of {hm(period.included_minutes)} used
+                  </div>
+                  <div className="m">resets {dayMonth(addMonth(period.starts_on))}</div>
+                </div>
+                <div className="amt">
+                  {Math.round(period.pct)}
+                  <span className="dec">%</span>
+                </div>
+              </Link>
+            )}
           </div>
+        </div>
+      )}
+
+      {update && (
+        <>
+          <div className="eyebrow-t">
+            {update.source === "weekly" ? "This week from Ehab" : "Latest from Ehab"} <span className="c-3">· {update.title}</span>
+            <Link className="more" href="/updates">
+              All updates →
+            </Link>
+          </div>
+          <UpdateCard meta={`${update.source === "weekly" ? "weekly update" : "update"} · ${stamp(update.published_at, tz)}`} md={update.body_md} />
+        </>
+      )}
+
+      <div className="eyebrow-t">
+        Open requests <span className="c-3">· {open.length}</span>
+        <Link className="more" href="/tickets">
+          All tickets →
+        </Link>
+      </div>
+      <section className="panel tk" id="tickets">
+        {rows.length ? (
+          <TicketRows rows={rows} />
+        ) : (
+          <Empty icon="ticket" title="No open requests" action={projects.length > 0 ? <OpenRequestButton className="btn btn-primary">New request</OpenRequestButton> : undefined}>
+            <p>Bugs, changes and questions you raise show here with their status.</p>
+          </Empty>
         )}
-        <div className="panel-foot t-12 c-3">
-          <span>{closed ? `${closed} closed` : "Nothing closed yet"}</span>
-          <Link href="/tickets" className="c-2" style={{ marginLeft: "auto" }}>
-            {closed ? "Closed tickets" : "Tickets"}
+        <div className="panel-foot">
+          <span>{closed ? `${closed} closed so far` : "Nothing closed yet"}</span>
+          <Link href={closed ? "/tickets?view=closed" : "/tickets"} className="c-2" style={{ marginLeft: "auto" }}>
+            {closed ? "Closed requests" : "Requests"}
           </Link>
         </div>
       </section>
