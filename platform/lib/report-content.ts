@@ -84,6 +84,18 @@ export function checkReport(v: unknown): { ok: true; content: ReportContent } | 
 }
 
 /** Stored content of an older or partial draft, with every list present (for the preview and the editor). */
+const str = (x: unknown): string => (typeof x === "string" ? x : "");
+/** A callout is { label, text }; a bare string (hand-written content) becomes a "Note" callout instead of crashing. */
+const callout = (x: unknown): Section["callout"] => {
+  if (typeof x === "string") return x.trim() ? { label: "Note", text: x } : null;
+  if (x && typeof x === "object") {
+    const c = x as { label?: unknown; text?: unknown };
+    const text = str(c.text);
+    return text ? { label: str(c.label) || "Note", text } : null;
+  }
+  return null;
+};
+
 export function normalise(v: unknown): ReportContent {
   const o = (v && typeof v === "object" ? v : {}) as Partial<ReportContent>;
   const arr = <T,>(x: T[] | undefined): T[] => (Array.isArray(x) ? x : []);
@@ -94,7 +106,7 @@ export function normalise(v: unknown): ReportContent {
     summary: arr(o.summary).filter((x) => typeof x === "string"),
     kpis: arr(o.kpis),
     measures: arr(o.measures),
-    sections: arr(o.sections).map((x) => ({ title: x?.title ?? "", intro: x?.intro ?? "", callout: x?.callout ?? null, rows: arr(x?.rows) })),
+    sections: arr(o.sections).map((x) => ({ title: str(x?.title), intro: str(x?.intro), callout: callout(x?.callout), rows: arr(x?.rows) })),
     verification: arr(o.verification),
     outstanding: arr(o.outstanding),
   };

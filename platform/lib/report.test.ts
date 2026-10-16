@@ -81,3 +81,13 @@ describe("report template (R2)", () => {
     expect(monthYear("2026-08-21T10:00:00Z")).toBe("August 2026");
   });
 });
+
+describe("normalise tolerates hand-written content", () => {
+  it("turns a bare-string callout into a Note and nulls into empty strings", async () => {
+    const { normalise } = await import("./report-content");
+    const { reportToText } = await import("./report-text");
+    const c = normalise({ title: "R2", summary: ["x"], sections: [{ title: "S", intro: null, callout: "Composition text was repaired.", rows: [] }] });
+    expect(c.sections[0]).toEqual({ title: "S", intro: "", callout: { label: "Note", text: "Composition text was repaired." }, rows: [] });
+    expect(() => reportToText(c)).not.toThrow();
+  });
+});
