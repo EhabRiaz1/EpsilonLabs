@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Icon } from "@/app/components/Icon";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { initials } from "@/app/components/Shell";
 import { portalContext } from "@/lib/portal-context";
 import { lastComments, peopleById, personName, ticketsOf, type Ticket } from "@/lib/portal";
@@ -16,7 +17,6 @@ const VIEWS = [
   ["open", "Open"],
   ["waiting", "Waiting on you"],
   ["closed", "Closed"],
-  ["all", "All"],
 ] as const;
 type View = (typeof VIEWS)[number][0];
 
@@ -34,9 +34,9 @@ export default async function TicketsPage({ searchParams }: { searchParams: Prom
     failed = true;
   }
   const pick = (t: Ticket) =>
-    view === "open" ? isOpen(t.status) : view === "waiting" ? NEEDS_CLIENT.has(t.status) : view === "closed" ? !isOpen(t.status) : true;
+    view === "open" ? isOpen(t.status) : view === "waiting" ? NEEDS_CLIENT.has(t.status) : !isOpen(t.status);
   const list = all.filter(pick).slice(0, 100);
-  const count = (v: View) => all.filter((t) => (v === "open" ? isOpen(t.status) : v === "waiting" ? NEEDS_CLIENT.has(t.status) : v === "closed" ? !isOpen(t.status) : true)).length;
+  const count = (v: View) => all.filter((t) => (v === "open" ? isOpen(t.status) : v === "waiting" ? NEEDS_CLIENT.has(t.status) : !isOpen(t.status))).length;
   const last = await lastComments(supabase, list.map((t) => t.id));
   const people = await peopleById(supabase, [...list.map((t) => t.author_id), ...[...last.values()].map((c) => c.actor)]);
   const projectName = new Map(projects.map((p) => [p.id, p.name]));
@@ -47,7 +47,7 @@ export default async function TicketsPage({ searchParams }: { searchParams: Prom
       id: t.id,
       ref: t.ref,
       title: t.title,
-      sub: [TYPE_LABEL[t.type] ?? t.type, t.priority === "urgent" ? "urgent" : ""].filter(Boolean).join(" · "),
+      sub: [(TYPE_LABEL[t.type] ?? t.type).toLowerCase(), t.priority === "urgent" ? "urgent" : ""].filter(Boolean).join(" · "),
       project: projectName.get(t.project_id) ?? "",
       status: clientStatus(t.status),
       updated: relativeDay(t.updated_at, now),
@@ -62,12 +62,18 @@ export default async function TicketsPage({ searchParams }: { searchParams: Prom
     };
   });
 
+  const waitingCount = count("waiting");
   return (
     <>
-      <PortalHeader title="Tickets" sub={`${org.name} · every request and its status`} unread={unread} canRequest={projects.length > 0} />
-      <section className="panel" style={{ overflow: "hidden" }}>
-        <div className="q-head">
-          <nav className="tabs" aria-label="Filter tickets">
+      <PortalHeader
+        title="Requests"
+        sub={`${org.name} · ${count("open")} open${waitingCount ? ` · ${waitingCount} waiting on you` : ""}`}
+        unread={unread}
+        canRequest={projects.length > 0}
+      />
+      <section className="panel tk">
+        <div className="tk-head">
+          <nav className="tabs" aria-label="Filter requests">
             {VIEWS.map(([v, label]) => (
               <Link key={v} className="tab" href={v === "open" ? "/tickets" : `/tickets?view=${v}`} aria-current={view === v ? "page" : undefined}>
                 {label} <span className="c-3">{count(v)}</span>
@@ -76,24 +82,24 @@ export default async function TicketsPage({ searchParams }: { searchParams: Prom
           </nav>
         </div>
         {failed ? (
-          <p className="c-bad t-13 panel-pad">Couldn&apos;t load tickets. Reload to retry.</p>
+          <div className="panel-pad">
+            <Note retry>Couldn&apos;t load your requests.</Note>
+          </div>
         ) : rows.length ? (
           <TicketRows rows={rows} />
         ) : (
-          <div className="empty" style={{ padding: "48px 24px" }}>
-            <div className="orb">
-              <span className="wave" />
-              <span className="wave" />
-              <span className="core">
-                <Icon name={view === "waiting" ? "check" : "ticket"} className="i-lg" />
-              </span>
-            </div>
-            <h2 className="display">{view === "waiting" ? "Nothing waits on you" : view === "closed" ? "Nothing closed yet" : "No tickets here"}</h2>
-            <p className="c-2" style={{ maxWidth: "36ch" }}>
-              {view === "waiting" ? "When Ehab needs your review or a decision, the ticket shows here." : "Raise a bug, a change or a question with New request."}
-            </p>
-          </div>
+          <Empty icon={view === "waiting" ? "check" : "ticket"} title={view === "waiting" ? "Nothing waits on you" : view === "closed" ? "Nothing closed yet" : "No open requests"}>
+            <p>{view === "waiting" ? "When Ehab needs your review or a decision, the request shows here." : "Raise a bug, a change or a question with New request."}</p>
+          </Empty>
         )}
+        <div className="panel-foot">
+          <span>Ehab replies within two working days</span>
+          {view !== "closed" && (
+            <Link href="/tickets?view=closed" className="c-2" style={{ marginLeft: "auto" }}>
+              Closed requests
+            </Link>
+          )}
+        </div>
       </section>
     </>
   );

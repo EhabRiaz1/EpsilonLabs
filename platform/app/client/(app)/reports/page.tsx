@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/app/components/Icon";
+import { Empty } from "@/app/components/Empty";
+import { Note } from "@/app/components/Note";
 import { portalContext } from "@/lib/portal-context";
 import { dayMonthYear } from "@/lib/dates";
 import { PortalHeader } from "../_ui/PortalHeader";
@@ -24,30 +26,41 @@ export default async function ReportsList() {
   return (
     <>
       <PortalHeader title="Reports" sub={`${org.name} · delivery reports and their PDFs`} unread={unread} canRequest={projects.length > 0} />
-      <section className="panel">
-        {error ? (
-          <p className="c-bad t-13 panel-pad">Reports couldn&apos;t be loaded. Reload to try again.</p>
-        ) : rows.length === 0 ? (
-          <div className="empty">
-            <div className="orb"><span className="wave" /><span className="wave" /><span className="core"><Icon name="chart" className="i-lg" /></span></div>
-            <h2 className="display">No reports yet</h2>
-            <p className="c-2" style={{ maxWidth: "40ch" }}>At the end of a release Ehab publishes a delivery report here: what changed, how it was verified, and what is still open.</p>
+      {error ? (
+        <Note retry>Reports couldn&apos;t be loaded.</Note>
+      ) : rows.length === 0 ? (
+        <section className="panel">
+          <Empty icon="chart" title="No reports yet">
+            <p>At the end of a release Ehab publishes a delivery report here: what changed, how it was verified, and what is still open.</p>
+          </Empty>
+        </section>
+      ) : (
+        <>
+          <div className="eyebrow-t">
+            Delivery reports <span className="c-3">· {rows.length}</span>
           </div>
-        ) : (
-          <div className="list-rows" style={{ padding: "8px 18px" }}>
+          <div className="doc-list">
             {rows.map((r) => (
-              <div key={r.id}>
-                <span className="avatar avatar-soft" aria-hidden="true"><Icon name="chart" className="i-sm" /></span>
-                <Link className="grow" href={`/reports/${r.id}`} style={{ minWidth: 0, color: "inherit", textDecoration: "none" }}>
-                  <span className="w-600">{r.title}</span>
-                  <span className="c-3 t-12" style={{ display: "block" }}>{[name.get(r.project_id), r.period_label, `published ${dayMonthYear(r.published_at)}`].filter(Boolean).join(" · ")}</span>
-                </Link>
-                <a className="btn btn-secondary btn-sm" href={`/reports/${r.id}/pdf`}><Icon name="download" className="i-sm" />PDF</a>
+              <div key={r.id} className="panel doc">
+                <span className="ic" aria-hidden="true">
+                  <Icon name="chart" />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="k">{[name.get(r.project_id), r.period_label].filter(Boolean).join(" · ") || "Report"}</div>
+                  <Link className="t stretch" href={`/reports/${r.id}`}>
+                    {r.title}
+                  </Link>
+                  <div className="m">published {dayMonthYear(r.published_at)}</div>
+                </div>
+                <a className="btn btn-secondary btn-sm over" href={`/reports/${r.id}/pdf`} aria-label={`Download ${r.title} as PDF`}>
+                  <Icon name="download" className="i-sm" />
+                  PDF
+                </a>
               </div>
             ))}
           </div>
-        )}
-      </section>
+        </>
+      )}
     </>
   );
 }

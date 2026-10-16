@@ -193,10 +193,11 @@ export function DealRoom(props: {
     <div className="dr">
       <header className="dr-top">
         <span className="brand">
-          <span className="mark" aria-hidden="true">
-            ε
+          <span className="brand-mark" aria-hidden="true" />
+          <span className="brand-word">
+            <strong>Epsilon Labs</strong>
+            <span>{p.client_company} · proposal</span>
           </span>
-          Epsilon Labs
         </span>
         <div className="mid">
           <span className="pill pill-white pill-mono">Proposal · v{p.version}</span>

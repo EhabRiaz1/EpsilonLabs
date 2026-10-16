@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { inline, parseBlocks, scopeView, timelineView } from "./markdown";
+import { inline, parseBlocks, scopeView, timelineView, weeklyView } from "./markdown";
+
+describe("weeklyView", () => {
+  it("splits the admin editor's three sections into columns", () => {
+    const md = "## Done this week\n- Export on **staging**.\n- BOM fix\n\n## Next\n- Ship the fix\n\n## Needs your input\n- Nothing this week.";
+    expect(weeklyView(md)).toEqual({ done: ["Export on **staging**.", "BOM fix"], next: ["Ship the fix"], needs: ["Nothing this week."] });
+  });
+  it("keeps paragraphs and ignores unknown sections", () => {
+    expect(weeklyView("## Shipped\nOne line.\n\n## Notes\n- skipped\n\n## What's next\n- a")).toEqual({ done: ["One line."], next: ["a"], needs: [] });
+  });
+  it("is null for a free-form update", () => {
+    expect(weeklyView("Short note.\n\n- a bullet")).toBeNull();
+    expect(weeklyView("")).toBeNull();
+  });
+});
 
 describe("parseBlocks", () => {
   it("parses the subset into data, never HTML", () => {
