@@ -256,9 +256,7 @@ export default async function AdminToday() {
           <h2>
             Q4 goal <span className="c-3">· {wonUsd > 0 ? "$100,000" : "$100k"} signed by 31 Dec</span>
           </h2>
-          <span className="more">
-            <span className="pill pill-white mono">{daysLeft} days left</span>
-          </span>
+          <span className="sub">{daysLeft} days left</span>
         </div>
         <div className="sec-head funnel-head">
           <h2>
