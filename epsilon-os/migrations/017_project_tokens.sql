@@ -614,4 +614,33 @@ grant execute on function
   mcp_draft_update(text, text, text)
 to anon;
 
+-- ===================================================================================================== internal tickets
+-- A ticket Claude Code opened stays internal (client_visible = false) until staff share it. Reads are already
+-- staff-only above; this closes the write side: a client member who somehow knows an internal ticket's id cannot
+-- comment on it (add_ticket_comment) or attach files to it (begin_upload). Staff and the service role are unaffected.
+create or replace function internal_ticket_write_guard() returns trigger
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  v_org uuid;
+  v_visible boolean;
+begin
+  if new.ticket_id is null or coalesce(auth.role(), '') = 'service_role' then
+    return new;
+  end if;
+  select t.org_id, t.client_visible into v_org, v_visible from tickets t where t.id = new.ticket_id;
+  if v_visible is false and not is_staff_for(v_org) then
+    raise exception 'ticket not found' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+revoke all on function internal_ticket_write_guard() from public, anon, authenticated;
+do $$ begin
+  if not exists (select 1 from pg_trigger where tgname = 'ticket_events_internal_guard') then
+    create trigger ticket_events_internal_guard before insert on ticket_events for each row execute function internal_ticket_write_guard();
+  end if;
+  if not exists (select 1 from pg_trigger where tgname = 'files_internal_guard') then
+    create trigger files_internal_guard before insert on files for each row execute function internal_ticket_write_guard();
+  end if;
+end $$;
+
 commit;

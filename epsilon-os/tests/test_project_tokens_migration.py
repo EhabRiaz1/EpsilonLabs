@@ -349,3 +349,18 @@ def test_draft_update_and_audit_trail(db):
     assert {"mcp_note", "mcp_reply_drafted", "mcp_reply_sent", "mcp_status", "mcp_time", "mcp_ticket_created",
             "mcp_update_drafted"} <= kinds
     assert all(a["detail"]["via"] == "Claude Code · FabricPort App" for a in acts)
+
+
+
+def test_client_cannot_write_to_an_internal_ticket(db):
+    """The write guard: a member may not comment on (or attach a file to) a ticket Claude Code opened as internal."""
+    i = db
+    tok = new_token(i)
+    t = mcp("mcp_create_ticket", tok, p_title="Internal refactor", p_body="split export.ts", p_type="change")
+    assert t["client_visible"] is False
+    assert "ticket not found" in fails("add_ticket_comment", {"p_ticket_id": t["id"], "p_body": "hello"}, i["a"], aal="aal1")
+    assert "ticket not found" in fails("begin_upload", {"p_project_id": None, "p_ticket_id": t["id"], "p_name": "a.pdf",
+                                                          "p_mime": "application/pdf", "p_size": 10}, i["a"], aal="aal1")
+    assert call("add_ticket_comment", {"p_ticket_id": t["id"], "p_body": "staff note"}, F(i))  # staff unaffected
+    visible = client_ticket(i)
+    assert call("add_ticket_comment", {"p_ticket_id": visible["id"], "p_body": "client comment"}, i["a"], aal="aal1")
