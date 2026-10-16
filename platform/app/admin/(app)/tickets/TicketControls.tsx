@@ -6,7 +6,7 @@ import { Icon } from "@/app/components/Icon";
 import { eps } from "@/app/components/eps";
 import { ask } from "@/app/components/Confirm";
 import { STATUSES, staffStatus } from "@/lib/tickets";
-import { replyToTicket, sendNoteToClient, setTicketStatus, type TicketResult } from "./actions";
+import { replyToTicket, sendDraftReply, sendNoteToClient, setTicketStatus, type TicketResult } from "./actions";
 
 function Msg({ r }: { r: TicketResult }) {
   if (r?.error)
@@ -128,6 +128,56 @@ export function SendNoteButton({ ticketId, eventId }: { ticketId: string; eventI
       >
         <Icon name="send" className="i-sm" />
         Send to client
+      </button>
+    </span>
+  );
+}
+
+/** 017: a reply Claude Code drafted. "Send as reply" sends it as written; "Edit" opens it in place, then sends the
+ *  edited text. Both go through send_draft_reply (publish_ticket_event: client-visible, notification, email digest). */
+export function DraftReply({ ticketId, eventId, body, clientName, internal }: { ticketId: string; eventId: string; body: string; clientName: string; internal: boolean }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(body);
+  async function send(edited: boolean) {
+    const ok = await ask({
+      title: `Send this reply to ${clientName}?`,
+      body: "They see it in the portal straight away and get a notification.",
+      confirm: "Send to client",
+      icon: "send",
+      run: () => sendDraftReply(ticketId, eventId, edited ? text : null),
+    });
+    if (ok) {
+      setEditing(false);
+      router.refresh();
+    }
+  }
+  if (internal) return <span className="hint">Internal ticket: share it with the client before sending.</span>;
+  return editing ? (
+    <div className="stack g-6 draft-edit">
+      <label className="sr-only" htmlFor={`draft-${eventId}`}>
+        Edit the draft reply
+      </label>
+      <textarea className="textarea" id={`draft-${eventId}`} maxLength={10000} value={text} onChange={(e) => setText(e.target.value)} />
+      <span className="row g-8">
+        <button className="btn btn-primary btn-sm" type="button" disabled={!text.trim()} onClick={() => void send(true)}>
+          <Icon name="send" className="i-sm" />
+          Send edited reply
+        </button>
+        <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setText(body); setEditing(false); }}>
+          Cancel
+        </button>
+      </span>
+    </div>
+  ) : (
+    <span className="row g-8">
+      <button className="btn btn-primary btn-sm" type="button" onClick={() => void send(false)}>
+        <Icon name="send" className="i-sm" />
+        Send as reply
+      </button>
+      <button className="btn btn-ghost btn-sm" type="button" onClick={() => setEditing(true)}>
+        <Icon name="pencil" className="i-sm" />
+        Edit
       </button>
     </span>
   );
