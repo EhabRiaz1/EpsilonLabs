@@ -163,16 +163,12 @@ final class Store: ObservableObject {
 
 struct StatusDot: View {
     let state: AgentState
-    @State private var pulse = false
+    // A steady dot. A repeatForever animation started in onAppear leaked into the MenuBarExtra window's own frame
+    // transaction, so the whole panel drifted back and forth across the screen.
     var body: some View {
         Circle()
             .fill(state == .running ? Color.green : state == .failed ? Color.red : Color.secondary.opacity(0.45))
             .frame(width: 8, height: 8)
-            .opacity(state == .running && pulse ? 0.35 : 1)
-            .onAppear {
-                guard state == .running else { return }
-                withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { pulse = true }
-            }
     }
 }
 
@@ -214,6 +210,8 @@ struct AgentList: View {
             .padding(.horizontal, 14).padding(.vertical, 10)
         }
         .frame(width: 330)
+        .fixedSize(horizontal: false, vertical: true)
+        .transaction { $0.animation = nil } // the panel never animates its own size or position
     }
 }
 
