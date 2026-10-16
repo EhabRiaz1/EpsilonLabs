@@ -211,3 +211,38 @@
 :root[data-site="admin"] .skel-split, :root[data-site="admin"] .skel-split.rev {grid-template-columns: minmax(0, 1fr);}
 :root[data-site="admin"] .skel-tiles {grid-template-columns: repeat(2, minmax(0, 1fr));}
 }
+
+/* ---- Today: uniform rows (founder, 2026-10-16) ----
+   Needs-you tiles share the row; Goal and Funnel share one heading line and stretch to the same height;
+   Agents and Schedule stretch to the same height with equal headers; agent rows keep a fixed run-strip column. */
+:root[data-site="admin"] .needs {grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));}
+:root[data-site="admin"] .needs .need {min-height: 76px;}
+:root[data-site="admin"] .mid {display: grid; grid-template-columns: 440px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 0 12px; align-items: stretch; margin-top: 22px;}
+:root[data-site="admin"] .mid > .sec-head {margin: 0;}
+:root[data-site="admin"] .mid .goal {display: flex; flex-direction: column; min-width: 0; padding-top: 16px;}
+:root[data-site="admin"] .mid .goal .due {flex: 1;}
+:root[data-site="admin"] .mid .goal .pace {margin-top: auto;}
+:root[data-site="admin"] .mid .funnel {display: flex; flex-direction: column; gap: 12px; min-width: 0;}
+:root[data-site="admin"] .mid .funnel .kpi {gap: 12px;}
+:root[data-site="admin"] .mid .funnel .trend {flex: 1; display: flex; flex-direction: column; justify-content: space-between;}
+:root[data-site="admin"] .bottom {align-items: stretch; margin-top: 12px;}
+:root[data-site="admin"] .bottom > .panel {display: flex; flex-direction: column; min-width: 0;}
+:root[data-site="admin"] .bottom .panel-head {min-height: 46px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--line);}
+:root[data-site="admin"] .bottom .panel-head h2 {margin: 0;}
+:root[data-site="admin"] .bottom .agents {padding-top: 4px;}
+:root[data-site="admin"] .bottom .agents .col .agent:first-child {border-top: 0;}
+:root[data-site="admin"] .bottom .panel-foot {margin-top: auto;}
+:root[data-site="admin"] .bottom .rows {flex: 1; display: flex; flex-direction: column; justify-content: space-between;}
+:root[data-site="admin"] .agent {grid-template-columns: 8px minmax(0, 1fr) auto 40px;}
+:root[data-site="admin"] .agent .hist {justify-content: flex-end; min-width: 40px;}
+@media (max-width: 960px) {
+  :root[data-site="admin"] .mid {grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 10px;}
+  :root[data-site="admin"] .mid .goal-head {order: 1;}
+  :root[data-site="admin"] .mid .goal {order: 2;}
+  :root[data-site="admin"] .mid .funnel-head {order: 3; margin-top: 12px;}
+  :root[data-site="admin"] .mid .funnel {order: 4;}
+}
+@media (max-width: 640px) {
+  :root[data-site="admin"] .agent {grid-template-columns: 8px minmax(0, 1fr) auto;}
+  :root[data-site="admin"] .needs {grid-template-columns: minmax(0, 1fr);}
+}

@@ -251,21 +251,25 @@ export default async function AdminToday() {
       {moneyError && <Note tone="warn" retry className="mt-8">Money items (replies, quotes, proposals, invoices) couldn&apos;t all load.</Note>}
 
       <div className="mid">
-        <section className={`panel goal${wonUsd > 0 ? "" : " goal-line"}`} aria-label="Revenue goal">
-          <div className="row between">
-            <h2>
-              {wonUsd > 0 ? (
-                <>
-                  Q4 goal <span className="c-3">· $100,000 signed by 31 Dec</span>
-                </>
-              ) : (
-                <>
-                  Q4 goal <span className="c-3">· $100k signed by 31 Dec</span>
-                </>
-              )}
-            </h2>
+        {/* one heading line across both columns, then the two panels: tops and bottoms line up */}
+        <div className="sec-head goal-head">
+          <h2>
+            Q4 goal <span className="c-3">· {wonUsd > 0 ? "$100,000" : "$100k"} signed by 31 Dec</span>
+          </h2>
+          <span className="more">
             <span className="pill pill-white mono">{daysLeft} days left</span>
-          </div>
+          </span>
+        </div>
+        <div className="sec-head funnel-head">
+          <h2>
+            Funnel <span className="c-3">· 30 days</span>
+          </h2>
+          <span className="sub">cold email · Mac outbox</span>
+          <Link className="more hide-m" href="/pipeline">
+            Pipeline →
+          </Link>
+        </div>
+        <section className={`panel goal${wonUsd > 0 ? "" : " goal-line"}`} aria-label="Revenue goal">
           <div className="goal-body">
             {wonUsd > 0 && <ArcGauge pct={wonPct} label={`${wonPct.toFixed(1)}% of goal`} value={usd(wonUsd)} />}
             <div className="stats">
@@ -302,15 +306,6 @@ export default async function AdminToday() {
         </section>
 
         <section className="funnel" aria-label="Funnel, last 30 days">
-          <div className="sec-head">
-            <h2>
-              Funnel <span className="c-3">· 30 days</span>
-            </h2>
-            <span className="sub">cold email · Mac outbox</span>
-            <Link className="more hide-m" href="/pipeline">
-              Pipeline →
-            </Link>
-          </div>
           <div className="kpi" data-stagger="">
             <KpiTile label="Sent" value={sentRows.length} error={funnelError} context={`${(sentRows.length / 30).toFixed(1)} / day avg`} delta={weekDelta(series.sent)} series={series.sent} />
             <KpiTile label="Replies" value={human.length} error={funnelError} context={sentRows.length ? `${((human.length / sentRows.length) * 100).toFixed(1)}% of sent` : "no sends yet"} delta={weekDelta(series.replies)} series={series.replies} />
@@ -349,7 +344,6 @@ export default async function AdminToday() {
                       <span className="name">{a.label}</span>
                       <span className="last">
                         {a.running ? "running" : a.last === "never" ? a.text || "never" : `${a.last} ago`}
-                        {warn ? ` · ${a.text}` : ""}
                       </span>
                       <span className="hist" aria-label={`Last ${hist.length} runs: ${hist.join(", ") || "none"}`}>
                         {hist.map((h, k) => (
