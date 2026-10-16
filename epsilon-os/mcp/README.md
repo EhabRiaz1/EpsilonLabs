@@ -33,7 +33,7 @@ Drafted replies show on the admin ticket page as "Claude Code draft" with **Send
 ## Setup (once per Mac)
 
 ```sh
-cd ~/Desktop/epsilon-labs/epsilon-os
+cd ~/dev/epsilon-labs/epsilon-os
 make setup                      # or: .venv/bin/python -m pip install -r requirements.txt
 mcp/install.sh                  # installs the skill to ~/.claude/skills/epsilon-tickets, prints the command
 ```
@@ -49,7 +49,7 @@ mcp/install.sh                  # installs the skill to ~/.claude/skills/epsilon
    claude mcp add epsilon \
      --env EPSILON_PROJECT_TOKEN=eps_pt_... \
      --env EPSILON_SUPABASE_ANON_KEY=<publishable key> \
-     -- ~/Desktop/epsilon-labs/epsilon-os/.venv/bin/python ~/Desktop/epsilon-labs/epsilon-os/mcp/run.py
+     -- ~/dev/epsilon-labs/epsilon-os/.venv/bin/python ~/dev/epsilon-labs/epsilon-os/mcp/run.py
    ```
 
    Keep the default `local` scope: it stores the token in your own Claude Code config for this folder. Never use

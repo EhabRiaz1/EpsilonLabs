@@ -35,8 +35,36 @@ def healthy(db):
 
 # ------------------------------------------------------------------ brief
 
-def test_brief_empty_data_renders_and_sends_one_mail():
+def news(db):
+    """Something waiting for approval, so the brief has a reason to send."""
+    db.insert("approval_queue", {"agent": "inbox", "kind": "reply", "draft": "x", "to_email": "n@x.com",
+                                 "subject": "hi", "created_at": iso(hours=2)})
+    return db
+
+
+def test_brief_quiet_day_sends_nothing_but_records_the_run():
     db, m = FakeDB(), FakeMail()
+    res = brief.run(db, m, TUE)
+    assert res["skipped"] == "no updates" and m.sent == []
+    assert db.rows("actions", action="brief_skipped") and not db.rows("actions", action="brief_sent")
+    assert db.rows("agent_heartbeats", agent="brief")[-1]["status"] == "ok"
+    db.t["actions"][-1]["at"] = TUE.isoformat()
+    assert brief.run(news(db), m, TUE + timedelta(hours=2)) == {"skipped": "already sent today"}   # once a day
+
+
+def test_brief_newly_stale_deal_is_news_but_an_old_one_is_not():
+    db = FakeDB()
+    co = db.insert("companies", {"name": "Old Mill", "domain": "oldmill.com"})[0]["id"]
+    db.insert("deals", {"company_id": co, "title": "t", "source_channel": "inbound", "stage": "quote_out",
+                        "updated_at": iso(days=40), "created_at": iso(days=50)})
+    assert brief.updates(brief.gather(db, TUE)) == []
+    db.insert("deals", {"company_id": co, "title": "u", "source_channel": "inbound", "stage": "lead",
+                        "updated_at": iso(days=14, hours=6), "created_at": iso(days=20)})
+    assert any("stale" in w for w in brief.updates(brief.gather(db, TUE)))
+
+
+def test_brief_with_news_renders_and_sends_one_mail():
+    db, m = news(FakeDB()), FakeMail()
     res = brief.run(db, m, NOW)
     assert res["issues"] == 0 and res["subject"] == "Epsilon brief · all clear"
     assert len(m.sent) == 1
@@ -107,7 +135,7 @@ def test_brief_silent_agent_is_flagged():
 
 
 def test_brief_idempotent_same_pkt_day_not_next():
-    db, m = FakeDB(), FakeMail()
+    db, m = news(FakeDB()), FakeMail()
     brief.run(db, m, NOW)
     db.t["actions"][0]["at"] = NOW.isoformat()   # fake DB stamps the real clock; pin it to the test clock
     assert brief.run(db, m, NOW + timedelta(hours=3)) == {"skipped": "already sent today"}
@@ -118,7 +146,7 @@ def test_brief_idempotent_same_pkt_day_not_next():
 
 
 def test_brief_send_failure_heartbeat_error_no_sent_marker():
-    db, m = FakeDB(), FakeMail()
+    db, m = news(FakeDB()), FakeMail()
     m.fail_with = [TimeoutError("smtp secret-ish text")]
     res = brief.run(db, m, NOW)
     assert res["error"] == "TimeoutError" and not db.rows("actions", action="brief_sent")
@@ -129,7 +157,7 @@ def test_brief_send_failure_heartbeat_error_no_sent_marker():
 def test_brief_recipient_env_override(monkeypatch):
     monkeypatch.setenv("FOUNDER_EMAIL", "me@example.com")
     m = FakeMail()
-    brief.run(FakeDB(), m, NOW)
+    brief.run(news(FakeDB()), m, NOW)
     assert m.sent[0]["to"] == "me@example.com"
 
 
@@ -301,7 +329,7 @@ def test_main_rejects_unknown_job(tmp_path):
 # ------------------------------------------------------------------ launchd plists
 
 PLISTS = sorted((Path(__file__).resolve().parents[1] / "launchd").glob("co.epsilon-labs.os.*.plist"))
-VENV_PY = "/Users/ehabriaz/Desktop/epsilon-labs/epsilon-os/.venv/bin/python"
+VENV_PY = "/Users/ehabriaz/dev/epsilon-labs/epsilon-os/.venv/bin/python"
 
 
 def test_agent_plists_static_checks():

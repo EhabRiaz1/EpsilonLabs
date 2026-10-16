@@ -3,7 +3,7 @@
 
 export const PROJECT_TOKEN_RE = /^eps_pt_[0-9a-f]{64}$/;
 /** Where epsilon-os lives on the founder's Mac. $HOME expands inside double quotes; ~ would not. */
-export const DEFAULT_OS_DIR = "$HOME/Desktop/epsilon-labs/epsilon-os";
+export const DEFAULT_OS_DIR = "$HOME/dev/epsilon-labs/epsilon-os";
 
 /** POSIX single quotes: safe for any folder name (FP&LM, spaces, quotes). */
 export function shQuote(s: string): string {

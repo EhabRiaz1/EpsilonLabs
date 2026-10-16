@@ -1,7 +1,9 @@
 """Daily CEO brief (PLAN §3.4): deterministic text from data, no LLM calls.
 
 Order: health block, Needs you, funnel (+ Monday leading indicators), stalled deals.
-A missing brief by 9am PKT is itself the alarm.
+Sent only when there is news (founder, 2026-10-16): an issue, something waiting for approval, a deal that went
+stale since yesterday, or a Monday with activity. A quiet day records brief_skipped and an ok heartbeat instead, so
+the watchdog still sees the brief ran.
 """
 import html
 import sys
@@ -17,7 +19,8 @@ OPEN_STAGES = ("lead", "conversation", "scoping_call", "quote_out")
 
 
 def _already_sent(db, now: datetime) -> bool:
-    return bool(db.select("actions", action="brief_sent", at=f"gte.{data.pkt_midnight(now).isoformat()}", limit=1))
+    since = f"gte.{data.pkt_midnight(now).isoformat()}"
+    return any(db.select("actions", action=a, at=since, limit=1) for a in ("brief_sent", "brief_skipped"))
 
 
 def _llm_yesterday(db, now: datetime) -> int:
@@ -71,6 +74,22 @@ def gather(db, now: datetime) -> dict:
             "trouble": trouble, "pending": pending, "held": held, "kpis": k, "stalled": stalled,
             "llm_yesterday": yesterday, "issues": issues,
             "weekly": _weekly(db, now, k) if local.weekday() == 0 else None}
+
+
+def updates(g: dict) -> list[str]:
+    """Why today's brief is worth an email; empty means a quiet day and no email."""
+    why = []
+    if g["issues"]:
+        why.append(f"{len(g['issues'])} issue(s)")
+    if g["pending"] or g["held"]:
+        why.append(f"{len(g['pending'])} waiting, {g['held']} held")
+    newly = [r for r in g["stalled"] if r["days"] <= STALL_DAYS + 1]
+    if newly:
+        why.append(f"{len(newly)} deal(s) went stale")
+    w = g["weekly"]
+    if w and (w["conversations"] or w["quotes_out"] or w["closed"] or w["referral_asks"]):
+        why.append("weekly indicators")
+    return why
 
 
 def subject(g: dict) -> str:
@@ -135,6 +154,11 @@ def run(db: DB | None = None, mail_mod=mail, now: datetime | None = None) -> dic
         return {"skipped": "already sent today"}
     run_id = ledger.new_run_id()
     g = gather(db, now)
+    why = updates(g)
+    if not why:
+        ledger.action(db, AGENT, run_id, "brief_skipped", detail={"reason": "no updates"})
+        ledger.heartbeat(db, AGENT, "ok", {"run_id": run_id, "skipped": "no updates"})
+        return {"run_id": run_id, "skipped": "no updates"}
     subj = subject(g)
     mid = mail.new_message_id()
     try:

@@ -18,7 +18,7 @@ export const AGENT_CATALOG: [string, CatalogEntry[]][] = [
     { key: "outbox", label: "Outbox", what: "Lints drafts edited off the Mac, sends what you approved after the undo window, and verifies delivery.", job: "outbox", hb: "outbox", stale: 5 * 60 },
   ]],
   ["Reporting & safety", [
-    { key: "brief", label: "Morning brief", what: "Emails you the day's summary at 08:30.", job: "brief", hb: "brief", stale: 26 * 3600 },
+    { key: "brief", label: "Morning brief", what: "Emails you a summary at 08:30, only on days with news.", job: "brief", hb: "brief", stale: 26 * 3600 },
     { key: "backup", label: "Backup", what: "Weekly export of every table to ~/EpsilonOS-backups.", job: "backup", hb: "backup", stale: 8 * 86400 },
     { key: "scheduler", label: "Scheduler", what: "Every 5 min, starts any daily job whose time has passed but has not run yet.", job: "scheduler", hb: "scheduler", stale: 2 * 3600 },
     { key: "watchdog", label: "Watchdog", what: "Pings healthchecks.io so you are emailed if the system stops.", job: null, hb: "watchdog", stale: 3600 },

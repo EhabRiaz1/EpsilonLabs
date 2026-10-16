@@ -514,7 +514,7 @@ AGENT_CATALOG = [
          "outbox", "outbox", 5 * 60),
     ]),
     ("Reporting & safety", [
-        ("brief", "Morning brief", "Emails you the day's summary at 08:30.", "brief", "brief", 26 * 3600),
+        ("brief", "Morning brief", "Emails you a summary at 08:30, only on days with news.", "brief", "brief", 26 * 3600),
         ("backup", "Backup", "Weekly export of every table to ~/EpsilonOS-backups.", "backup", "backup", 8 * 86400),
         ("scheduler", "Scheduler", "Every 5 min, starts any daily job whose time has passed but has not run yet.",
          "scheduler", "scheduler", 2 * 3600),

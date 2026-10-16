@@ -216,7 +216,7 @@ def test_launchd_plist_uses_absolute_venv_python_and_keepalive():
     from pathlib import Path
     p = Path(__file__).resolve().parents[1] / "launchd" / "co.epsilon-labs.os.dashboard.plist"
     d = plistlib.loads(p.read_bytes())
-    assert d["ProgramArguments"][0] == "/Users/ehabriaz/Desktop/epsilon-labs/epsilon-os/.venv/bin/python"
+    assert d["ProgramArguments"][0] == "/Users/ehabriaz/dev/epsilon-labs/epsilon-os/.venv/bin/python"
     assert d["KeepAlive"] is True and d["RunAtLoad"] is True
     assert d["ProgramArguments"][1:] == ["-m", "dashboard.server"]
     assert "--demo" not in d["ProgramArguments"]

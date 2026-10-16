@@ -6,13 +6,13 @@
 	<string>co.epsilon-labs.os.brief</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Users/ehabriaz/Desktop/epsilon-labs/epsilon-os/.venv/bin/python</string>
+		<string>/Users/ehabriaz/dev/epsilon-labs/epsilon-os/.venv/bin/python</string>
 		<string>-m</string>
 		<string>agents.run</string>
 		<string>brief</string>
 	</array>
 	<key>WorkingDirectory</key>
-	<string>/Users/ehabriaz/Desktop/epsilon-labs/epsilon-os</string>
+	<string>/Users/ehabriaz/dev/epsilon-labs/epsilon-os</string>
 	<key>EnvironmentVariables</key>
 	<dict>
 		<key>PATH</key>

@@ -11,7 +11,7 @@ describe("connectCommand", () => {
     expect(c).toContain(`--env EPSILON_PROJECT_TOKEN=${TOKEN}`);
     expect(c).toContain("--env EPSILON_SUPABASE_URL=https://lueawvqogdodtjsfqdeh.supabase.co \\");
     expect(c).toContain("--env EPSILON_SUPABASE_ANON_KEY=sb_publishable_abc-123");
-    expect(c).toContain(`-- "$HOME/Desktop/epsilon-labs/epsilon-os/.venv/bin/python" "$HOME/Desktop/epsilon-labs/epsilon-os/mcp/run.py"`);
+    expect(c).toContain(`-- "$HOME/dev/epsilon-labs/epsilon-os/.venv/bin/python" "$HOME/dev/epsilon-labs/epsilon-os/mcp/run.py"`);
     expect(c).not.toContain("--scope");
   });
 

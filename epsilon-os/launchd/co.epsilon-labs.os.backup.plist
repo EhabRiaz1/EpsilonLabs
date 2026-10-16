@@ -11,7 +11,7 @@
 	<string>co.epsilon-labs.os.backup</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Users/ehabriaz/Desktop/epsilon-labs/epsilon-os/.venv/bin/python</string>
+		<string>/Users/ehabriaz/dev/epsilon-labs/epsilon-os/.venv/bin/python</string>
 		<string>-m</string>
 		<string>agents.run</string>
 		<string>backup</string>
@@ -30,6 +30,6 @@
 		<integer>0</integer>
 	</dict>
 	<key>WorkingDirectory</key>
-	<string>/Users/ehabriaz/Desktop/epsilon-labs/epsilon-os</string>
+	<string>/Users/ehabriaz/dev/epsilon-labs/epsilon-os</string>
 </dict>
 </plist>
