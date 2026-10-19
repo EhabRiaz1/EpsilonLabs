@@ -34,6 +34,8 @@ def queue(db, run_id: str, p: dict, strategy: str, dry: bool) -> str:
     body, problems = finish_draft(p["body"])
     hits = lint.lint(body, {"recipient": contact["email"]})
     reasons = [x for x in problems if "added by code" not in x]
+    if p.get("hold"):
+        reasons.append(str(p["hold"]))
     if p.get("email_basis") == "pattern":
         reasons.append("address inferred from a published pattern: check before approving")
     if strategy == "s4_partner" and SALES_WORDS.search(body):
