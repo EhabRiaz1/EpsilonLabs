@@ -419,6 +419,22 @@ def test_check_contact_rules():
     assert check_contact(None, "acme.com") == (None, "")
 
 
+def test_check_contact_named_only_refuses_shared_inboxes():
+    from agents.prospector import check_contact
+    ok = {"email": "hello@acme.com", "source_url": "https://acme.com/contact"}
+    assert check_contact(ok, "acme.com", named_only=True)[0] is None
+    assert check_contact({**ok, "email": "info@acme.com"}, "acme.com", named_only=True)[1] == "shared inbox, not a named person"
+    named = {**ok, "email": "sara.khan@acme.com", "name": "Sara Khan", "role": "CTO"}
+    assert check_contact(named, "acme.com", named_only=True)[0]["email"] == "sara.khan@acme.com"
+
+
+def test_check_contact_refuses_addresses_taken_from_code_hosts():
+    from agents.prospector import check_contact
+    gh = {"email": "sara.khan@acme.com", "source_url": "https://github.com/acme/fw/commit/abc123"}
+    assert check_contact(gh, "acme.com")[0] is None
+    assert check_contact({**gh, "source_url": "https://gitlab.com/acme/fw"}, "acme.com")[0] is None
+
+
 def test_fill_contacts_only_accepts_valid_published_addresses():
     from agents import prospector as P
 

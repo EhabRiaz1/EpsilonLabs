@@ -74,7 +74,9 @@ S3 = Strategy(
         "(no default passwords, a published vulnerability-disclosure contact, a stated support period).\n"
         "Two ways in: (a) the maker shows NO published vulnerability-disclosure policy (no security.txt, no security or PSIRT page, no disclosure contact) and no visible update mechanism, "
         "or (b) the maker mentions compliance work (CRA, PSTI, RED cybersecurity, EN 18031, IEC 62443, 'security by design') on its site or blog.\n"
-        "The offer is engineering only: a device penetration test and a secure update path. Never claim legal or certification expertise.\n"
+        "The offer is engineering only: fixing the firmware gaps these obligations expose on product lines already on sale (recovering an SBOM from the firmware, vulnerability triage, "
+        "and retrofitting secure boot or signed updates onto existing boards), framed as 'keep selling this product into the EU after December 2027'. Never claim legal or certification expertise.\n"
+        "Strongest fits: product lines 3+ years old, firmware downloads or release notes on the support site, small engineering teams, microcontroller (STM32, ESP32, nRF) or embedded Linux devices.\n"
         "Prefer makers with NO disclosure route. A maker that already publishes a vulnerability-disclosure policy, PSIRT page or PSTI statement qualifies only if the page also shows security work still ahead "
         "(preparing for the CRA, no independent product test mentioned, no signed-update mechanism described); otherwise skip it and keep looking."),
     queries=(
@@ -88,11 +90,14 @@ S3 = Strategy(
         "- evidence_quote is a sentence from the product or compliance page, not from your checking. trigger is the exposure in one sentence (for example \"sells a Wi-Fi thermostat in the UK with no disclosure contact\"). trigger_type is regulation.\n"
         "- evidence_date may be empty for product pages; give it when the page is dated."),
     buyer_rules=(
-        "Buyers are the manufacturer or brand owner of the connected product (5 to 500 people) with an engineering or product lead. Skip pure software companies, resellers, "
+        "Buyers are the manufacturer or brand owner of the connected product (10 to 500 people). The contact must be a NAMED person: CTO, head of engineering, firmware or R&D lead, "
+        "or a technical founder at a small company, with an address published on the company's own site or press material (never a shared inbox, never an address from GitHub). Skip pure software companies, resellers, "
         "large listed manufacturers with their own product-security team, and compliance consultancies. The company may be anywhere in a target market (a US maker selling into the EU counts)."),
-    offers=("device-pentest", "firmware-rescue", "software-pentest", "hardware-rescue"),
-    angle=("Pitch the engineering work the new obligations create: a device penetration test of the product, and a secure, signed update path. Mention the CRA or PSTI only as context for why the work matters now, "
-           "in one clause. Do not give legal, compliance or certification advice and do not say the product is non-compliant; never imply a finding you have not made."),
+    offers=("firmware-rescue", "hardware-rescue", "device-pentest"),
+    angle=("Open with one true, specific fact about the maker's older product line. Then: since 11 September 2026 the CRA requires a 24-hour early warning for actively exploited vulnerabilities, "
+           "including in products already on sale, and from December 2027 products sold in the EU need an SBOM and a secure update path; on older lines that is engineering, not paperwork. "
+           "Offer: recover the SBOM from the firmware, triage what matters and fix it (for example signed updates on a shipping board), and a one-page gap read at no cost if they send one firmware image. "
+           "Close by asking whether that product line is on their CRA list yet. Never give legal or certification advice, never say the product is non-compliant, never imply a finding you have not made."),
     strict_offers=True, trigger_types=("regulation", "other"))
 
 S4 = Strategy(

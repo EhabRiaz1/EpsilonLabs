@@ -40,6 +40,7 @@ DEFAULTS = {
     "prospector.markets": list(DEFAULT_MARKETS),
     "prospector.segments": list(SEGMENTS),
     "prospector.paused": False,
+    "prospector.named_only": False,   # True: only a named person's address, never info@/hello@ inboxes
     "prospector.mix": DEFAULT_MIX,
     "llm.daily_budget": config.DAILY_LLM_CALL_BUDGET,
     "outreach.daily_cap": 50,
@@ -206,6 +207,10 @@ def validate(key: str, value):
     if key == "prospector.paused":
         if not isinstance(value, bool):
             raise SettingsError("Paused must be true or false.")
+        return value
+    if key == "prospector.named_only":
+        if not isinstance(value, bool):
+            raise SettingsError("Named-only must be true or false.")
         return value
     if key == "prospector.markets":
         return _clean_markets(value)

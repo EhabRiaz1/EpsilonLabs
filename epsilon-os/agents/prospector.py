@@ -74,6 +74,21 @@ HIRING_INBOXES = {"careers", "career", "jobs", "job", "hr", "recruiting", "recru
 NON_SALES_INBOXES = {"legal", "security", "privacy", "abuse", "dpo", "gdpr", "compliance", "noreply", "no-reply",
                      "donotreply", "postmaster", "webmaster", "press", "media", "pr", "billing", "invoices",
                      "accounts", "accounting", "finance", "unsubscribe", "vulnerability", "psirt", "disclosure"}
+# Shared inboxes. With Settings prospector.named_only on, a prospect needs a named person's address instead.
+GENERIC_INBOXES = {"info", "hello", "hi", "contact", "contactus", "enquiries", "enquiry", "inquiries", "inquiry", "sales",
+                   "support", "office", "team", "mail", "admin", "general", "kontakt", "post", "service", "help"}
+# Pages an address may not be taken from: GitHub's Acceptable Use Policy forbids using its data for unsolicited email.
+BANNED_CONTACT_SOURCES = ("github.com", "githubusercontent.com", "gitlab.com")
+# Contact-finding instruction for the research prompts, chosen by Settings prospector.named_only.
+CONTACT_RULE_DEFAULT = ("Prefer, in order: a named founder or engineering lead address shown on the site; then hello@, info@, contact@, team@, sales@, "
+                        "engineering@ or partnerships@. Never use careers@, jobs@, hr@, recruiting@, talent@ or any hiring inbox, never a personal address "
+                        "from a third-party site, data broker, social profile, code repository (GitHub, GitLab) or leaked list, and never guess or construct "
+                        "an address from a name pattern.")
+CONTACT_RULE_NAMED = ("Find a NAMED person: the CTO, head of engineering, firmware or R&D lead, or a technical founder of a small company, whose own address "
+                      "the company publishes on its own website (team, about, imprint or contact page) or in its own press releases. Give their name, role and that "
+                      "address. Never return a shared inbox (info@, hello@, contact@, sales@, support@, office@, team@ and similar), never an address seen on "
+                      "GitHub, GitLab or any code repository, a data broker, social profile or leaked list, and never guess or construct an address from a name "
+                      "pattern. If no named person's address is published, give no address for that company.")
 DOMAIN_RE = re.compile(r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$")
 EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})$")
 
@@ -117,8 +132,9 @@ def valid_url(u: str) -> bool:
     return p.scheme in ("http", "https") and bool(p.netloc) and " " not in u
 
 
-def check_contact(c, domain: str) -> tuple[dict | None, str]:
-    """P5 contact rules: published, on the company's own domain, not a hiring inbox, with a source page."""
+def check_contact(c, domain: str, named_only: bool = False) -> tuple[dict | None, str]:
+    """P5 contact rules: published, on the company's own domain, not a hiring inbox, with a source page.
+    named_only (Settings prospector.named_only) also refuses shared inboxes such as info@ and hello@."""
     if not (isinstance(c, dict) and c.get("email")):
         return None, ""
     m = EMAIL_RE.match(str(c["email"]).strip())
@@ -131,10 +147,19 @@ def check_contact(c, domain: str) -> tuple[dict | None, str]:
         return None, "hiring inbox, not a buyer contact"
     if m.group(0).split("@")[0].lower() in NON_SALES_INBOXES:
         return None, "legal/security/admin inbox, not a buyer contact"
+    if named_only and m.group(0).split("@")[0].lower() in GENERIC_INBOXES:
+        return None, "shared inbox, not a named person"
     if not valid_url(str(c.get("source_url") or "")):
         return None, "contact without a source url"
+    src_host = urlparse(str(c["source_url"]).strip()).netloc.lower().removeprefix("www.")
+    if any(src_host == b or src_host.endswith("." + b) for b in BANNED_CONTACT_SOURCES):
+        return None, "address taken from a code host (GitHub terms forbid it for unsolicited email)"
     return {"email": str(c["email"]).strip().lower(), "name": _one_line(c.get("name"), 120),
             "role": _one_line(c.get("role"), 120), "source_url": c["source_url"].strip()}, ""
+
+
+def contact_rule(S) -> str:
+    return CONTACT_RULE_NAMED if getattr(S, "named_only", False) else CONTACT_RULE_DEFAULT
 
 
 def fill_contacts(S, prospects: list[dict]) -> int:
@@ -142,7 +167,8 @@ def fill_contacts(S, prospects: list[dict]) -> int:
     need = [p for p in prospects if not p["contact"] and p["domain"] not in S.known][:CONTACT_BATCH]
     if not need or S.budget_hit:
         return 0
-    system = loader.compose("find_contact", {"today": S.today, "domains": "\n".join(p["domain"] for p in need)},
+    system = loader.compose("find_contact", {"today": S.today, "domains": "\n".join(p["domain"] for p in need),
+                                             "contact_rule": contact_rule(S)},
                             preamble="preamble_research")
     try:
         data, _ = S.llm.research(S.db, AGENT, S.run_id, system, "Find the published contact addresses.",
@@ -159,7 +185,7 @@ def fill_contacts(S, prospects: list[dict]) -> int:
         p = by_domain.get(clean_domain(str(c.get("domain") or "")) or "")
         if not p or p["contact"]:
             continue
-        contact, note = check_contact(c, p["domain"])
+        contact, note = check_contact(c, p["domain"], getattr(S, "named_only", False))
         if contact:
             p["contact"], p["contact_note"] = contact, "contact found on the company site"
             found += 1
@@ -191,7 +217,7 @@ def is_fulltime_post(raw: dict, quote: str, obs: str) -> bool:
 
 
 def validate(raw: dict, strategy: str, slugs: set[str], today: date | None = None,
-             segments: list[str] | None = None, markets=None) -> tuple[dict | None, str]:
+             segments: list[str] | None = None, markets=None, named_only: bool = False) -> tuple[dict | None, str]:
     """Code-side check of one research result. Returns (prospect, "") or (None, reason)."""
     if not isinstance(raw, dict):
         return None, "not an object"
@@ -245,7 +271,7 @@ def validate(raw: dict, strategy: str, slugs: set[str], today: date | None = Non
     seg = raw.get("segment") if raw.get("segment") in schemas.PROSPECT_SEGMENTS else st.segment
     if segments is not None and seg not in segments:
         return None, "segment disabled in settings"
-    contact, contact_note = check_contact(raw.get("contact"), domain)
+    contact, contact_note = check_contact(raw.get("contact"), domain, named_only)
     return {"name": name, "domain": domain, "country": country, "sector": _one_line(raw.get("sector"), 80),
             "strategy": strategy, "segment": seg, "evidence_url": raw["evidence_url"].strip(), "evidence_quote": quote,
             "evidence_date": ev_date.isoformat() if ev_date else "", "trigger": _one_line(raw.get("trigger"), 200),
@@ -715,7 +741,7 @@ def _hn_strategy(S, sid: str, target: int, slugs: list[str]) -> None:
             raw, why = (hn_raw(c, r, sid, S.today_date or datetime.now(timezone.utc).date()) if c else (None, "unknown post id"))
             p = None
             if raw is not None:
-                p, why = validate(raw, sid, set(slugs), S.today_date, S.segments, S.markets)
+                p, why = validate(raw, sid, set(slugs), S.today_date, S.segments, S.markets, getattr(S, "named_only", False))
             if p is None:
                 S.c["invalid"] += 1
                 mine["invalid"] += 1
@@ -745,7 +771,8 @@ def _research_strategy(S, sid: str, target: int, slugs: list[str], schema: dict)
             "n": n, "today": S.today, "strategy": sid, "strategy_name": st.name, "strategy_brief": st.brief,
             "queries": st.queries, "buyer_rules": st.buyer_rules, "evidence_rules": st.evidence_rules,
             "preferred_offers": _preferred_offers(st, slugs), "slugs": ", ".join(slugs),
-            "offers": loader.offers_summary(), "markets": ", ".join(S.markets or sorted(TARGET_MARKETS)), "known_domains": _prompt_domains(S.db, S)},
+            "offers": loader.offers_summary(), "markets": ", ".join(S.markets or sorted(TARGET_MARKETS)), "known_domains": _prompt_domains(S.db, S),
+            "contact_rule": contact_rule(S)},
             preamble="preamble_research")
         S.c["research_calls"] += 1
         mine["research_calls"] += 1
@@ -770,7 +797,7 @@ def _research_strategy(S, sid: str, target: int, slugs: list[str], schema: dict)
             return
         valid = []
         for raw in found:
-            p, why = validate(raw, sid, set(slugs), S.today_date, S.segments, S.markets)
+            p, why = validate(raw, sid, set(slugs), S.today_date, S.segments, S.markets, getattr(S, "named_only", False))
             if p is None:
                 S.c["invalid"] += 1
                 mine["invalid"] += 1
@@ -827,6 +854,7 @@ def run(db: DB | None = None, llm=llm_mod, settings=None, now: datetime | None =
     S.known = _known_domains(db)
     S.segments = None if dry else settings.segments()
     S.markets = [m for m in settings.get("prospector.markets") if m not in settings_mod.ALWAYS_EXCLUDED]
+    S.named_only = bool(settings.get("prospector.named_only"))
     order = strategy_order(list(targets), S.today_date)
     for sid in order:
         if S.budget_hit:
