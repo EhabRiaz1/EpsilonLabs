@@ -31,7 +31,7 @@ export default async function ReportsList() {
       ) : rows.length === 0 ? (
         <section className="panel">
           <Empty icon="chart" title="No reports yet">
-            <p>At the end of a release Ehab publishes a delivery report here: what changed, how it was verified, and what is still open.</p>
+            <p>At the end of a release Epsilon publishes a delivery report here: what changed, how it was verified, and what is still open.</p>
           </Empty>
         </section>
       ) : (

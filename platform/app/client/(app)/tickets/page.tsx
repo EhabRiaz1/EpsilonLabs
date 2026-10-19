@@ -89,11 +89,11 @@ export default async function TicketsPage({ searchParams }: { searchParams: Prom
           <TicketRows rows={rows} />
         ) : (
           <Empty icon={view === "waiting" ? "check" : "ticket"} title={view === "waiting" ? "Nothing waits on you" : view === "closed" ? "Nothing closed yet" : "No open requests"}>
-            <p>{view === "waiting" ? "When Ehab needs your review or a decision, the request shows here." : "Raise a bug, a change or a question with New request."}</p>
+            <p>{view === "waiting" ? "When Epsilon needs your review or a decision, the request shows here." : "Raise a bug, a change or a question with New request."}</p>
           </Empty>
         )}
         <div className="panel-foot">
-          <span>Ehab replies within two working days</span>
+          <span>Epsilon replies within two working days</span>
           {view !== "closed" && (
             <Link href="/tickets?view=closed" className="c-2" style={{ marginLeft: "auto" }}>
               Closed requests

@@ -235,7 +235,7 @@ export function DealRoom(props: {
           {p.summary && <p className="lede">{p.summary}</p>}
           <div className="meta">
             <span className="who">
-              <span className="avatar">ER</span>Ehab Riaz · Epsilon Labs
+              <span className="avatar">ε</span>Epsilon Labs
             </span>
             <span>{labels.sent}</span>
             <span>Version {p.version}</span>
@@ -430,7 +430,7 @@ export function DealRoom(props: {
                     <Icon name="mail" />
                     <span className="grow">
                       {accepted.portalSent === false
-                        ? "Ehab will send your portal login shortly"
+                        ? "Epsilon will send your portal login shortly"
                         : `Portal access: sign in at client.epsilon-labs.co with ${accepted.emailMasked}`}
                     </span>
                   </div>
@@ -454,7 +454,7 @@ export function DealRoom(props: {
             </div>
             <div className="glass q">
               <strong>Questions on this proposal</strong>
-              Reply to the email this link came from, or write to Ehab at <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>.
+              Reply to the email this link came from, or write to Epsilon at <a href="mailto:er@epsilon-labs.co">er@epsilon-labs.co</a>.
             </div>
           </aside>
         </div>
@@ -568,7 +568,7 @@ export function DealRoom(props: {
                 {" · "}
                 <button
                   type="button"
-                  onClick={() => eps()?.toast("The code goes to the address this proposal was prepared for. If it's wrong, reply to Ehab's email.", { icon: "mail" })}
+                  onClick={() => eps()?.toast("The code goes to the address this proposal was prepared for. If it's wrong, reply to Epsilon's email.", { icon: "mail" })}
                 >
                   Wrong email?
                 </button>
@@ -616,7 +616,7 @@ export function DealRoom(props: {
                   )}
                   <div className="line">
                     <Icon name="mail" className={accepted.portalSent === false ? "pending" : undefined} />
-                    <span className="grow">{accepted.portalSent === false ? "Portal login: Ehab will send it shortly" : "Portal access sent"}</span>
+                    <span className="grow">{accepted.portalSent === false ? "Portal login: Epsilon will send it shortly" : "Portal access sent"}</span>
                     <span className="c-3 t-12">{accepted.emailMasked}</span>
                   </div>
                   <div className="line">

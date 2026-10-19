@@ -37,7 +37,7 @@ export default async function RetainerPage() {
           <div className="empty">
             <div className="orb"><span className="wave" /><span className="wave" /><span className="core"><Icon name="clock" className="i-lg" /></span></div>
             <h2 className="display">No retainer</h2>
-            <p className="c-2" style={{ maxWidth: "40ch" }}>A monthly retainer (10, 20 or 40 hours) covers fixes, changes and questions. Ask Ehab if you&apos;d like one.</p>
+            <p className="c-2" style={{ maxWidth: "40ch" }}>A monthly retainer (10, 20 or 40 hours) covers fixes, changes and questions. Ask Epsilon if you&apos;d like one.</p>
           </div>
         </section>
       )}
@@ -63,7 +63,7 @@ export default async function RetainerPage() {
                   <div className="bar-t" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.round(cur.pct))} aria-label="Hours used this month">
                     <i style={{ width: `${Math.min(100, Math.max(0, cur.pct))}%` }} />
                   </div>
-                  <p className="c-3 t-12">Billable time logged by Ehab on your tickets. Anything over the included hours is shown here and discussed with you first; it is never billed automatically.</p>
+                  <p className="c-3 t-12">Billable time logged by Epsilon on your tickets. Anything over the included hours is shown here and discussed with you first; it is never billed automatically.</p>
                 </>
               ) : (
                 <p className="c-3 t-13" style={{ marginTop: 10 }}>The retainer starts on {r.starts_on}.</p>

@@ -52,8 +52,8 @@ export const TYPE_LABEL: Readonly<Record<string, string>> = { bug: "Bug", change
 export const PRIORITY_LABEL: Readonly<Record<string, string>> = { low: "Can wait", normal: "This week", urgent: "Urgent" };
 export const PRIORITY_HINT: Readonly<Record<Priority, string>> = {
   low: "Picked up in the next weekly plan.",
-  normal: "Ehab looks at it within two working days.",
-  urgent: "For stopped production or people locked out. Ehab sees it first.",
+  normal: "Epsilon looks at it within two working days.",
+  urgent: "For stopped production or people locked out. Epsilon sees it first.",
 };
 
 /** The ticket body from the New request sheet: the description, then where it happens. */

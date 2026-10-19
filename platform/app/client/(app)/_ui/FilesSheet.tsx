@@ -32,7 +32,7 @@ export function FilesSheet({ files, invoices, projects }: { files: SheetFile[]; 
       const res = await uploadAll(Array.from(list), { projectId });
       const bad = res.filter((r) => !r.ok);
       const good = res.length - bad.length;
-      setMsg(bad.length ? { error: bad.map((b) => (b.ok ? "" : b.error)).join(" ") } : { ok: `${good} file${good > 1 ? "s" : ""} shared with Ehab.` });
+      setMsg(bad.length ? { error: bad.map((b) => (b.ok ? "" : b.error)).join(" ") } : { ok: `${good} file${good > 1 ? "s" : ""} shared with Epsilon.` });
       if (good) {
         setCat("project");
         router.refresh();
@@ -45,7 +45,7 @@ export function FilesSheet({ files, invoices, projects }: { files: SheetFile[]; 
   const cards: { k: Cat; title: string; sub: string; preview?: boolean }[] = [
     { k: "invoices", title: "Invoices", sub: invoices.length ? `${invoices.length} issued${invoices.length > 1 ? ` · ${invoices[invoices.length - 1].number} to ${invoices[0].number}` : ` · ${invoices[0].number}`}` : "None issued yet", preview: invoices.length > 0 },
     { k: "attachments", title: "Attachments", sub: attachments.length ? `${attachments.length} file${attachments.length > 1 ? "s" : ""} · from tickets` : "Files added to tickets show here" },
-    { k: "project", title: "Project files", sub: projectFiles.length ? `${projectFiles.length} file${projectFiles.length > 1 ? "s" : ""} · shared with Ehab` : "Specs, photos, exports you share" },
+    { k: "project", title: "Project files", sub: projectFiles.length ? `${projectFiles.length} file${projectFiles.length > 1 ? "s" : ""} · shared with Epsilon` : "Specs, photos, exports you share" },
   ];
 
   const list = cat === "attachments" ? attachments : cat === "project" ? projectFiles : [];

@@ -81,7 +81,7 @@ export function RequestSheet({ projects }: { projects: { id: string; name: strin
         failed = res.filter((x) => !x.ok).map((x) => (x.ok ? "" : x.error));
       }
       setDone({ ref: r.ref, id: r.id, project: projects.find((p) => p.id === projectId)?.name ?? "", kind: KINDS.find((k) => k[0] === kind)?.[1] ?? kind, failed });
-      eps()?.toast(`Request ${r.ref} sent · Ehab is notified`, { icon: "check" });
+      eps()?.toast(`Request ${r.ref} sent · Epsilon is notified`, { icon: "check" });
       router.refresh();
     } catch {
       setError("We couldn't send the request. Check your connection and try again.");
@@ -95,7 +95,7 @@ export function RequestSheet({ projects }: { projects: { id: string; name: strin
       <div className="sheet-head">
         <div className="grow">
           <h2 id="req-title">New request</h2>
-          <div className="c-3 t-13">Goes to Ehab. You get a ticket number straight away.</div>
+          <div className="c-3 t-13">Goes to Epsilon. You get a ticket number straight away.</div>
         </div>
         <button className="btn btn-secondary btn-icon" type="button" aria-label="Close" onClick={close}>
           <Icon name="x" />
@@ -114,7 +114,7 @@ export function RequestSheet({ projects }: { projects: { id: string; name: strin
                 Request <span className="mono">{done.ref}</span> created
               </h3>
               <p className="c-2 t-13" style={{ maxWidth: "34ch" }}>
-                {done.project} · {done.kind.toLowerCase()}. Ehab sees it in his queue now and replies within two working days.
+                {done.project} · {done.kind.toLowerCase()}. Epsilon sees it in the queue now and replies within two working days.
               </p>
               {done.failed.length > 0 && (
                 <p className="auth-error" role="alert" style={{ textAlign: "left" }}>
@@ -264,7 +264,7 @@ export function RequestSheet({ projects }: { projects: { id: string; name: strin
             )}
           </form>
           <div className="sheet-foot">
-            <span className="c-3 t-12 grow">Ehab replies within two working days.</span>
+            <span className="c-3 t-12 grow">Epsilon replies within two working days.</span>
             <button className="btn btn-ghost" type="button" onClick={close}>
               Cancel
             </button>

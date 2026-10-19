@@ -11,7 +11,7 @@ import { NoOrg } from "../_ui/NoOrg";
 export const metadata: Metadata = { title: "Testimonial" };
 
 type Row = { id: string; quote: string; author_name: string; author_role: string; status: string; approved_at: string | null; created_at: string };
-const LABEL: Record<string, string> = { requested: "Ehab asked", client_approved: "Approved by you", published: "On epsilon-labs.co", withdrawn: "Withdrawn" };
+const LABEL: Record<string, string> = { requested: "Epsilon asked", client_approved: "Approved by you", published: "On epsilon-labs.co", withdrawn: "Withdrawn" };
 
 /** E4: the client writes or approves testimonial wording. Nothing is published until they approve it here. */
 export default async function TestimonialPage() {
@@ -47,7 +47,7 @@ export default async function TestimonialPage() {
           <section className="panel panel-pad">
             {open ? (
               <>
-                <h2 className="t-16 w-600" style={{ marginBottom: 6 }}>Ehab asked for a short testimonial</h2>
+                <h2 className="t-16 w-600" style={{ marginBottom: 6 }}>Epsilon asked for a short testimonial</h2>
                 <p className="hint" style={{ marginBottom: 12 }}>{open.quote ? "He suggested the wording below. Change anything, or rewrite it entirely, then approve." : "Two or three sentences is plenty. Approve it when it reads right."}</p>
                 {form(open.id, open.quote, "t-open")}
               </>
@@ -75,7 +75,7 @@ export default async function TestimonialPage() {
                       <span className="c-3 t-12">{[r.author_name, r.author_role].filter(Boolean).join(", ")} · {LABEL[r.status]}{r.approved_at ? ` · ${dayMonthYear(r.approved_at)}` : ""}</span>
                     </span>
                     {(r.status === "client_approved" || r.status === "published") && (
-                      <ActionButton className="btn btn-ghost btn-sm" label="Withdraw" confirmText="Withdraw this testimonial? Ehab is told so it comes off the website." action={withdrawTestimonial.bind(null, r.id)} />
+                      <ActionButton className="btn btn-ghost btn-sm" label="Withdraw" confirmText="Withdraw this testimonial? Epsilon is told so it comes off the website." action={withdrawTestimonial.bind(null, r.id)} />
                     )}
                   </div>
                 ))}

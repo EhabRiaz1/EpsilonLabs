@@ -144,7 +144,7 @@ export default async function ClientHome() {
             <p>
               {needLast ? `${needLast.body.slice(0, 180)}${needLast.body.length > 180 ? "…" : ""}` : (
                 <>
-                  Ehab is waiting on your review of <span className="mono">{need.ref}</span>. Approve it, or tell him what to change.
+                  Epsilon is waiting on your review of <span className="mono">{need.ref}</span>. Approve it, or tell us what to change.
                 </>
               )}
               {waiting.length > 1 ? ` (${waiting.length - 1} more waiting on you.)` : ""}
@@ -161,7 +161,7 @@ export default async function ClientHome() {
         <section className="panel needs-c calm" aria-label="Needs your input">
           <div>
             <h2>Nothing needs you right now</h2>
-            <p>When Ehab needs a decision or a review from you, it shows here first.</p>
+            <p>When Epsilon needs a decision or a review from you, it shows here first.</p>
           </div>
         </section>
       )}
@@ -321,7 +321,7 @@ export default async function ClientHome() {
       {update && (
         <>
           <div className="eyebrow-t">
-            {update.source === "weekly" ? "This week from Ehab" : "Latest from Ehab"} <span className="c-3">· {update.title}</span>
+            {update.source === "weekly" ? "This week from Epsilon" : "Latest from Epsilon"} <span className="c-3">· {update.title}</span>
             <Link className="more" href="/updates">
               All updates →
             </Link>

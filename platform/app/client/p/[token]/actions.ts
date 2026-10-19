@@ -75,8 +75,8 @@ export async function sendCode(token: string, name: string): Promise<SendResult>
         ok: false,
         reason: "terms_inactive",
         message: told
-          ? "This proposal can't be accepted yet; Ehab has been notified and will be in touch."
-          : "This proposal can't be accepted yet. Please let Ehab know at er@epsilon-labs.co.",
+          ? "This proposal can't be accepted yet; Epsilon has been notified and will be in touch."
+          : "This proposal can't be accepted yet. Please let Epsilon know at er@epsilon-labs.co.",
       };
     }
     case "rate_limited":
@@ -142,7 +142,7 @@ export async function confirmCode(token: string, code: string, name: string): Pr
     case "no_code":
       return { ok: false, reason: "code_expired", message: "This code has expired. Send a new one." };
     case "terms_inactive":
-      return { ok: false, reason: "terms_inactive", message: "This proposal can't be accepted yet; Ehab has been notified." };
+      return { ok: false, reason: "terms_inactive", message: "This proposal can't be accepted yet; Epsilon has been notified." };
     default:
       return { ok: false, reason: "gone", message: GONE };
   }

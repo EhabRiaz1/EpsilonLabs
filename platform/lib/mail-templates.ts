@@ -73,9 +73,9 @@ export function proposalLinkEmail(o: { contactName: string; title: string; link:
         ["Valid until", o.validUntil],
       ]) +
       button(o.link, "Review proposal") +
-      small("Accepting asks for a 6-digit code sent to this address. Questions go to Ehab by reply.") +
+      small("Accepting asks for a 6-digit code sent to this address. Questions go to Epsilon by reply.") +
       signature(),
-    text: [`Hi ${first},`, `Your proposal for "${o.title}"${v} is ready:\n${o.link}`, `Valid until ${o.validUntil}. Questions go to Ehab by reply.`],
+    text: [`Hi ${first},`, `Your proposal for "${o.title}"${v} is ready:\n${o.link}`, `Valid until ${o.validUntil}. Questions go to Epsilon by reply.`],
   });
 }
 

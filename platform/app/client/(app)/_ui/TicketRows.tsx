@@ -107,7 +107,7 @@ export function TicketRows({ rows, initiallyOpen }: { rows: TicketRow[]; initial
                             <Icon name="send" className="i-sm" />
                             Reply
                           </Link>
-                          {r.waiting && <span className="note-t">Ehab is waiting on you</span>}
+                          {r.waiting && <span className="note-t">Epsilon is waiting on you</span>}
                         </div>
                       </div>
                     </div>

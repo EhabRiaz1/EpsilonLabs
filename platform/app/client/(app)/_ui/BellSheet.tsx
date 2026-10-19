@@ -69,7 +69,7 @@ export function BellSheet({ items }: { items: Bell[] }) {
             </div>
             <h2 className="display">Nothing new</h2>
             <p className="c-2" style={{ maxWidth: "34ch" }}>
-              Status changes, replies from Ehab, new files and invoices show up here.
+              Status changes, replies from Epsilon, new files and invoices show up here.
             </p>
           </div>
         )}

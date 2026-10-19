@@ -104,7 +104,7 @@ export default async function TicketThread({ params }: { params: Promise<{ id: s
                 </div>
               ) : (
                 <p className="c-3 t-13" style={{ marginBottom: 12 }}>
-                  No files yet. Screenshots, exports or a photo of the screen help Ehab reproduce it first time.
+                  No files yet. Screenshots, exports or a photo of the screen help Epsilon reproduce it first time.
                 </p>
               )}
               {isOpen(ticket.status) && <AttachFiles ticketId={ticket.id} />}
@@ -135,7 +135,7 @@ export default async function TicketThread({ params }: { params: Promise<{ id: s
           <section className="panel" id="reply-panel">
             <div className="panel-head">
               <h2>Reply</h2>
-              <span className="c-3 t-12 more">Ehab replies within two working days</span>
+              <span className="c-3 t-12 more">Epsilon replies within two working days</span>
             </div>
             <ThreadComposer ticketId={ticket.id} readOnly={!isOpen(ticket.status)} />
           </section>

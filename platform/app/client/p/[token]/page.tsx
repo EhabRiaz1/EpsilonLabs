@@ -35,22 +35,22 @@ export default async function ProposalPage({ params }: Props) {
   await connection();
   const { token } = await params;
   const p = await load(token);
-  if (!p || p.state === "not_found") return <Gone icon="lock" title="This link doesn't work" body="Check that you copied the whole link from the email. If it still doesn't open, reply to Ehab's email and he'll send it again." />;
+  if (!p || p.state === "not_found") return <Gone icon="lock" title="This link doesn't work" body="Check that you copied the whole link from the email. If it still doesn't open, reply to Epsilon's email and we'll send it again." />;
   if (p.state === "void")
     return (
       <Gone
         icon="layers"
         title="This link is no longer active"
-        body="This version of the proposal was withdrawn or replaced. If Ehab sent you a newer version, use the link in the latest email; otherwise reply and ask for it."
+        body="This version of the proposal was withdrawn or replaced. If Epsilon sent you a newer version, use the link in the latest email; otherwise reply and ask for it."
       />
     );
-  if (p.state === "declined") return <Gone icon="x" title="This proposal was declined" body="If you'd like to pick it up again, reply to Ehab's email." />;
+  if (p.state === "declined") return <Gone icon="x" title="This proposal was declined" body="If you'd like to pick it up again, reply to Epsilon's email." />;
   if (p.state === "expired")
     return (
       <Gone
         icon="clock"
         title="This proposal has expired"
-        body={`It was valid until ${dayMonthYear(p.valid_until)}. Reply to the email it came with, or write to er@epsilon-labs.co, and Ehab will send a current version.`}
+        body={`It was valid until ${dayMonthYear(p.valid_until)}. Reply to the email it came with, or write to er@epsilon-labs.co, and Epsilon will send a current version.`}
       />
     );
 

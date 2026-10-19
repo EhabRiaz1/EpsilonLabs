@@ -42,8 +42,8 @@ export function UpdateCard({ meta, md, title, aside }: { meta: string; md: strin
           ER
         </span>
         <div className="grow">
-          <div className="who">{title ?? "Ehab Riaz"}</div>
-          <div className="m">{title ? `Ehab Riaz · ${meta}` : meta}</div>
+          <div className="who">{title ?? "Epsilon Labs"}</div>
+          <div className="m">{title ? `Epsilon Labs · ${meta}` : meta}</div>
         </div>
         {aside}
       </div>

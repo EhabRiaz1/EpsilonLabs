@@ -31,7 +31,7 @@ export default async function UpdatesFeed() {
       {!error && rows.length === 0 && (
         <section className="panel">
           <Empty icon="send" title="No updates yet">
-            <p>Ehab posts a short update on Fridays: done this week, what&apos;s next, and anything that needs you.</p>
+            <p>Epsilon posts a short update on Fridays: done this week, what&apos;s next, and anything that needs you.</p>
           </Empty>
         </section>
       )}

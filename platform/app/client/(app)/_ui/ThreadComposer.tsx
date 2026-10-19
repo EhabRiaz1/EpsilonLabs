@@ -34,7 +34,7 @@ export function ThreadComposer({ ticketId, readOnly }: { ticketId: string; readO
         className="textarea"
         id="reply"
         maxLength={10000}
-        placeholder="Add a note or answer Ehab's question. Everyone in your organisation can see it."
+        placeholder="Add a note or answer Epsilon's question. Everyone in your organisation can see it."
         value={body}
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={(e) => {

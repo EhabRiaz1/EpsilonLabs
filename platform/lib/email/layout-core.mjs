@@ -386,16 +386,16 @@ export function steps(rows) {
 }
 
 /**
- * Ehab's sign-off under a hairline.
+ * The Epsilon Labs sign-off under a hairline (the company first, the founder under it).
  * @param {{ line2?: string, reply?: string }} [o]
  */
 export function signature(o = {}) {
-  const line2 = o.line2 ?? "Founder, Epsilon Labs";
-  const reply = o.reply ?? "Reply to this email and it reaches me directly.";
+  const line2 = o.line2 ?? "Ehab Riaz · Founder";
+  const reply = o.reply ?? "Reply to this email and it reaches us directly.";
   return (
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0 0"><tr>` +
     `<td class="rule" style="border-top:1px solid ${RULE};padding:20px 0 0">` +
-    `<div class="ink" style="font:600 14px/20px ${SANS};color:${INK}">Ehab Riaz</div>` +
+    `<div class="ink" style="font:600 14px/20px ${SANS};color:${INK}">Epsilon Labs</div>` +
     `<div class="muted" style="font:400 13px/20px ${SANS};color:${MUTED}">${esc(line2)}</div>` +
     `<div class="muted" style="font:400 12px/18px ${MONO};color:${MUTED};margin:6px 0 0">${esc(reply)}</div></td></tr></table>`
   );

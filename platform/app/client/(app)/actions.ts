@@ -84,7 +84,7 @@ export async function addComment(ticketId: string, body: string): Promise<Result
     return { error: /read-only/.test(error.message) ? "This ticket is read-only." : "We couldn't add your note. Try again." };
   }
   revalidatePath(`/tickets/${ticketId}`);
-  return { ok: "Sent to Ehab." };
+  return { ok: "Sent to Epsilon." };
 }
 
 export async function markRead(ids: string[] | null): Promise<void> {
@@ -215,7 +215,7 @@ export async function submitTestimonial(id: string | null, orgId: string, _prev:
     return { error: /no longer be changed/.test(error.message) ? "This one can no longer be changed." : /read-only/.test(error.message) ? "This organisation is read-only." : "We couldn't save it. Try again." };
   }
   revalidatePath("/testimonial");
-  return { ok: "Thank you. Ehab will be in touch before it appears anywhere." };
+  return { ok: "Thank you. Epsilon will be in touch before it appears anywhere." };
 }
 
 export async function withdrawTestimonial(id: string): Promise<Result> {
@@ -226,5 +226,5 @@ export async function withdrawTestimonial(id: string): Promise<Result> {
   const { error } = await supabase.rpc("withdraw_testimonial", { p_id: id });
   if (error) return { error: "We couldn't withdraw it. Try again." };
   revalidatePath("/testimonial");
-  return { ok: "Withdrawn. Ehab is told so it comes off the website." };
+  return { ok: "Withdrawn. Epsilon is told so it comes off the website." };
 }
